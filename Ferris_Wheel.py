@@ -210,9 +210,12 @@ st.progress(st.session_state.step / (total_steps - 1))
 st.markdown(f"**Step {st.session_state.step + 1} of {total_steps}**")
 st.markdown("---")
 
+if st.session_state.get('step', 0) == 0:
+    st.header("Step 1: Select Ferris Wheel Generation")
+
+
 # === STEP 0: Generation selection (single-click advances to geometry) ===
 if st.session_state.step == 0:
-    st.header("Step 1: Select Ferris Wheel Generation")
     c1, c2 = st.columns(2)
     with c1:
         st.button("🎡 1st Generation (Truss type)", key="gen_btn_1", on_click=select_generation, args=("1st Generation (Truss type)",))
