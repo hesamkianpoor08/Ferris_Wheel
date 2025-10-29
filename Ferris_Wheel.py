@@ -179,24 +179,19 @@ if st.session_state.step == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("🎡 1st Generation (Truss type)"):
-            select_generation("1st Generation (Truss type)")
+        st.button("🎡 1st Generation (Truss type)", key="gen_btn_1", on_click=select_generation, args=("1st Generation (Truss type)",))
     with c2:
-        if st.button("🎡 2nd Generation (Cable type)"):
-            select_generation("2nd Generation (Cable type)")
+        st.button("🎡 2nd Generation (Cable type)", key="gen_btn_2", on_click=select_generation, args=("2nd Generation (Cable type)",))
     c3, c4 = st.columns(2)
     with c3:
-        if st.button("🎡 2nd Generation (Pure cable type)"):
-            select_generation("2nd Generation (Pure cable type)")
+        st.button("🎡 2nd Generation (Pure cable type)", key="gen_btn_3", on_click=select_generation, args=("2nd Generation (Pure cable type)",))
     with c4:
-        if st.button("🎡 4th Generation (Hubless centerless)"):
-            select_generation("4th Generation (Hubless centerless)")
+        st.button("🎡 4th Generation (Hubless centerless)", key="gen_btn_4", on_click=select_generation, args=("4th Generation (Hubless centerless)",))
 
 # === STEP 1: Cabin Geometry (moved to be the first page after generation) ===
 elif st.session_state.step == 1:
     st.header("Step 2: Cabin Geometry Selection")
-    st.markdown("Choose cabin geometry. After choosing, base formula will be applied (Spherical → π·d/5, others → π·d/4). If current cabin count is outside allowed range it will be adjusted automatically. Then you'll proceed to Primary Parameters page.")
-    st.markdown("---")
+    # minimal UI: only buttons (no long explanations or calculation details)
     col1, col2, col3, col4 = st.columns(4)
 
     # Square
@@ -205,13 +200,11 @@ elif st.session_state.step == 1:
             st.session_state.cabin_geometry = "Square"
             base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
             min_c, max_c = calc_min_max_from_base(base)
-            # auto-clamp and notify
+            # auto-clamp silently
             if st.session_state.num_cabins < min_c:
                 st.session_state.num_cabins = min_c
-                st.warning(f"Number of cabins was below minimum for Square; set to {min_c}. Recalculate capacities on next page if needed.")
             elif st.session_state.num_cabins > max_c:
                 st.session_state.num_cabins = max_c
-                st.warning(f"Number of cabins was above maximum for Square; set to {max_c}. Recalculate capacities on next page if needed.")
             st.session_state.capacities_calculated = False
             # advance to primary parameters
             st.session_state.step = 2
@@ -224,10 +217,8 @@ elif st.session_state.step == 1:
             min_c, max_c = calc_min_max_from_base(base)
             if st.session_state.num_cabins < min_c:
                 st.session_state.num_cabins = min_c
-                st.warning(f"Number of cabins was below minimum for Vertical Cylinder; set to {min_c}. Recalculate capacities on next page if needed.")
             elif st.session_state.num_cabins > max_c:
                 st.session_state.num_cabins = max_c
-                st.warning(f"Number of cabins was above maximum for Vertical Cylinder; set to {max_c}. Recalculate capacities on next page if needed.")
             st.session_state.capacities_calculated = False
             st.session_state.step = 2
 
@@ -239,10 +230,8 @@ elif st.session_state.step == 1:
             min_c, max_c = calc_min_max_from_base(base)
             if st.session_state.num_cabins < min_c:
                 st.session_state.num_cabins = min_c
-                st.warning(f"Number of cabins was below minimum for Horizontal Cylinder; set to {min_c}. Recalculate capacities on next page if needed.")
             elif st.session_state.num_cabins > max_c:
                 st.session_state.num_cabins = max_c
-                st.warning(f"Number of cabins was above maximum for Horizontal Cylinder; set to {max_c}. Recalculate capacities on next page if needed.")
             st.session_state.capacities_calculated = False
             st.session_state.step = 2
 
@@ -254,22 +243,16 @@ elif st.session_state.step == 1:
             min_c, max_c = calc_min_max_from_base(base)
             if st.session_state.num_cabins < min_c:
                 st.session_state.num_cabins = min_c
-                st.warning(f"Number of cabins was below minimum for Spherical; set to {min_c}. Recalculate capacities on next page if needed.")
             elif st.session_state.num_cabins > max_c:
                 st.session_state.num_cabins = max_c
-                st.warning(f"Number of cabins was above maximum for Spherical; set to {max_c}. Recalculate capacities on next page if needed.")
             st.session_state.capacities_calculated = False
             st.session_state.step = 2
-
-    if st.session_state.cabin_geometry:
-        st.success(f"Selected geometry: {st.session_state.cabin_geometry}")
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        # If user wants to skip selection and go next (not recommended), validate will catch missing geometry
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 2: Primary parameters + Cabin capacity + VIP (one page) ===
@@ -519,5 +502,6 @@ elif st.session_state.step == 5:
     with m:
         st.button("🔄 New Design", on_click=reset_design)
     st.success("✅ Design Complete!")
+
 
 
