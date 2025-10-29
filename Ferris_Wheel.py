@@ -213,15 +213,21 @@ if st.session_state.get('step', 0) == 0:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
 
-    st.markdown("---")
-    # single selection control under images (radio). on_change advances to next step.
+    st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
+
     options = [
         "1st Generation (Truss type)",
         "2nd Generation (Cable type)",
         "2nd Generation (Pure cable type)",
         "4th Generation (Hubless centerless)"
     ]
-    st.radio("Choose generation:", options=options, key="gen_radio", on_change=select_generation_from_radio)
+
+    selected = st.selectbox("Choose generation:", options=options, key="gen_selectbox")
+
+if selected:
+    st.session_state.generation_type = selected
+    st.session_state.step = 1
+
 
 # === STEP 1: Cabin Geometry (moved to be the first page after generation) ===
 elif st.session_state.step == 1:
