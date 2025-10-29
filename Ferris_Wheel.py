@@ -98,14 +98,6 @@ def select_generation(gen):
     # go directly to cabin geometry page on single click
     st.session_state.step = 1
 
-# callback for radio selection (single control below images)
-def select_generation_from_radio():
-    sel = st.session_state.get('gen_radio')
-    if sel:
-        st.session_state.generation_type = sel
-        st.session_state.step = 1
-
-
 def go_back():
     st.session_state.step = max(0, st.session_state.step - 1)
 
@@ -186,9 +178,9 @@ st.markdown("---")
 if st.session_state.get('step', 0) == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
 
-# === STEP 0: Generation selection (images + radio below, single-click advances) ===
+# === STEP 0: Generation selection (images + buttons under each image for single-click) ===
 if st.session_state.get('step', 0) == 0:
-    # show images with captions (no individual buttons)
+    # show images with captions and a button under each - single-click will select even the first one
     image_files = [
         "./git/assets/1st.jpg",
         "./git/assets/2nd_1.jpg",
@@ -196,92 +188,61 @@ if st.session_state.get('step', 0) == 0:
         "./git/assets/4th.jpg"
     ]
     captions = [
-        "1st Generation",
-        "2nd Generation",
-        "2nd Generation (Pure cable)",
-        "4th Generation"
+        "1st Generation (Truss type)",
+        "2nd Generation (Cable type)",
+        "2nd Generation (Pure cable type)",
+        "4th Generation (Hubless centerless)"
     ]
-    # larger images per request
     img_width = 180
 
     cols = st.columns(4, gap="small")
-    for col, img_path, caption in zip(cols, image_files, captions):
+    for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
         with col:
             try:
                 st.image(img_path, width=img_width)
             except Exception:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
+            # button under each image to select that generation (single click)
+            if st.button(f"Select\n{caption}", key=f"gen_btn_{i}"):
+                st.session_state.generation_type = caption
+                st.session_state.step = 1
 
     st.markdown("---")
-    # single selection control under images (radio). on_change advances to next step.
-    options = [
-        "1st Generation (Truss type)",
-        "2nd Generation (Cable type)",
-        "2nd Generation (Pure cable type)",
-        "4th Generation (Hubless centerless)"
-    ]
-    st.radio("Choose generation:", options=options, key="gen_radio", on_change=select_generation_from_radio)
+    st.write("Or choose with keyboard: use the image buttons above to select a generation.")
 
-# === STEP 1: Cabin Geometry (moved to be the first page after generation) ===
+# === STEP 1: Cabin Geometry (now also shows the 4 new images you requested) ===
 elif st.session_state.step == 1:
     st.header("Step 2: Cabin Geometry Selection")
-    # minimal UI: only buttons (no long explanations or calculation details)
-    col1, col2, col3, col4 = st.columns(4)
-
-    # Square
-    with col1:
-        if st.button("📦 Square", key="geom_square"):
-            st.session_state.cabin_geometry = "Square"
-            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
-            min_c, max_c = calc_min_max_from_base(base)
-            # auto-clamp silently
-            if st.session_state.num_cabins < min_c:
-                st.session_state.num_cabins = min_c
-            elif st.session_state.num_cabins > max_c:
-                st.session_state.num_cabins = max_c
-            st.session_state.capacities_calculated = False
-            # advance to primary parameters
-            st.session_state.step = 2
-
-    # Vertical Cylinder
-    with col2:
-        if st.button("🔴 Vertical Cylinder", key="geom_vcyl"):
-            st.session_state.cabin_geometry = "Vertical Cylinder"
-            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
-            min_c, max_c = calc_min_max_from_base(base)
-            if st.session_state.num_cabins < min_c:
-                st.session_state.num_cabins = min_c
-            elif st.session_state.num_cabins > max_c:
-                st.session_state.num_cabins = max_c
-            st.session_state.capacities_calculated = False
-            st.session_state.step = 2
-
-    # Horizontal Cylinder
-    with col3:
-        if st.button("🔵 Horizontal Cylinder", key="geom_hcyl"):
-            st.session_state.cabin_geometry = "Horizontal Cylinder"
-            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
-            min_c, max_c = calc_min_max_from_base(base)
-            if st.session_state.num_cabins < min_c:
-                st.session_state.num_cabins = min_c
-            elif st.session_state.num_cabins > max_c:
-                st.session_state.num_cabins = max_c
-            st.session_state.capacities_calculated = False
-            st.session_state.step = 2
-
-    # Spherical
-    with col4:
-        if st.button("⚪ Spherical", key="geom_sphere"):
-            st.session_state.cabin_geometry = "Spherical"
-            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
-            min_c, max_c = calc_min_max_from_base(base)
-            if st.session_state.num_cabins < min_c:
-                st.session_state.num_cabins = min_c
-            elif st.session_state.num_cabins > max_c:
-                st.session_state.num_cabins = max_c
-            st.session_state.capacities_calculated = False
-            st.session_state.step = 2
+    st.markdown("Choose a cabin shape. (Click the image's button to select.)")
+    # display images you asked for: horizontal.jpg, sphere.jpg, square.jpg, vertical.jpg
+    geom_images = [
+        ("Square", "./git/assets/square.jpg"),
+        ("Vertical Cylinder", "./git/assets/vertical.jpg"),
+        ("Horizontal Cylinder", "./git/assets/horizontal.jpg"),
+        ("Spherical", "./git/assets/sphere.jpg")
+    ]
+    cols = st.columns(4, gap="small")
+    for i, (label, img_path) in enumerate(geom_images):
+        with cols[i]:
+            try:
+                st.image(img_path, use_column_width=True)
+            except Exception:
+                st.write(f"Image not found: {img_path}")
+            st.caption(label)
+            # unique keys for these buttons (avoid collisions with previous keys)
+            if st.button(f"Select\n{label}", key=f"geom_img_btn_{i}"):
+                st.session_state.cabin_geometry = label if label != "Spherical" else "Spherical"
+                base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
+                min_c, max_c = calc_min_max_from_base(base)
+                # auto-clamp silently
+                if st.session_state.num_cabins < min_c:
+                    st.session_state.num_cabins = min_c
+                elif st.session_state.num_cabins > max_c:
+                    st.session_state.num_cabins = max_c
+                st.session_state.capacities_calculated = False
+                # advance to primary parameters
+                st.session_state.step = 2
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
@@ -538,6 +499,4 @@ elif st.session_state.step == 5:
     with m:
         st.button("🔄 New Design", on_click=reset_design)
     st.success("✅ Design Complete!")
-
-
 
