@@ -99,10 +99,15 @@ def select_generation(gen):
     st.session_state.step = 1
 
 # === STEP 0: Generation selection with small images (single-click advances) ===
-if st.session_state.get('step',0) == 0:
+if st.session_state.get('step', 0) == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
 
-    image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
+    image_files = [
+        "./git/assets/1st.jpg",
+        "./git/assets/2nd_1.jpg",
+        "./git/assets/2nd_2.jpg",
+        "./git/assets/4th.jpg"
+    ]
     btn_labels = [
         "🎡 1st Generation (Truss type)",
         "🎡 2nd Generation (Cable type)",
@@ -115,16 +120,18 @@ if st.session_state.get('step',0) == 0:
         "2nd Generation (Pure cable type)",
         "4th Generation (Hubless centerless)"
     ]
-    btn_keys = ["gen_btn_1", "gen_btn_2", "gen_btn_3", "gen_btn_4"]
 
-    cols = st.columns(4)
-    for col, img, label, gen, k in zip(cols, image_files, btn_labels, gens, btn_keys):
+    btn_keys = [f"gen_btn_{i}_select" for i in range(len(image_files))]
+
+    cols = st.columns(4, gap="small")
+    for col, img_path, label, gen, key in zip(cols, image_files, btn_labels, gens, btn_keys):
         with col:
             try:
-                st.image(img, width=120)   
+                st.image(img_path, width=120)
             except Exception:
-                st.write(f"Image not found: {img}")
-            st.button(label, key=k, on_click=select_generation, args=(gen,))
+                st.write(f"Image not found: {img_path}")
+            st.write("")
+            st.button(label, key=key, on_click=select_generation, args=(gen,))
 
 
 def go_back():
