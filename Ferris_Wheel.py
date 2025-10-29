@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-from PIL import Image
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -11,9 +10,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- Initialize Session State ---
+# --- Session State Initialization ---
 if 'step' not in st.session_state:
-    st.session_state.step = 0  # 0: gen, 1: primary+capacity+vip, 2: geometry, 3: rotation, 4: environment, 5: final
+    st.session_state.step = 0  # 0: generation, 1: primary (params+capacity+VIP), 2: geometry, 3: rotation, 4: environment, 5: final
 if 'generation_type' not in st.session_state:
     st.session_state.generation_type = None
 if 'diameter' not in st.session_state:
@@ -28,19 +27,20 @@ if 'cabin_geometry' not in st.session_state:
     st.session_state.cabin_geometry = None
 if 'rotation_time_min' not in st.session_state:
     st.session_state.rotation_time_min = None
-if 'environment_data' not in st.session_state:
-    st.session_state.environment_data = {}
-if 'validation_errors' not in st.session_state:
-    st.session_state.validation_errors = []
 if 'capacities_calculated' not in st.session_state:
     st.session_state.capacities_calculated = False
+if 'environment_data' not in st.session_state:
+    st.session_state.environment_data = {}
 if 'wind_rose_loaded' not in st.session_state:
     st.session_state.wind_rose_loaded = False
 if 'wind_rose_file' not in st.session_state:
     st.session_state.wind_rose_file = None
+if 'validation_errors' not in st.session_state:
+    st.session_state.validation_errors = []
 
-# --- Helpers ---
+# --- Helper functions ---
 def base_for_geometry(diameter, geometry):
+    """If geometry is spherical use pi*d/5, else pi*d/4"""
     if geometry == "Spherical":
         return np.pi * diameter / 5.0
     else:
@@ -54,6 +54,7 @@ def calc_min_max_from_base(base):
     return min_c, max_c
 
 def calculate_capacity_per_hour_from_time(num_cabins, cabin_capacity, num_vip, rotation_time_minutes):
+    """Capacity per hour considering VIP cabins hold (capacity-2)"""
     if rotation_time_minutes is None or rotation_time_minutes <= 0:
         return 0
     rotations_per_hour = 60.0 / rotation_time_minutes
@@ -62,21 +63,21 @@ def calculate_capacity_per_hour_from_time(num_cabins, cabin_capacity, num_vip, r
     passengers_per_rotation = num_vip * vip_cap + regular_cabins * cabin_capacity
     return passengers_per_rotation * rotations_per_hour
 
-def calc_ang_and_rpm_from_rotation_time(rotation_time_min, diameter):
+def calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter):
     if rotation_time_min and rotation_time_min > 0:
         sec = rotation_time_min * 60.0
         ang = 2.0 * np.pi / sec  # rad/s
         rpm = ang * 60.0 / (2.0 * np.pi)
-        linear = ang * (diameter/2.0)
+        linear = ang * (diameter / 2.0)
         return ang, rpm, linear
     return 0.0, 0.0, 0.0
 
 def create_component_diagram(diameter, height, capacity, motor_power):
-    fig = go.Figure()
     theta = np.linspace(0, 2*np.pi, 200)
     x_wheel = diameter/2 * np.cos(theta)
     y_wheel = diameter/2 * np.sin(theta) + height/2
 
+    fig = go.Figure()
     fig.add_trace(go.Scatter(x=x_wheel, y=y_wheel, mode='lines', line=dict(color='#2196F3', width=3), showlegend=False))
     fig.add_trace(go.Scatter(x=[0,0], y=[0,height/2], mode='lines', line=dict(color='#FF5722', width=6), showlegend=False))
 
@@ -94,7 +95,7 @@ def create_component_diagram(diameter, height, capacity, motor_power):
 # --- Navigation & validation ---
 def select_generation(gen):
     st.session_state.generation_type = gen
-    # go directly to step 1 (primary page) with one click
+    # go directly to primary parameters page on single click
     st.session_state.step = 1
 
 def go_back():
@@ -109,58 +110,61 @@ def reset_design():
     st.session_state.num_vip_cabins = 1
     st.session_state.cabin_geometry = None
     st.session_state.rotation_time_min = None
-    st.session_state.environment_data = {}
-    st.session_state.validation_errors = []
     st.session_state.capacities_calculated = False
+    st.session_state.environment_data = {}
     st.session_state.wind_rose_loaded = False
     st.session_state.wind_rose_file = None
+    st.session_state.validation_errors = []
 
-def validate_step_and_next():
-    errors = []
+def validate_current_step_and_next():
     s = st.session_state
-    step = s.step
-    if step == 0:
+    errors = []
+
+    if s.step == 0:
         if not s.generation_type:
-            errors.append("Select a generation.")
-    elif step == 1:
+            errors.append("Please select a generation.")
+    elif s.step == 1:
+        # diameter enforced 30-80
         if s.diameter is None or s.diameter < 30 or s.diameter > 80:
-            errors.append("Diameter must be between 30 and 80 m.")
+            errors.append("Diameter must be between 30 and 80 meters.")
         if s.num_cabins is None or s.num_cabins <= 0:
             errors.append("Set a valid number of cabins.")
         if s.cabin_capacity is None or s.cabin_capacity < 4 or s.cabin_capacity > 8:
             errors.append("Cabin capacity must be between 4 and 8.")
         if s.num_vip_cabins is None or s.num_vip_cabins < 0 or s.num_vip_cabins > s.num_cabins:
-            errors.append("VIP cabins must be between 0 and total cabins.")
+            errors.append("Number of VIP cabins must be between 0 and total cabins.")
         if not s.capacities_calculated:
-            errors.append("Click 'Calculate Capacities' before continuing.")
-    elif step == 2:
+            errors.append("Please click 'Calculate Capacities' before continuing.")
+    elif s.step == 2:
         if not s.cabin_geometry:
-            errors.append("Select a cabin geometry.")
-    elif step == 3:
+            errors.append("Please select a cabin geometry.")
+    elif s.step == 3:
         if s.rotation_time_min is None or s.rotation_time_min <= 0:
-            errors.append("Enter valid rotation time (minutes).")
-    elif step == 4:
+            errors.append("Enter valid rotation time (minutes per rotation).")
+    elif s.step == 4:
         env = s.environment_data
         if not env.get('province'):
             errors.append("Select a province.")
         if not env.get('region_name'):
             errors.append("Enter region name.")
         if 'land_length' not in env or env['land_length'] < 10 or env['land_length'] > 150:
-            errors.append("Land length must be 10-150 m.")
+            errors.append("Land length must be between 10 and 150 meters.")
         if 'land_width' not in env or env['land_width'] < 10 or env['land_width'] > 150:
-            errors.append("Land width must be 10-150 m.")
+            errors.append("Land width must be between 10 and 150 meters.")
         if 'altitude' not in env or env['altitude'] is None:
             errors.append("Enter altitude.")
         if 'wind_max' not in env or env['wind_max'] is None:
-            errors.append("Enter max wind speed (km/h).")
+            errors.append("Enter maximum wind speed (km/h).")
         if s.wind_rose_loaded and not s.wind_rose_file:
             errors.append("Wind rose enabled but no file uploaded.")
+    # show errors or advance
     if errors:
+        st.session_state.validation_errors = errors
         for e in errors:
             st.error(e)
     else:
-        st.session_state.step = min(5, st.session_state.step + 1)
         st.session_state.validation_errors = []
+        st.session_state.step = min(5, st.session_state.step + 1)
 
 # --- UI ---
 st.title("🎡 Ferris Wheel Designer")
@@ -169,7 +173,7 @@ st.progress(st.session_state.step / (total_steps - 1))
 st.markdown(f"**Step {st.session_state.step + 1} of {total_steps}**")
 st.markdown("---")
 
-# STEP 0: Generation (no back/next here)
+# === STEP 0: Generation selection (single-click advances) ===
 if st.session_state.step == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
     c1, c2 = st.columns(2)
@@ -187,42 +191,64 @@ if st.session_state.step == 0:
         if st.button("🎡 4th Generation (Hubless centerless)"):
             select_generation("4th Generation (Hubless centerless)")
 
-# STEP 1: Primary parameters + capacity + vip (merged). removed note lines as requested
+# === STEP 1: Primary parameters + Cabin capacity + VIP (one page) ===
 elif st.session_state.step == 1:
     st.header("Step 2: Primary Parameters, Cabin Capacity & VIP")
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
 
-    # diameter enforced 30-80
+    # Diameter (30-80)
     col1, col2 = st.columns(2)
     with col1:
-        diameter = st.number_input("Ferris Wheel Diameter (m)", min_value=30, max_value=80,
-                                   value=int(st.session_state.diameter), step=1, key="diameter_step1")
-    st.session_state.diameter = diameter
+        diameter = st.number_input(
+            "Ferris Wheel Diameter (m)",
+            min_value=30,
+            max_value=80,
+            value=int(st.session_state.diameter),
+            step=1,
+            key="diameter_input"
+        )
+        st.session_state.diameter = diameter
 
-    # compute base according to selected geometry if present; default to non-spherical (pi*d/4)
+    # Base & cabin count: base depends on geometry if set, else default to pi*d/4
     geometry = st.session_state.cabin_geometry
     base = base_for_geometry(diameter, geometry) if geometry else (np.pi * diameter / 4.0)
     min_c, max_c = calc_min_max_from_base(base)
-    num_cabins = st.number_input("Number of Cabins", min_value=min_c, max_value=max_c,
-                                 value=min(max(int(st.session_state.num_cabins), min_c), max_c),
-                                 step=1, key="num_cabins_step1")
+
+    num_cabins = st.number_input(
+        "Number of Cabins",
+        min_value=min_c,
+        max_value=max_c,
+        value=min(max(int(st.session_state.num_cabins), min_c), max_c),
+        step=1,
+        key="num_cabins_input"
+    )
     st.session_state.num_cabins = num_cabins
 
-    # cabin capacity & VIP on same page
+    # Cabin capacity & VIP on same page
     c1, c2 = st.columns(2)
     with c1:
-        cabin_capacity = st.number_input("Cabin Capacity (passengers per cabin)", min_value=4, max_value=8,
-                                         value=st.session_state.cabin_capacity, step=1, key="cabin_capacity_step1")
+        cabin_capacity = st.number_input(
+            "Cabin Capacity (passengers per cabin)",
+            min_value=4,
+            max_value=8,
+            value=st.session_state.cabin_capacity,
+            step=1,
+            key="cabin_capacity_input"
+        )
         st.session_state.cabin_capacity = cabin_capacity
     with c2:
-        num_vip = st.number_input("Number of VIP Cabins", min_value=0, max_value=st.session_state.num_cabins,
-                                  value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins),
-                                  step=1, key="num_vip_step1")
+        num_vip = st.number_input(
+            "Number of VIP Cabins",
+            min_value=0,
+            max_value=st.session_state.num_cabins,
+            value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins),
+            step=1,
+            key="num_vip_input"
+        )
         st.session_state.num_vip_cabins = num_vip
 
     st.markdown("---")
-
     if st.button("🔄 Calculate Capacities"):
         vip_cap = max(0, st.session_state.cabin_capacity - 2)
         vip_total = st.session_state.num_vip_cabins * vip_cap
@@ -232,65 +258,125 @@ elif st.session_state.step == 1:
         c1.metric("Per-rotation capacity", f"{per_rotation} passengers")
         c2.metric("VIP capacity (per rotation)", f"{vip_total} passengers (each VIP: {vip_cap})")
         c3.metric("Total cabins", f"{st.session_state.num_cabins}")
-        st.success("Capacities calculated. You can proceed.")
+        st.success("Capacities calculated.")
         st.session_state.capacities_calculated = True
 
-    # navigation
-    left, right = st.columns([1,1])
-    with left:
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
         st.button("⬅️ Back", on_click=go_back)
-    with right:
-        st.button("Next ➡️", on_click=validate_step_and_next)
+    with right_col:
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# STEP 2: Cabin geometry selection. upon selection go back to step 1 to update formula/range
+# === STEP 2: Cabin Geometry (separate slide). After selection, auto-clamp cabin count and advance to rotation step ===
 elif st.session_state.step == 2:
     st.header("Step 3: Cabin Geometry Selection")
-    st.markdown("Choose cabin geometry (selecting one returns you to the previous page and updates the base formula).")
+    st.markdown("Choose cabin geometry. After choosing, base formula will be applied (Spherical → π·d/5, others → π·d/4). If current cabin count is outside allowed range it will be adjusted automatically. Then you'll proceed to Rotation Time step.")
     st.markdown("---")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        if st.button("📦 Square"):
+    col1, col2, col3, col4 = st.columns(4)
+
+    # Square
+    with col1:
+        if st.button("📦 Square", key="geom_square"):
             st.session_state.cabin_geometry = "Square"
-            st.session_state.step = 1
-    with c2:
-        if st.button("🔴 Vertical Cylinder"):
+            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
+            min_c, max_c = calc_min_max_from_base(base)
+            # auto-clamp and notify
+            if st.session_state.num_cabins < min_c:
+                st.session_state.num_cabins = min_c
+                st.warning(f"Number of cabins was below minimum for Square; set to {min_c}. Recalculate capacities on previous page if needed.")
+            elif st.session_state.num_cabins > max_c:
+                st.session_state.num_cabins = max_c
+                st.warning(f"Number of cabins was above maximum for Square; set to {max_c}. Recalculate capacities on previous page if needed.")
+            st.session_state.capacities_calculated = False
+            st.session_state.step = 3
+
+    # Vertical Cylinder
+    with col2:
+        if st.button("🔴 Vertical Cylinder", key="geom_vcyl"):
             st.session_state.cabin_geometry = "Vertical Cylinder"
-            st.session_state.step = 1
-    with c3:
-        if st.button("🔵 Horizontal Cylinder"):
+            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
+            min_c, max_c = calc_min_max_from_base(base)
+            if st.session_state.num_cabins < min_c:
+                st.session_state.num_cabins = min_c
+                st.warning(f"Number of cabins was below minimum for Vertical Cylinder; set to {min_c}. Recalculate capacities on previous page if needed.")
+            elif st.session_state.num_cabins > max_c:
+                st.session_state.num_cabins = max_c
+                st.warning(f"Number of cabins was above maximum for Vertical Cylinder; set to {max_c}. Recalculate capacities on previous page if needed.")
+            st.session_state.capacities_calculated = False
+            st.session_state.step = 3
+
+    # Horizontal Cylinder
+    with col3:
+        if st.button("🔵 Horizontal Cylinder", key="geom_hcyl"):
             st.session_state.cabin_geometry = "Horizontal Cylinder"
-            st.session_state.step = 1
-    with c4:
-        if st.button("⚪ Spherical"):
+            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
+            min_c, max_c = calc_min_max_from_base(base)
+            if st.session_state.num_cabins < min_c:
+                st.session_state.num_cabins = min_c
+                st.warning(f"Number of cabins was below minimum for Horizontal Cylinder; set to {min_c}. Recalculate capacities on previous page if needed.")
+            elif st.session_state.num_cabins > max_c:
+                st.session_state.num_cabins = max_c
+                st.warning(f"Number of cabins was above maximum for Horizontal Cylinder; set to {max_c}. Recalculate capacities on previous page if needed.")
+            st.session_state.capacities_calculated = False
+            st.session_state.step = 3
+
+    # Spherical
+    with col4:
+        if st.button("⚪ Spherical", key="geom_sphere"):
             st.session_state.cabin_geometry = "Spherical"
-            st.session_state.step = 1
+            base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
+            min_c, max_c = calc_min_max_from_base(base)
+            if st.session_state.num_cabins < min_c:
+                st.session_state.num_cabins = min_c
+                st.warning(f"Number of cabins was below minimum for Spherical; set to {min_c}. Recalculate capacities on previous page if needed.")
+            elif st.session_state.num_cabins > max_c:
+                st.session_state.num_cabins = max_c
+                st.warning(f"Number of cabins was above maximum for Spherical; set to {max_c}. Recalculate capacities on previous page if needed.")
+            st.session_state.capacities_calculated = False
+            st.session_state.step = 3
 
     if st.session_state.cabin_geometry:
         st.success(f"Selected geometry: {st.session_state.cabin_geometry}")
 
-# STEP 3: Rotation time & derived speeds (removed assumption texts, removed some lines; display ang/rpm/linear as disabled)
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
+    with right_col:
+        # If user wants to skip selection and go next (not recommended), validate will catch missing geometry
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
+
+# === STEP 3: Rotation Time & Derived Speeds (only rotation time editable) ===
 elif st.session_state.step == 3:
     st.header("Step 4: Rotation Time & Derived Speeds")
+    st.markdown("Enter rotation time (minutes per full rotation). Angular speed (rad/s), rotational speed (rpm) and linear speed (m/s) at rim are shown (read-only).")
     st.markdown("---")
 
     diameter = st.session_state.diameter
+    # default rotation time computed from circumference / 0.2 m/s
+    circumference = np.pi * diameter
+    default_rotation_time_min = (circumference / 0.2) / 60.0 if diameter > 0 else 1.0
 
-    # rotation time editable
-    default_circ = np.pi * diameter
-    default_time_min = (default_circ / 0.2) / 60.0 if diameter > 0 else 1.0
-    rotation_time_min = st.number_input("Rotation time (minutes per full rotation)", min_value=0.01, max_value=60.0,
-                                        value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_time_min),
-                                        step=0.01, format="%.2f", key="rotation_time_step")
+    rotation_time_min = st.number_input(
+        "Rotation time (minutes per full rotation)",
+        min_value=0.01,
+        max_value=60.0,
+        value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min),
+        step=0.01,
+        format="%.2f",
+        key="rotation_time_input"
+    )
     st.session_state.rotation_time_min = rotation_time_min
 
-    ang, rpm, linear = calc_ang_and_rpm_from_rotation_time(rotation_time_min, diameter)
+    ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
-    # show read-only fields (disabled)
+    # Display read-only values
     st.text_input("Angular speed (rad/s)", value=f"{ang:.6f}", disabled=True)
     st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
     st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
-    # capacity per hour based on rotation time & VIP rule
+    # capacity per hour
     cap_per_hour = calculate_capacity_per_hour_from_time(
         st.session_state.num_cabins,
         st.session_state.cabin_capacity,
@@ -300,16 +386,17 @@ elif st.session_state.step == 3:
     st.metric("Estimated Capacity per Hour (assuming full occupancy)", f"{cap_per_hour:.0f} passengers/hour")
 
     st.markdown("---")
-    left, right = st.columns([1,1])
-    with left:
+    left_col, right_col = st.columns([1,1])
+    with left_col:
         st.button("⬅️ Back", on_click=go_back)
-    with right:
-        st.button("Next ➡️", on_click=validate_step_and_next)
+    with right_col:
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# STEP 4: Environment (English labels only)
+# === STEP 4: Environment Conditions (English labels) ===
 elif st.session_state.step == 4:
     st.header("Step 5: Environment Conditions")
     st.markdown("---")
+
     iran_provinces = [
         "Tehran", "Isfahan", "Fars", "Khorasan Razavi", "East Azerbaijan", "West Azerbaijan",
         "Mazandaran", "Gilan", "Kerman", "Hormozgan", "Sistan and Baluchestan", "Kurdistan",
@@ -319,48 +406,49 @@ elif st.session_state.step == 4:
 
     c1, c2 = st.columns(2)
     with c1:
-        province = st.selectbox("Province", options=iran_provinces, index=0)
+        province = st.selectbox("Province", options=iran_provinces, index=0, key="province_select")
     with c2:
-        region = st.text_input("Region / Area name", value=st.session_state.environment_data.get('region_name',''))
+        region_name = st.text_input("Region / Area name", value=st.session_state.environment_data.get('region_name', ''), key="region_name_input")
 
     st.markdown("---")
     st.subheader("Land Surface Area (meters)")
     l1, l2 = st.columns(2)
     with l1:
-        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_length',100.0))
+        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_length', 100.0), key="land_length_input")
     with l2:
-        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_width',100.0))
+        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_width', 100.0), key="land_width_input")
     st.metric("Total Land Area", f"{land_length * land_width:.2f} m²")
 
     st.markdown("---")
     st.subheader("Altitude and Temperature")
     a1, a2 = st.columns(2)
     with a1:
-        altitude = st.number_input("Altitude (m)", value=st.session_state.environment_data.get('altitude',0.0))
+        altitude = st.number_input("Altitude (m)", value=st.session_state.environment_data.get('altitude', 0.0), key="altitude_input")
     with a2:
-        temp_min = st.number_input("Minimum Temperature (°C)", value=st.session_state.environment_data.get('temp_min', -10.0))
-    temp_max = st.number_input("Maximum Temperature (°C)", value=st.session_state.environment_data.get('temp_max', 40.0))
+        temp_min = st.number_input("Minimum Temperature (°C)", value=st.session_state.environment_data.get('temp_min', -10.0), key="temp_min_input")
+    temp_max = st.number_input("Maximum Temperature (°C)", value=st.session_state.environment_data.get('temp_max', 40.0), key="temp_max_input")
 
     st.markdown("---")
     st.subheader("Wind Information")
     w1, w2 = st.columns(2)
     with w1:
-        wind_dir = st.selectbox("Wind Direction", options=["south", "west", "east", "north", "north-west", "north-east", "south-east", "south-west"])
+        wind_dir = st.selectbox("Wind Direction", options=["south", "west", "east", "north", "north-west", "north-east", "south-east", "south-west"], key="wind_dir_input")
     with w2:
-        wind_max = st.number_input("Maximum Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_max',108.0))
-        wind_avg = st.number_input("Average Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_avg',54.0))
+        wind_max = st.number_input("Maximum Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_max', 108.0), key="wind_max_input")
+        wind_avg = st.number_input("Average Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_avg', 54.0), key="wind_avg_input")
 
     st.markdown("---")
-    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.wind_rose_loaded)
+    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.wind_rose_loaded, key="load_wind_checkbox")
     st.session_state.wind_rose_loaded = load_wind
     wind_file = None
     if load_wind:
-        wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg','jpeg','pdf'])
+        wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
         st.session_state.wind_rose_file = wind_file
 
+    # save environment data
     st.session_state.environment_data = {
         'province': province,
-        'region_name': region,
+        'region_name': region_name,
         'land_length': land_length,
         'land_width': land_width,
         'land_area': land_length * land_width,
@@ -372,49 +460,57 @@ elif st.session_state.step == 4:
         'wind_avg': wind_avg
     }
 
-    left, right = st.columns([1,1])
-    with left:
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
         st.button("⬅️ Back", on_click=go_back)
-    with right:
-        st.button("Next ➡️", on_click=validate_step_and_next)
+    with right_col:
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# STEP 5: Final overview
+# === STEP 5: Final Design Overview & Visualization ===
 elif st.session_state.step == 5:
     st.header("Step 6: Design Overview & Visualization")
     st.markdown("---")
-    c1, c2 = st.columns(2)
-    with c1:
+
+    col1, col2 = st.columns(2)
+    with col1:
         st.markdown("**Basic Parameters:**")
-        st.write(f"Generation: {st.session_state.generation_type}")
-        st.write(f"Diameter: {st.session_state.diameter} m")
-        st.write(f"Total Cabins: {st.session_state.num_cabins}")
-        st.write(f"VIP Cabins: {st.session_state.num_vip_cabins} (each -2 pax)")
-        st.write(f"Cabin Capacity (regular): {st.session_state.cabin_capacity}")
+        st.write(f"• Generation: {st.session_state.generation_type}")
+        st.write(f"• Diameter: {st.session_state.diameter} m")
+        st.write(f"• Total Cabins: {st.session_state.num_cabins}")
+        st.write(f"• VIP Cabins: {st.session_state.num_vip_cabins} (each -2 pax)")
+        st.write(f"• Cabin Capacity (regular): {st.session_state.cabin_capacity}")
         if st.session_state.cabin_geometry:
-            st.write(f"Cabin Geometry: {st.session_state.cabin_geometry}")
-    with c2:
+            st.write(f"• Cabin Geometry: {st.session_state.cabin_geometry}")
+    with col2:
+        st.markdown("**Environment Conditions:**")
         env = st.session_state.environment_data
-        st.markdown("**Environment:**")
         if env:
-            st.write(f"Province: {env.get('province','N/A')}")
-            st.write(f"Region: {env.get('region_name','N/A')}")
-            st.write(f"Land Area: {env.get('land_area',0):.2f} m²")
-            st.write(f"Altitude: {env.get('altitude','N/A')} m")
-            st.write(f"Wind (max/avg): {env.get('wind_max',0)} / {env.get('wind_avg',0)} km/h")
-            if st.session_state.wind_rose_loaded:
-                st.write("Wind rose: enabled")
+            st.write(f"• Province: {env.get('province','N/A')}")
+            st.write(f"• Region: {env.get('region_name','N/A')}")
+            st.write(f"• Land Area: {env.get('land_area',0):.2f} m²")
+            st.write(f"• Altitude: {env.get('altitude','N/A')} m")
+            st.write(f"• Temperature: {env.get('temp_min',0)}°C to {env.get('temp_max',0)}°C")
+            st.write(f"• Wind Direction: {env.get('wind_direction','N/A')}")
+            st.write(f"• Max Wind Speed: {env.get('wind_max',0)} km/h")
 
     st.markdown("---")
+    # visualization
     height = st.session_state.diameter * 1.1
     vip_cap = max(0, st.session_state.cabin_capacity - 2)
-    total_per_rotation = st.session_state.num_vip_cabins * vip_cap + (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
+    total_capacity_per_rotation = st.session_state.num_vip_cabins * vip_cap + (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
+
+    # estimate motor power (simple heuristic)
     ang = (2.0 * np.pi) / (st.session_state.rotation_time_min * 60.0) if st.session_state.rotation_time_min else 0.0
     total_mass = st.session_state.num_cabins * st.session_state.cabin_capacity * 80.0
-    moi = total_mass * (st.session_state.diameter/2.0)**2
-    motor_power = moi * ang**2 / 1000.0 if ang else 0.0
-    fig = create_component_diagram(st.session_state.diameter, height, total_per_rotation, motor_power)
+    moment_of_inertia = total_mass * (st.session_state.diameter/2.0)**2
+    motor_power = moment_of_inertia * ang**2 / 1000.0 if ang else 0.0
+
+    fig = create_component_diagram(st.session_state.diameter, height, total_capacity_per_rotation, motor_power)
     st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
 
+    st.info("🚧 Structural, electrical and safety analyses are not included in this simplified designer.")
+    st.markdown("---")
     l, m, r = st.columns([1,0.5,1])
     with l:
         st.button("⬅️ Back", on_click=go_back)
