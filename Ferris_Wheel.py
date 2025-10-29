@@ -204,12 +204,11 @@ if st.session_state.get('step', 0) == 0:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
             # button under each image to select that generation (single click)
-            if st.button(f"Select\n{caption}", key=f"gen_btn_{i}"):
-                st.session_state.generation_type = caption
-                st.session_state.step = 1
+            st.button(f"Select\n{caption}", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
 
     st.markdown("---")
-    st.write("Or choose with keyboard: use the image buttons above to select a generation.")
+    st.write("Just click the button under the image to select a generation and go to the next step.")
+
 
 # === STEP 1: Cabin Geometry (now also shows the 4 new images you requested) ===
 elif st.session_state.step == 1:
