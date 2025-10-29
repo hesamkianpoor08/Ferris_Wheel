@@ -93,10 +93,39 @@ def create_component_diagram(diameter, height, capacity, motor_power):
     return fig
 
 # --- Navigation & validation ---
+
 def select_generation(gen):
     st.session_state.generation_type = gen
-    # go directly to cabin geometry page on single click
     st.session_state.step = 1
+
+# === STEP 0: Generation selection with small images (single-click advances) ===
+if st.session_state.get('step',0) == 0:
+    st.header("Step 1: Select Ferris Wheel Generation")
+
+    image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
+    btn_labels = [
+        "🎡 1st Generation (Truss type)",
+        "🎡 2nd Generation (Cable type)",
+        "🎡 2nd Generation (Pure cable type)",
+        "🎡 4th Generation (Hubless centerless)"
+    ]
+    gens = [
+        "1st Generation (Truss type)",
+        "2nd Generation (Cable type)",
+        "2nd Generation (Pure cable type)",
+        "4th Generation (Hubless centerless)"
+    ]
+    btn_keys = ["gen_btn_1", "gen_btn_2", "gen_btn_3", "gen_btn_4"]
+
+    cols = st.columns(4)
+    for col, img, label, gen, k in zip(cols, image_files, btn_labels, gens, btn_keys):
+        with col:
+            try:
+                st.image(img, width=120)   
+            except Exception:
+                st.write(f"Image not found: {img}")
+            st.button(label, key=k, on_click=select_generation, args=(gen,))
+
 
 def go_back():
     st.session_state.step = max(0, st.session_state.step - 1)
