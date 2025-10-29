@@ -100,8 +100,7 @@ def select_generation(gen):
 
 # === STEP 0: Generation selection with small images (single-click advances) ===
 if st.session_state.get('step', 0) == 0:
-    st.header("Step 1: Select Ferris Wheel Generation")
-
+    # header removed from here (moved up under the main title)
     image_files = [
         "./git/assets/1st.jpg",
         "./git/assets/2nd_1.jpg",
@@ -120,7 +119,6 @@ if st.session_state.get('step', 0) == 0:
         "2nd Generation (Pure cable type)",
         "4th Generation (Hubless centerless)"
     ]
-
     btn_keys = [f"gen_btn_{i}_select" for i in range(len(image_files))]
 
     cols = st.columns(4, gap="small")
@@ -130,7 +128,7 @@ if st.session_state.get('step', 0) == 0:
                 st.image(img_path, width=120)
             except Exception:
                 st.write(f"Image not found: {img_path}")
-            st.write("")
+            st.write("")  # spacing
             st.button(label, key=key, on_click=select_generation, args=(gen,))
 
 
@@ -206,13 +204,13 @@ def validate_current_step_and_next():
 # --- UI ---
 st.title("🎡 Ferris Wheel Designer")
 total_steps = 6
-st.progress(st.session_state.step / (total_steps - 1))
-st.markdown(f"**Step {st.session_state.step + 1} of {total_steps}**")
+st.progress(st.session_state.get('step', 0) / (total_steps - 1))
+st.markdown(f"**Step {st.session_state.get('step', 0) + 1} of {total_steps}**")
 st.markdown("---")
 
+# --- moved header: show Step 1 header only here, directly under the main title ---
 if st.session_state.get('step', 0) == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
-
 
 # === STEP 0: Generation selection (single-click advances to geometry) ===
 if st.session_state.step == 0:
