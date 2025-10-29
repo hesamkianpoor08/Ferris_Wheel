@@ -93,43 +93,17 @@ def create_component_diagram(diameter, height, capacity, motor_power):
     return fig
 
 # --- Navigation & validation ---
-
 def select_generation(gen):
     st.session_state.generation_type = gen
+    # go directly to cabin geometry page on single click
     st.session_state.step = 1
 
-# === STEP 0: Generation selection with small images (single-click advances) ===
-if st.session_state.get('step', 0) == 0:
-    # header removed from here (moved up under the main title)
-    image_files = [
-        "./git/assets/1st.jpg",
-        "./git/assets/2nd_1.jpg",
-        "./git/assets/2nd_2.jpg",
-        "./git/assets/4th.jpg"
-    ]
-    btn_labels = [
-        "🎡 1st Generation (Truss type)",
-        "🎡 2nd Generation (Cable type)",
-        "🎡 2nd Generation (Pure cable type)",
-        "🎡 4th Generation (Hubless centerless)"
-    ]
-    gens = [
-        "1st Generation (Truss type)",
-        "2nd Generation (Cable type)",
-        "2nd Generation (Pure cable type)",
-        "4th Generation (Hubless centerless)"
-    ]
-    btn_keys = [f"gen_btn_{i}_select" for i in range(len(image_files))]
-
-    cols = st.columns(4, gap="small")
-    for col, img_path, label, gen, key in zip(cols, image_files, btn_labels, gens, btn_keys):
-        with col:
-            try:
-                st.image(img_path, width=120)
-            except Exception:
-                st.write(f"Image not found: {img_path}")
-            st.write("")  # spacing
-            st.button(label, key=key, on_click=select_generation, args=(gen,))
+# callback for radio selection (single control below images)
+def select_generation_from_radio():
+    sel = st.session_state.get('gen_radio')
+    if sel:
+        st.session_state.generation_type = sel
+        st.session_state.step = 1
 
 
 def go_back():
@@ -212,18 +186,42 @@ st.markdown("---")
 if st.session_state.get('step', 0) == 0:
     st.header("Step 1: Select Ferris Wheel Generation")
 
-# === STEP 0: Generation selection (single-click advances to geometry) ===
-if st.session_state.step == 0:
-    c1, c2 = st.columns(2)
-    with c1:
-        st.button("🎡 1st Generation (Truss type)", key="gen_btn_1", on_click=select_generation, args=("1st Generation (Truss type)",))
-    with c2:
-        st.button("🎡 2nd Generation (Cable type)", key="gen_btn_2", on_click=select_generation, args=("2nd Generation (Cable type)",))
-    c3, c4 = st.columns(2)
-    with c3:
-        st.button("🎡 2nd Generation (Pure cable type)", key="gen_btn_3", on_click=select_generation, args=("2nd Generation (Pure cable type)",))
-    with c4:
-        st.button("🎡 4th Generation (Hubless centerless)", key="gen_btn_4", on_click=select_generation, args=("4th Generation (Hubless centerless)",))
+# === STEP 0: Generation selection (images + radio below, single-click advances) ===
+if st.session_state.get('step', 0) == 0:
+    # show images with captions (no individual buttons)
+    image_files = [
+        "./git/assets/1st.jpg",
+        "./git/assets/2nd_1.jpg",
+        "./git/assets/2nd_2.jpg",
+        "./git/assets/4th.jpg"
+    ]
+    captions = [
+        "1st Generation",
+        "2nd Generation",
+        "2nd Generation (Pure cable)",
+        "4th Generation"
+    ]
+    # larger images per request
+    img_width = 180
+
+    cols = st.columns(4, gap="small")
+    for col, img_path, caption in zip(cols, image_files, captions):
+        with col:
+            try:
+                st.image(img_path, width=img_width)
+            except Exception:
+                st.write(f"Image not found: {img_path}")
+            st.caption(caption)
+
+    st.markdown("---")
+    # single selection control under images (radio). on_change advances to next step.
+    options = [
+        "1st Generation (Truss type)",
+        "2nd Generation (Cable type)",
+        "2nd Generation (Pure cable type)",
+        "4th Generation (Hubless centerless)"
+    ]
+    st.radio("Choose generation:", options=options, key="gen_radio", on_change=select_generation_from_radio)
 
 # === STEP 1: Cabin Geometry (moved to be the first page after generation) ===
 elif st.session_state.step == 1:
@@ -290,6 +288,7 @@ elif st.session_state.step == 1:
     with left_col:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
+        # If user wants to skip selection and go next (not recommended), validate will catch missing geometry
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 2: Primary parameters + Cabin capacity + VIP (one page) ===
