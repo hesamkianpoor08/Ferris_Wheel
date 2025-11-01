@@ -12,7 +12,7 @@ st.set_page_config(
 
 # --- Session State Initialization ---
 if 'step' not in st.session_state:
-    st.session_state.step = 0  # 0: generation, 1: cabin geometry (was 2), 2: primary params (was 1), 3: rotation, 4: environment, 5: final
+    st.session_state.step = 0  # 0: generation, 1: cabin geometry, 2: primary params, 3: rotation, 4: classification, 5: environment, 6: final
 if 'generation_type' not in st.session_state:
     st.session_state.generation_type = None
 if 'diameter' not in st.session_state:
@@ -37,6 +37,10 @@ if 'wind_rose_file' not in st.session_state:
     st.session_state.wind_rose_file = None
 if 'validation_errors' not in st.session_state:
     st.session_state.validation_errors = []
+if 'classification_data' not in st.session_state:
+    st.session_state.classification_data = {}
+if 'braking_acceleration' not in st.session_state:
+    st.session_state.braking_acceleration = 0.7
 
 # --- Helper functions ---
 def base_for_geometry(diameter, geometry):
@@ -92,6 +96,169 @@ def create_component_diagram(diameter, height, capacity, motor_power):
                       annotations=annotations, margin=dict(l=80, r=80, t=80, b=80))
     return fig
 
+def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g=9.81):
+    """Calculate acceleration components at a given angle theta (radians)"""
+    # Unit vectors
+    # U_n = -cos(theta)i - sin(theta)k (normal/centripetal direction)
+    # U_t = -sin(theta)i + cos(theta)k (tangential direction)
+    
+    # Centripetal acceleration magnitude
+    radius = diameter / 2.0
+    a_centripetal = radius * (angular_velocity ** 2)
+    
+    # Acceleration components
+    # a = -g(k) - (d/2 * w^2)(U_n) - a_brake(U_t)
+    # Breaking into horizontal (x) and vertical (z) components
+    
+    # Gravity contribution: -g in k direction (vertical)
+    a_z_gravity = -g
+    a_x_gravity = 0
+    
+    # Centripetal contribution: -(d/2 * w^2) * U_n
+    a_x_centripetal = -a_centripetal * (-np.cos(theta))  # = a_centripetal * cos(theta)
+    a_z_centripetal = -a_centripetal * (-np.sin(theta))  # = a_centripetal * sin(theta)
+    
+    # Braking contribution: -a_brake * U_t
+    a_x_braking = -braking_accel * (-np.sin(theta))  # = braking_accel * sin(theta)
+    a_z_braking = -braking_accel * (np.cos(theta))   # = -braking_accel * cos(theta)
+    
+    # Total accelerations
+    a_x_total = a_x_gravity + a_x_centripetal + a_x_braking
+    a_z_total = a_z_gravity + a_z_centripetal + a_z_braking
+    
+    # Total magnitude
+    a_total = np.sqrt(a_x_total**2 + a_z_total**2)
+    
+    return a_x_total, a_z_total, a_total
+
+def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel, g=9.81):
+    """Calculate dynamic product p = v * h * n"""
+    # Sample angles around the wheel
+    theta_vals = np.linspace(0, 2*np.pi, 360)
+    max_accel = 0
+    
+    for theta in theta_vals:
+        _, _, a_total = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
+        if a_total > max_accel:
+            max_accel = a_total
+    
+    # v = d/2 * w (linear velocity at rim)
+    v = (diameter / 2.0) * angular_velocity
+    
+    # n = max_acceleration / g
+    n = max_accel / g
+    
+    # p = v * h * n
+    p = v * height * n
+    
+    return p, n, max_accel
+
+def classify_device(dynamic_product, is_design=True):
+    """Classify device based on dynamic product"""
+    if is_design:
+        if 0.1 < dynamic_product <= 25:
+            return 1
+        elif 25 < dynamic_product <= 100:
+            return 2
+        elif 100 < dynamic_product <= 200:
+            return 3
+        else:  # p > 200
+            return 4
+    else:  # actual/real operation
+        if 0.1 < dynamic_product <= 25:
+            return 2
+        elif 25 < dynamic_product <= 100:
+            return 3
+        elif 100 < dynamic_product <= 200:
+            return 4
+        else:  # p > 200
+            return 5
+
+def determine_restraint_area(ax, az):
+    """Determine restraint area based on ax and az accelerations (in units of g)"""
+    # Based on the diagram provided
+    # Area boundaries (approximate from the image)
+    
+    # Area 1: ax > 0, az between -0.2 and +0.2
+    if ax > 1.2 and -0.2 <= az <= 0.2:
+        return 1
+    
+    # Area 2: Central region, ax between -0.2 and +0.2, az between -0.7 and +0.2
+    if -0.2 <= ax <= 0.2 and -0.7 <= az <= 0.2:
+        return 2
+    
+    # Area 3: ax < 0, az between -0.7 and +0.2
+    if -1.2 <= ax < -0.2 and -0.7 <= az <= 0.2:
+        return 3
+    
+    # Area 4: ax < -0.2, az between -1.8 and -0.7 (if no lateral forces and duration < 0.2s)
+    if -1.2 <= ax and -1.8 <= az < -0.7:
+        return 4
+    
+    # Area 5: Upper regions, az > 0.2
+    if az > 0.2:
+        return 5
+    
+    # Default to Area 2 (most restrictive in central region)
+    return 2
+
+def plot_acceleration_envelope(diameter, angular_velocity, braking_accel, g=9.81):
+    """Plot the ax vs az acceleration envelope"""
+    theta_vals = np.linspace(0, 2*np.pi, 360)
+    ax_vals = []
+    az_vals = []
+    
+    for theta in theta_vals:
+        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
+        # Convert to g units
+        ax_vals.append(a_x / g)
+        az_vals.append(a_z / g)
+    
+    fig = go.Figure()
+    
+    # Plot acceleration envelope
+    fig.add_trace(go.Scatter(
+        x=ax_vals, 
+        y=az_vals, 
+        mode='lines',
+        line=dict(color='#2196F3', width=3),
+        name='Acceleration Envelope'
+    ))
+    
+    # Add area boundaries (simplified representation)
+    # Area 1 boundary
+    fig.add_shape(type="rect", x0=1.2, y0=-0.2, x1=2.0, y1=0.2,
+                  line=dict(color="red", width=2, dash="dash"), fillcolor="rgba(255,0,0,0.1)")
+    
+    # Area 2 boundary (central)
+    fig.add_shape(type="rect", x0=-0.2, y0=-0.7, x1=0.2, y1=0.2,
+                  line=dict(color="orange", width=2, dash="dash"), fillcolor="rgba(255,165,0,0.1)")
+    
+    # Area 3 boundary
+    fig.add_shape(type="rect", x0=-1.2, y0=-0.7, x1=-0.2, y1=0.2,
+                  line=dict(color="yellow", width=2, dash="dash"), fillcolor="rgba(255,255,0,0.1)")
+    
+    # Area 4 boundary
+    fig.add_shape(type="rect", x0=-1.2, y0=-1.8, x1=0, y1=-0.7,
+                  line=dict(color="green", width=2, dash="dash"), fillcolor="rgba(0,255,0,0.1)")
+    
+    # Area 5 boundary (upper)
+    fig.add_shape(type="rect", x0=-2.0, y0=0.2, x1=2.0, y1=1.5,
+                  line=dict(color="purple", width=2, dash="dash"), fillcolor="rgba(128,0,128,0.1)")
+    
+    fig.update_layout(
+        title="Passenger Acceleration Envelope (ax vs az)",
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]",
+        height=600,
+        template="plotly_white",
+        showlegend=True,
+        xaxis=dict(range=[-2, 2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+        yaxis=dict(range=[-2, 1.5], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+    )
+    
+    return fig
+
 # --- Navigation & validation ---
 def select_generation(gen):
     st.session_state.generation_type = gen
@@ -115,6 +282,8 @@ def reset_design():
     st.session_state.wind_rose_loaded = False
     st.session_state.wind_rose_file = None
     st.session_state.validation_errors = []
+    st.session_state.classification_data = {}
+    st.session_state.braking_acceleration = 0.7
 
 def validate_current_step_and_next():
     s = st.session_state
@@ -143,6 +312,9 @@ def validate_current_step_and_next():
         if s.rotation_time_min is None or s.rotation_time_min <= 0:
             errors.append("Enter valid rotation time (minutes per rotation).")
     elif s.step == 4:
+        # classification step - no specific validation needed, calculations are automatic
+        pass
+    elif s.step == 5:
         env = s.environment_data
         if not env.get('province'):
             errors.append("Select a province.")
@@ -165,11 +337,11 @@ def validate_current_step_and_next():
             st.error(e)
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(5, st.session_state.step + 1)
+        st.session_state.step = min(6, st.session_state.step + 1)
 
 # --- UI ---
 st.title("🎡 Ferris Wheel Designer")
-total_steps = 6
+total_steps = 7
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**Step {st.session_state.get('step', 0) + 1} of {total_steps}**")
 st.markdown("---")
@@ -373,129 +545,43 @@ elif st.session_state.step == 3:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 4: Environment Conditions (English labels) ===
+# === STEP 4: Device Classification & Safety Analysis (NEW) ===
 elif st.session_state.step == 4:
-    st.header("Step 5: Environment Conditions")
+    st.header("Step 5: Device Classification & Safety Analysis")
+    st.markdown("Calculation per National Standard 8987")
     st.markdown("---")
 
-    iran_provinces = [
-        "Tehran", "Isfahan", "Fars", "Khorasan Razavi", "East Azerbaijan", "West Azerbaijan",
-        "Mazandaran", "Gilan", "Kerman", "Hormozgan", "Sistan and Baluchestan", "Kurdistan",
-        "Lorestan", "Alborz", "Qom", "Markazi", "Yazd", "Chaharmahal and Bakhtiari", "Ardabil",
-        "Zanjan", "Golestan", "North Khorasan", "South Khorasan", "Khuzestan", "Ilam", "Bushehr"
-    ]
-
-    c1, c2 = st.columns(2)
-    with c1:
-        province = st.selectbox("Province", options=iran_provinces, index=0, key="province_select")
-    with c2:
-        region_name = st.text_input("Region / Area name", value=st.session_state.environment_data.get('region_name', ''), key="region_name_input")
-
+    diameter = st.session_state.diameter
+    height = diameter * 1.1  # Height of ferris wheel
+    rotation_time_min = st.session_state.rotation_time_min
+    
+    # Convert rotation time to angular velocity (rad/s)
+    if rotation_time_min and rotation_time_min > 0:
+        rotation_time_sec = rotation_time_min * 60.0
+        angular_velocity = 2.0 * np.pi / rotation_time_sec  # rad/s
+        rpm = angular_velocity * 60.0 / (2.0 * np.pi)
+    else:
+        angular_velocity = 0.0
+        rpm = 0.0
+    
+    st.subheader("1. Braking Acceleration")
+    st.markdown("Enter the design braking acceleration (tangential direction):")
+    braking_accel = st.number_input(
+        "Braking Acceleration (m/s²)",
+        min_value=0.01,
+        max_value=2.0,
+        value=st.session_state.braking_acceleration,
+        step=0.01,
+        format="%.2f",
+        key="braking_accel_input"
+    )
+    st.session_state.braking_acceleration = braking_accel
+    
     st.markdown("---")
-    st.subheader("Land Surface Area (meters)")
-    l1, l2 = st.columns(2)
-    with l1:
-        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_length', 100.0), key="land_length_input")
-    with l2:
-        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_width', 100.0), key="land_width_input")
-    st.metric("Total Land Area", f"{land_length * land_width:.2f} m²")
-
-    st.markdown("---")
-    st.subheader("Altitude and Temperature")
-    a1, a2 = st.columns(2)
-    with a1:
-        altitude = st.number_input("Altitude (m)", value=st.session_state.environment_data.get('altitude', 0.0), key="altitude_input")
-    with a2:
-        temp_min = st.number_input("Minimum Temperature (°C)", value=st.session_state.environment_data.get('temp_min', -10.0), key="temp_min_input")
-    temp_max = st.number_input("Maximum Temperature (°C)", value=st.session_state.environment_data.get('temp_max', 40.0), key="temp_max_input")
-
-    st.markdown("---")
-    st.subheader("Wind Information")
-    w1, w2 = st.columns(2)
-    with w1:
-        wind_dir = st.selectbox("Wind Direction", options=["south", "west", "east", "north", "north-west", "north-east", "south-east", "south-west"], key="wind_dir_input")
-    with w2:
-        wind_max = st.number_input("Maximum Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_max', 108.0), key="wind_max_input")
-        wind_avg = st.number_input("Average Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_avg', 54.0), key="wind_avg_input")
-
-    st.markdown("---")
-    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.wind_rose_loaded, key="load_wind_checkbox")
-    st.session_state.wind_rose_loaded = load_wind
-    wind_file = None
-    if load_wind:
-        wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
-        st.session_state.wind_rose_file = wind_file
-
-    # save environment data
-    st.session_state.environment_data = {
-        'province': province,
-        'region_name': region_name,
-        'land_length': land_length,
-        'land_width': land_width,
-        'land_area': land_length * land_width,
-        'altitude': altitude,
-        'temp_min': temp_min,
-        'temp_max': temp_max,
-        'wind_direction': wind_dir,
-        'wind_max': wind_max,
-        'wind_avg': wind_avg
-    }
-
-    st.markdown("---")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
-        st.button("⬅️ Back", on_click=go_back)
-    with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
-
-# === STEP 5: Final Design Overview & Visualization ===
-elif st.session_state.step == 5:
-    st.header("Step 6: Design Overview & Visualization")
-    st.markdown("---")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Basic Parameters:**")
-        st.write(f"• Generation: {st.session_state.generation_type}")
-        st.write(f"• Diameter: {st.session_state.diameter} m")
-        st.write(f"• Total Cabins: {st.session_state.num_cabins}")
-        st.write(f"• VIP Cabins: {st.session_state.num_vip_cabins} (each -2 pax)")
-        st.write(f"• Cabin Capacity (regular): {st.session_state.cabin_capacity}")
-        if st.session_state.cabin_geometry:
-            st.write(f"• Cabin Geometry: {st.session_state.cabin_geometry}")
-    with col2:
-        st.markdown("**Environment Conditions:**")
-        env = st.session_state.environment_data
-        if env:
-            st.write(f"• Province: {env.get('province','N/A')}")
-            st.write(f"• Region: {env.get('region_name','N/A')}")
-            st.write(f"• Land Area: {env.get('land_area',0):.2f} m²")
-            st.write(f"• Altitude: {env.get('altitude','N/A')} m")
-            st.write(f"• Temperature: {env.get('temp_min',0)}°C to {env.get('temp_max',0)}°C")
-            st.write(f"• Wind Direction: {env.get('wind_direction','N/A')}")
-            st.write(f"• Max Wind Speed: {env.get('wind_max',0)} km/h")
-
-    st.markdown("---")
-    # visualization
-    height = st.session_state.diameter * 1.1
-    vip_cap = max(0, st.session_state.cabin_capacity - 2)
-    total_capacity_per_rotation = st.session_state.num_vip_cabins * vip_cap + (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
-
-    # estimate motor power (simple heuristic)
-    ang = (2.0 * np.pi) / (st.session_state.rotation_time_min * 60.0) if st.session_state.rotation_time_min else 0.0
-    total_mass = st.session_state.num_cabins * st.session_state.cabin_capacity * 80.0
-    moment_of_inertia = total_mass * (st.session_state.diameter/2.0)**2
-    motor_power = moment_of_inertia * ang**2 / 1000.0 if ang else 0.0
-
-    fig = create_component_diagram(st.session_state.diameter, height, total_capacity_per_rotation, motor_power)
-    st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-
-    st.info("🚧 Structural, electrical and safety analyses are not included in this simplified designer.")
-    st.markdown("---")
-    l, m, r = st.columns([1,0.5,1])
-    with l:
-        st.button("⬅️ Back", on_click=go_back)
-    with m:
-        st.button("🔄 New Design", on_click=reset_design)
-    st.success("✅ Design Complete!")
+    st.subheader("2. Design Case Analysis")
+    st.markdown("**Design parameters:** Speed = 1 rpm, Braking acceleration = 0.7 m/s²")
+    
+    # Design case: 1 rpm, 0.7 m/s² braking
+    omega_design = 1.0 * (2.0 * np.pi / 60.0)  # 1 rpm to rad/s
+    a_brake_design = 0.7
 
