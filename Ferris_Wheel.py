@@ -153,26 +153,20 @@ def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel,
     
     return p, n, max_accel
 
-def classify_device(dynamic_product, is_design=True):
-    """Classify device based on dynamic product"""
-    if is_design:
-        if 0.1 < dynamic_product <= 25:
-            return 1
-        elif 25 < dynamic_product <= 100:
-            return 2
-        elif 100 < dynamic_product <= 200:
-            return 3
-        else:  # p > 200
-            return 4
-    else:  # actual/real operation
-        if 0.1 < dynamic_product <= 25:
-            return 2
-        elif 25 < dynamic_product <= 100:
-            return 3
-        elif 100 < dynamic_product <= 200:
-            return 4
-        else:  # p > 200
-            return 5
+def classify_device(dynamic_product):
+
+    if 0.1 < dynamic_product <= 25:
+        return 2
+    elif 25 < dynamic_product <= 100:
+        return 3
+    elif 100 < dynamic_product <= 200:
+        return 4
+    elif dynamic_product > 200:
+        return 5
+    else:
+        return None  
+
+
 
 def determine_restraint_area(ax, az):
     """Determine restraint area based on ax and az accelerations (in units of g)"""
@@ -671,7 +665,7 @@ elif st.session_state.step == 5:
     p_design, n_design, max_accel_design = calculate_dynamic_product(
         diameter, height, omega_design, a_brake_design
     )
-    class_design = classify_device(p_design, is_design=True)
+    class_design = classify_device(p_design)
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -690,7 +684,7 @@ elif st.session_state.step == 5:
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
         diameter, height, angular_velocity, braking_accel
     )
-    class_actual = classify_device(p_actual, is_design=False)
+    class_actual = classify_device(p_actual)
     
     col1, col2, col3 = st.columns(3)
     with col1:
