@@ -695,9 +695,6 @@ elif st.session_state.step == 5:
     with col3:
         st.metric("Device Class (Actual)", f"Class {class_actual}")
     
-    st.markdown("---")
-    st.info("**Classification Ranges:**\n- Design: Class 1 (0.1<p≤25), Class 2 (25<p≤100), Class 3 (100<p≤200), Class 4 (p>200)\n- Actual: Class 2 (0.1<p≤25), Class 3 (25<p≤100), Class 4 (100<p≤200), Class 5 (p>200)")
-    
     # Store classification data
     st.session_state.classification_data = {
         'p_design': p_design,
