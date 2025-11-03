@@ -97,60 +97,66 @@ def create_component_diagram(diameter, height, capacity, motor_power):
     return fig
 
 def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g=9.81):
-    """Calculate acceleration components at a given angle theta (radians)"""
-    # Unit vectors
-    # U_n = -cos(theta)i - sin(theta)k (normal/centripetal direction)
-    # U_t = -sin(theta)i + cos(theta)k (tangential direction)
-    
-    # Centripetal acceleration magnitude
+    """Calculate acceleration components at a given angle theta (radians)
+    Coordinate convention used here:
+      - x: positive to right
+      - z: positive downward (as you requested)
+      - theta: parameter around the wheel (0 at +x)
+    Returns a_x, a_z, a_total  (units m/s^2)
+    """
+    # Centripetal acceleration magnitude (radial inward) = r * w^2
     radius = diameter / 2.0
     a_centripetal = radius * (angular_velocity ** 2)
-    
-    # Acceleration components
-    # a = -g(k) - (d/2 * w^2)(U_n) - a_brake(U_t)
-    # Breaking into horizontal (x) and vertical (z) components
-    
-    # Gravity contribution: -g in k direction (vertical)
-    a_z_gravity = -g
-    a_x_gravity = 0
-    
-    # Centripetal contribution: -(d/2 * w^2) * U_n
-    a_x_centripetal = -a_centripetal * (-np.cos(theta))  # = a_centripetal * cos(theta)
-    a_z_centripetal = -a_centripetal * (-np.sin(theta))  # = a_centripetal * sin(theta)
-    
+
+    # Unit vectors used (consistent with earlier formulation)
+    # U_n (normal pointing inward): -cos(theta) i - sin(theta) k
+    # U_t (tangential): -sin(theta) i + cos(theta) k
+    # Note: we keep the same U_n and U_t directions as previous code for consistency.
+
+    # Gravity contribution: +g in +k direction (downwards)
+    a_z_gravity = +g
+    a_x_gravity = 0.0
+
+    # Centripetal contribution: -(a_centripetal) * U_n
+    # So component on x: -a_centripetal * (-cos(theta)) = a_centripetal * cos(theta)
+    a_x_centripetal = a_centripetal * np.cos(theta)
+    # component on z: -a_centripetal * (-sin(theta)) = a_centripetal * sin(theta)
+    a_z_centripetal = a_centripetal * np.sin(theta)
+
     # Braking contribution: -a_brake * U_t
-    a_x_braking = -braking_accel * (-np.sin(theta))  # = braking_accel * sin(theta)
-    a_z_braking = -braking_accel * (np.cos(theta))   # = -braking_accel * cos(theta)
-    
-    # Total accelerations
+    # U_t = -sin(theta) i + cos(theta) k
+    # So braking on x: -a_brake * (-sin(theta)) = a_brake * sin(theta)
+    a_x_braking = braking_accel * np.sin(theta)
+    # braking on z: -a_brake * (cos(theta)) = -a_brake * cos(theta)
+    a_z_braking = -braking_accel * np.cos(theta)
+
+    # Total accelerations (m/s^2)
     a_x_total = a_x_gravity + a_x_centripetal + a_x_braking
     a_z_total = a_z_gravity + a_z_centripetal + a_z_braking
-    
-    # Total magnitude
+
     a_total = np.sqrt(a_x_total**2 + a_z_total**2)
-    
+
     return a_x_total, a_z_total, a_total
 
 def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel, g=9.81):
     """Calculate dynamic product p = v * h * n"""
-    # Sample angles around the wheel
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_accel = 0
-    
+
     for theta in theta_vals:
         _, _, a_total = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
         if a_total > max_accel:
             max_accel = a_total
-    
+
     # v = d/2 * w (linear velocity at rim)
     v = (diameter / 2.0) * angular_velocity
-    
+
     # n = max_acceleration / g
     n = max_accel / g
-    
+
     # p = v * h * n
     p = v * height * n
-    
+
     return p, n, max_accel
 
 def classify_device(dynamic_product):
@@ -164,98 +170,151 @@ def classify_device(dynamic_product):
     elif dynamic_product > 200:
         return 5
     else:
-        return None  
-
-
+        return None
 
 def determine_restraint_area(ax, az):
-    """Determine restraint area based on ax and az accelerations (in units of g)"""
-    # Based on the diagram provided
-    # Area boundaries (approximate from the image)
-    
-    # Area 1: ax > 0, az between -0.2 and +0.2
-    if ax > 1.2 and -0.2 <= az <= 0.2:
-        return 1
-    
-    # Area 2: Central region, ax between -0.2 and +0.2, az between -0.7 and +0.2
-    if -0.2 <= ax <= 0.2 and -0.7 <= az <= 0.2:
-        return 2
-    
-    # Area 3: ax < 0, az between -0.7 and +0.2
-    if -1.2 <= ax < -0.2 and -0.7 <= az <= 0.2:
-        return 3
-    
-    # Area 4: ax < -0.2, az between -1.8 and -0.7 (if no lateral forces and duration < 0.2s)
-    if -1.2 <= ax and -1.8 <= az < -0.7:
-        return 4
-    
-    # Area 5: Upper regions, az > 0.2
-    if az > 0.2:
+    """Determine restraint area based on the user's region rules (ax, az in units of g).
+       Convention: az positive = downward.
+       Slope m = -0.2 / 0.7
+    """
+    m = -0.2 / 0.7
+
+    # 1) Far-left vertical stripe: if ax < -1.8 -> Area 5 (full vertical)
+    if ax < -1.8:
         return 5
-    
-    # Default to Area 2 (most restrictive in central region)
-    return 2
+
+    # 2) Area 5 (upper / negative-az in image terms, here az<=0 means upward)
+    # (a) left half: ax <= 0 and az <= 0  -> Area 5
+    if ax <= 0 and az <= 0:
+        return 5
+
+    # (b) right far corner: ax >= 0.7 and az <= -0.2 -> Area 5
+    if ax >= 0.7 and az <= -0.2:
+        return 5
+
+    # (c) wedge: 0 < ax < 0.7 and az < m*ax -> Area 5
+    if 0 < ax < 0.7 and az < (m * ax):
+        return 5
+
+    # 3) Area 4 (left-lower / downward stripes)
+    # (a) -0.7 < ax < 0 and 0 < az < m*ax  (note m*ax positive when ax<0)
+    if -0.7 < ax < 0 and (0 < az < (m * ax)):
+        return 4
+
+    # (b) -1.2 < ax <= -0.7 and 0 < az < 0.2
+    if -1.2 < ax <= -0.7 and (0 < az < 0.2):
+        return 4
+
+    # (c) -1.8 < ax <= -1.2 and az > 0
+    if -1.8 < ax <= -1.2 and az > 0:
+        return 4
+
+    # 4) Area 3 (central band and some right/left bands)
+    # (a) central: -0.7 < ax < 0.7 and m*ax < az < 0.2
+    if -0.7 < ax < 0.7 and ((m * ax) < az < 0.2):
+        return 3
+
+    # (b) right small band: ax >= 0.7 and -0.2 < az < 0.2
+    if ax >= 0.7 and (-0.2 < az < 0.2):
+        return 3
+
+    # (c) left small: -1.2 < ax <= -0.7 and az > 0.2
+    if -1.2 < ax <= -0.7 and az > 0.2:
+        return 3
+
+    # 5) Area 2: as you specified -> ax > 0.2 and az > 0.2
+    if ax > 0.2 and az > 0.2:
+        return 2
+
+    # 6) Area 1: right side minimal vertical accel (fallback)
+    # define Area1 as right side near-zero vertical: ax > 0 and -0.2 <= az <= 0.2
+    if ax > 0 and -0.2 <= az <= 0.2:
+        return 1
+
+    # Default fallback: Area 3 (central)
+    return 3
 
 def plot_acceleration_envelope(diameter, angular_velocity, braking_accel, g=9.81):
-    """Plot the ax vs az acceleration envelope"""
+    """Plot the ax vs az acceleration envelope and overlay user's partitioning.
+       ax, az plotted in units of g.
+    """
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
-    
+
     for theta in theta_vals:
         a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
-        # Convert to g units
         ax_vals.append(a_x / g)
         az_vals.append(a_z / g)
-    
+
     fig = go.Figure()
-    
-    # Plot acceleration envelope
+
+    # Acceleration envelope trace
     fig.add_trace(go.Scatter(
-        x=ax_vals, 
-        y=az_vals, 
+        x=ax_vals,
+        y=az_vals,
         mode='lines',
         line=dict(color='#2196F3', width=3),
         name='Acceleration Envelope'
     ))
-    
-    # Add area boundaries (simplified representation)
-    # Area 1 boundary
-    fig.add_shape(type="rect", x0=1.2, y0=-0.2, x1=2.0, y1=0.2,
-                  line=dict(color="red", width=2, dash="dash"), fillcolor="rgba(255,0,0,0.1)")
-    fig.add_annotation(x=1.6, y=0, text="Area 1", showarrow=False, font=dict(size=10, color="red"))
-    
-    # Area 2 boundary (central)
-    fig.add_shape(type="rect", x0=-0.2, y0=-0.7, x1=0.2, y1=0.2,
-                  line=dict(color="orange", width=2, dash="dash"), fillcolor="rgba(255,165,0,0.1)")
-    fig.add_annotation(x=0, y=-0.25, text="Area 2", showarrow=False, font=dict(size=10, color="orange"))
-    
-    # Area 3 boundary
-    fig.add_shape(type="rect", x0=-1.2, y0=-0.7, x1=-0.2, y1=0.2,
-                  line=dict(color="yellow", width=2, dash="dash"), fillcolor="rgba(255,255,0,0.1)")
-    fig.add_annotation(x=-0.7, y=-0.25, text="Area 3", showarrow=False, font=dict(size=10, color="olive"))
-    
-    # Area 4 boundary
-    fig.add_shape(type="rect", x0=-1.2, y0=-1.8, x1=0, y1=-0.7,
-                  line=dict(color="green", width=2, dash="dash"), fillcolor="rgba(0,255,0,0.1)")
-    fig.add_annotation(x=-0.6, y=-1.25, text="Area 4", showarrow=False, font=dict(size=10, color="green"))
-    
-    # Area 5 boundary (upper)
-    fig.add_shape(type="rect", x0=-2.0, y0=0.2, x1=2.0, y1=1.5,
-                  line=dict(color="purple", width=2, dash="dash"), fillcolor="rgba(128,0,128,0.1)")
-    fig.add_annotation(x=0, y=0.85, text="Area 5", showarrow=False, font=dict(size=10, color="purple"))
-    
+
+    # draw partition regions guided by your rules (approximate polygons/rects)
+    m = -0.2 / 0.7
+
+    # Area 5: left half (ax <=0 & az <=0)
+    fig.add_shape(type="rect", x0=-2.0, x1=0.0, y0=-2.0, y1=0.0,
+                  fillcolor="rgba(128,0,128,0.12)", line=dict(color="purple", width=1), name="Area5_left")
+    # Area 5: right far corner (ax>=0.7 and az<=-0.2)
+    fig.add_shape(type="rect", x0=0.7, x1=2.0, y0=-2.0, y1=-0.2,
+                  fillcolor="rgba(128,0,128,0.12)", line=dict(color="purple", width=1), name="Area5_right")
+
+    # Sloped boundary line: az = m * ax for 0<=ax<=0.7
+    xs_slope = np.linspace(0, 0.7, 50)
+    ys_slope = m * xs_slope
+    fig.add_trace(go.Scatter(x=xs_slope, y=ys_slope, mode='lines', line=dict(color='purple', width=1, dash='dash'), showlegend=False))
+
+    # Area 4: wedge -0.7<ax<0, 0<az<m*ax
+    xs = np.linspace(-0.7, 0.0, 60)
+    ys_top = m * xs
+    ys_bottom = np.zeros_like(xs)
+    fig.add_trace(go.Scatter(x=np.concatenate([xs, xs[::-1]]), y=np.concatenate([ys_bottom, ys_top[::-1]]),
+                             fill='toself', fillcolor='rgba(0,200,0,0.12)', line=dict(color='green', width=1),
+                             name='Area 4'))
+
+    # Area 4: rectangles for left columns
+    fig.add_shape(type="rect", x0=-1.2, x1=-0.7, y0=0.0, y1=0.2, fillcolor="rgba(0,200,0,0.12)", line=dict(color="green", width=1))
+    fig.add_shape(type="rect", x0=-1.8, x1=-1.2, y0=0.0, y1=2.0, fillcolor="rgba(0,200,0,0.12)", line=dict(color="green", width=1))
+
+    # Area 3: central band between sloped line and az=0.2 for -0.7<ax<0.7
+    xs = np.linspace(-0.7, 0.7, 200)
+    ys_lower = m * xs
+    ys_upper = np.full_like(xs, 0.2)
+    fig.add_trace(go.Scatter(x=np.concatenate([xs, xs[::-1]]), y=np.concatenate([ys_lower, ys_upper[::-1]]),
+                             fill='toself', fillcolor='rgba(255,255,0,0.12)', line=dict(color='olive', width=1),
+                             name='Area 3'))
+
+    # Area 3: right small band ax >= 0.7 and -0.2<az<0.2
+    fig.add_shape(type="rect", x0=0.7, x1=2.0, y0=-0.2, y1=0.2, fillcolor="rgba(255,255,0,0.12)", line=dict(color="olive", width=1))
+
+    # Area 2: as you requested: ax > 0.2 and az > 0.2
+    fig.add_shape(type="rect", x0=0.2, x1=2.0, y0=0.2, y1=2.0, fillcolor="rgba(255,165,0,0.14)", line=dict(color="orange", width=1))
+    fig.add_annotation(x=1.1, y=1.1, text="Area 2", showarrow=False, font=dict(size=11, color="orange"))
+
+    # Area 1: right-side small band near-zero vertical (fallback)
+    fig.add_shape(type="rect", x0=0.0, x1=2.0, y0=-0.2, y1=0.2, fillcolor="rgba(255,0,0,0.08)", line=dict(color="red", width=1))
+    fig.add_annotation(x=1.0, y=0.0, text="Area 1", showarrow=False, font=dict(size=11, color="red"))
+
     fig.update_layout(
-        title="Passenger Acceleration Envelope (ax vs az)",
+        title="Passenger Acceleration Envelope (ax vs az) — user partitioning",
         xaxis_title="Horizontal Acceleration ax [g]",
-        yaxis_title="Vertical Acceleration az [g]",
+        yaxis_title="Vertical Acceleration az [g] (positive = down)",
         height=600,
         template="plotly_white",
         showlegend=True,
         xaxis=dict(range=[-2, 2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-        yaxis=dict(range=[-2, 1.5], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+        yaxis=dict(range=[-2, 2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
     )
-    
+
     return fig
 
 # --- Navigation & validation ---
@@ -631,7 +690,7 @@ elif st.session_state.step == 5:
     diameter = st.session_state.diameter
     height = diameter * 1.1  # Height of ferris wheel
     rotation_time_min = st.session_state.rotation_time_min
-    
+
     # Convert rotation time to angular velocity (rad/s)
     if rotation_time_min and rotation_time_min > 0:
         rotation_time_sec = rotation_time_min * 60.0
@@ -640,7 +699,7 @@ elif st.session_state.step == 5:
     else:
         angular_velocity = 0.0
         rpm = 0.0
-    
+
     st.subheader("Braking Acceleration Parameter")
     st.markdown("Enter the design braking acceleration (tangential direction):")
     braking_accel = st.number_input(
@@ -653,20 +712,20 @@ elif st.session_state.step == 5:
         key="braking_accel_input"
     )
     st.session_state.braking_acceleration = braking_accel
-    
+
     st.markdown("---")
     st.subheader("Design Case Analysis")
     st.markdown("**Design parameters:** Speed = 1 rpm, Braking acceleration = 0.7 m/s²")
-    
+
     # Design case: 1 rpm, 0.7 m/s² braking
     omega_design = 1.0 * (2.0 * np.pi / 60.0)  # 1 rpm to rad/s
     a_brake_design = 0.7
-    
+
     p_design, n_design, max_accel_design = calculate_dynamic_product(
         diameter, height, omega_design, a_brake_design
     )
     class_design = classify_device(p_design)
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Max Acceleration", f"{max_accel_design:.3f} m/s²")
@@ -675,17 +734,17 @@ elif st.session_state.step == 5:
         st.metric("Dynamic Product (p)", f"{p_design:.2f}")
     with col3:
         st.metric("Device Class (Design)", f"Class {class_design}")
-    
+
     st.markdown("---")
     st.subheader("Actual Operation Analysis")
     st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
-    
+
     # Actual case: current design speed and braking
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
         diameter, height, angular_velocity, braking_accel
     )
     class_actual = classify_device(p_actual)
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²")
@@ -694,7 +753,7 @@ elif st.session_state.step == 5:
         st.metric("Dynamic Product (p)", f"{p_actual:.2f}")
     with col3:
         st.metric("Device Class (Actual)", f"Class {class_actual}")
-    
+
     # Store classification data
     st.session_state.classification_data = {
         'p_design': p_design,
@@ -706,7 +765,7 @@ elif st.session_state.step == 5:
         'max_accel_actual': max_accel_actual,
         'n_actual': n_actual
     }
-    
+
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
@@ -723,43 +782,43 @@ elif st.session_state.step == 6:
     diameter = st.session_state.diameter
     rotation_time_min = st.session_state.rotation_time_min
     braking_accel = st.session_state.braking_acceleration
-    
+
     # Convert rotation time to angular velocity
     if rotation_time_min and rotation_time_min > 0:
         rotation_time_sec = rotation_time_min * 60.0
         angular_velocity = 2.0 * np.pi / rotation_time_sec
     else:
         angular_velocity = 0.0
-    
+
     st.subheader("Passenger Acceleration Analysis")
     st.markdown("Acceleration components in horizontal (ax) and vertical (az) directions:")
-    
-    # Calculate max ax and az values across all angles
+
+    # Calculate ax and az across all angles (expressed in g)
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_ax = -float('inf')
     max_az = -float('inf')
     restraint_areas = []
-    
+
     for theta in theta_vals:
         a_x, a_z, _ = calculate_accelerations_at_angle(
             theta, diameter, angular_velocity, braking_accel
         )
         a_x_g = a_x / 9.81
-        a_z_g = a_z / 9.81
-        
+        a_z_g = a_z / 9.81  # az positive downward
+        # track maxima in absolute sense
         if abs(a_x_g) > abs(max_ax):
             max_ax = a_x_g
         if abs(a_z_g) > abs(max_az):
             max_az = a_z_g
-        
+
         area = determine_restraint_area(a_x_g, a_z_g)
         restraint_areas.append(area)
-    
+
     # Determine predominant restraint area
     from collections import Counter
     area_counts = Counter(restraint_areas)
     predominant_area = area_counts.most_common(1)[0][0]
-    
+
     # Display results
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -768,7 +827,7 @@ elif st.session_state.step == 6:
         st.metric("Max Vertical Accel (az)", f"{max_az:.3f}g")
     with col3:
         st.metric("Restraint Area", f"Area {predominant_area}")
-    
+
     # Restraint type descriptions
     restraint_descriptions = {
         1: "Minimal restraint - Seat belt may be sufficient",
@@ -777,24 +836,24 @@ elif st.session_state.step == 6:
         4: "Special consideration - Harness system may be needed (if no lateral forces & duration < 0.2s)",
         5: "Maximum restraint - Full body harness required"
     }
-    
+
     st.success(f"**Recommended Restraint Type:** {restraint_descriptions.get(predominant_area, 'Standard restraint')}")
-    
+
     # Plot acceleration envelope
     st.markdown("---")
     st.subheader("Acceleration Envelope Diagram")
     fig_accel = plot_acceleration_envelope(diameter, angular_velocity, braking_accel)
     st.plotly_chart(fig_accel, use_container_width=True)
-    
+
     st.markdown("""
-    **Area Classifications:**
-    - **Area 1** (Red): Right side, minimal vertical acceleration - Minimal restraint
-    - **Area 2** (Orange): Central zone - Standard restraint (lap bar/seat belt)
-    - **Area 3** (Yellow): Left side, backward acceleration - Enhanced restraint
-    - **Area 4** (Green): Downward acceleration zone - Special consideration (harness if needed)
-    - **Area 5** (Purple): Upward acceleration zone - Maximum restraint (full body harness)
+    **Area Classifications (مراتب):**
+    - **Area 1** (Red): Right small band near-zero vertical accel
+    - **Area 2** (Orange): Right-lower region (ax > 0.2 and az > 0.2) — طبق درخواست شما
+    - **Area 3** (Yellow): مرکزی بین خط مورب و az=0.2
+    - **Area 4** (Green): ناحیهٔ پایین-چپ (باند/ستون‌های چپ)
+    - **Area 5** (Purple): بالا/سمت‌های دیگر (az <= 0 و ترکیبات اشاره‌شده)
     """)
-    
+
     # Update classification data with restraint info
     st.session_state.classification_data.update({
         'restraint_area': predominant_area,
@@ -802,7 +861,7 @@ elif st.session_state.step == 6:
         'max_az_g': max_az,
         'restraint_description': restraint_descriptions.get(predominant_area, 'Standard restraint')
     })
-    
+
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
@@ -838,7 +897,7 @@ elif st.session_state.step == 7:
             st.write(f"• Max Wind Speed: {env.get('wind_max',0)} km/h")
 
     st.markdown("---")
-    
+
     # Classification data
     if st.session_state.classification_data:
         st.markdown("**Safety Classification (NS 8987):**")
@@ -856,7 +915,7 @@ elif st.session_state.step == 7:
             st.write(f"• Restraint Area: Area {class_data.get('restraint_area','N/A')}")
             st.write(f"• Max Horizontal: {class_data.get('max_ax_g',0):.3f}g")
             st.write(f"• Max Vertical: {class_data.get('max_az_g',0):.3f}g")
-        
+
         st.info(f"**Restraint Type:** {class_data.get('restraint_description', 'N/A')}")
 
     st.markdown("---")
