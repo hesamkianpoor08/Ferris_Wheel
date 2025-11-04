@@ -305,7 +305,7 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     # District 1 (Purple)
     x_d1 = [0.2, 2.0, 2.0, -0.2 , -0.2, 0,0.2]
-    y_d1 = [0.2, 0.2, 2.0, 2.0, 1 , 0.7,0.2]
+    y_d1 = [0.2, 0.2, 2.0, 2.0, 1 , 0.7,0.7]
     fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, 
@@ -399,7 +399,7 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
     
     # Zone 5 (Red)
     x_z5 = [0, -1.8, -1.8, -2.0, -2, -2 , 2 , 2 , 0.7 ]
-    y_z5 = [0,  0 ,   2 ,  2.0, 0 , 2  , 2 , -0.2 , -0.2]
+    y_z5 = [0,  0 ,   2 ,  2.0, 0 , -2  , -2 , -0.2 , -0.2]
     fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
