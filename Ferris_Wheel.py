@@ -204,6 +204,8 @@ def determine_restraint_area_iso(ax, az):
     # District 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
+    if 0 < ax <= 0.2 and  az > 0.7:
+        return 1
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
@@ -215,13 +217,7 @@ def determine_restraint_area_iso(ax, az):
     if -0.7 < ax <= -0.2 and az > 0.2:
         return 2
     
-    # District 3: Central edges
-    if -1.2 < ax <= -0.7 and az > 0.2:
-        return 3
-    if -0.7 < ax < 0 and ((-0.2/0.7) * ax) < az <= 0.2:
-        return 3
-    if ax > 0 and 0 < az <= 0.2:
-        return 3
+
     
     # District 4: Lower-central region
     if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
@@ -257,13 +253,7 @@ def determine_restraint_area_as(ax, az):
     if -0.7 < ax <= 0.2 and az > 0.2:
         return 2
     
-    # Zone 3: Central region
-    if -0.7 < ax <= 0.7 and ((-0.2/0.7) * ax) < az <= 0.2:
-        return 3
-    if ax > 0.7 and -0.2 < az <= 0.2:
-        return 3
-    if -1.2 < ax <= -0.7 and az > 0.2:
-        return 3
+
     
     # Zone 4: Lower-central region
     if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
