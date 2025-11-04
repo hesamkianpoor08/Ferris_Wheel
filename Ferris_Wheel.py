@@ -223,6 +223,8 @@ def determine_restraint_area_iso(ax, az):
         return 1
     if 0 < ax < 0.2 and az > 0.7:
         return 1
+    if 0 < ax < 0.2 and az > (6.5 *ax + 0.7):
+        return 1
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
