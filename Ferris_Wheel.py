@@ -49,8 +49,6 @@ if 'carousel_orientation' not in st.session_state:
     st.session_state.carousel_orientation = None
 if 'orientation_confirmed' not in st.session_state:
     st.session_state.orientation_confirmed = False
-if 'terrain_calculated' not in st.session_state:
-    st.session_state.terrain_calculated = False
 
 # --- Province Data ---
 TERRAIN_CATEGORIES = {
@@ -88,16 +86,35 @@ TERRAIN_CATEGORIES = {
 }
 
 SEISMIC_HAZARD = {
-    "Tehran": "Very High", "Alborz": "Very High", "Kermanshah": "Very High",
-    "Kohgiluyeh and Boyer-Ahmad": "Very High", "Lorestan": "Very High",
-    "West Azerbaijan": "Very High", "East Azerbaijan": "Very High",
-    "Fars": "Very High", "Hormozgan": "Very High", "Kurdistan": "High",
-    "Ilam": "High", "Chaharmahal and Bakhtiari": "High", "Bushehr": "High",
-    "Mazandaran": "High", "Gilan": "High", "Khorasan Razavi": "High",
-    "South Khorasan": "High", "Qazvin": "Moderate", "Zanjan": "Moderate",
-    "Semnan": "Moderate", "Markazi": "Moderate", "Isfahan": "Moderate",
-    "Kerman": "Moderate", "Qom": "Low", "Yazd": "Low", "Khuzestan": "Low",
-    "Golestan": "Low", "North Khorasan": "Low", "Sistan and Baluchestan": "Low"
+    "Tehran": "Very High",
+    "Alborz": "Very High",
+    "Kermanshah": "Very High",
+    "Kohgiluyeh and Boyer-Ahmad": "Very High",
+    "Lorestan": "Very High",
+    "West Azerbaijan": "Very High",
+    "East Azerbaijan": "Very High",
+    "Fars": "Very High",
+    "Hormozgan": "Very High",
+    "Kurdistan": "High",
+    "Ilam": "High",
+    "Chaharmahal and Bakhtiari": "High",
+    "Bushehr": "High",
+    "Mazandaran": "High",
+    "Gilan": "High",
+    "Khorasan Razavi": "High",
+    "South Khorasan": "High",
+    "Qazvin": "Moderate",
+    "Zanjan": "Moderate",
+    "Semnan": "Moderate",
+    "Markazi": "Moderate",
+    "Isfahan": "Moderate",
+    "Kerman": "Moderate",
+    "Qom": "Low",
+    "Yazd": "Low",
+    "Khuzestan": "Low",
+    "Golestan": "Low",
+    "North Khorasan": "Low",
+    "Sistan and Baluchestan": "Low"
 }
 
 # --- Helper functions ---
@@ -204,29 +221,35 @@ def determine_restraint_area_iso(ax, az):
     # District 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
-    if 0 < ax <= 0.2 and  az > 0.7:
+    if 0 < ax < 0.2 and az > 0.7:
         return 1
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
     # District 2: Upper-central region
-    if 0 < ax <= 0.2 and 0.2 < az <= 0.7:
+    if 0 < ax < 0.2 and 0.2 < az < 0.7:
         return 2
-    if -0.2 < ax < 0 and 0.2 < az <= (-1.5 * ax + 0.7):
+    if -0.2 < ax < 0 and 0.2 < az < (-1.5 * ax + 0.7):
         return 2
-    if -0.7 < ax <= -0.2 and az > 0.2:
+    if -0.7 < ax < -0.2 and az > 0.2:
         return 2
     
-
+    # District 3: Central-left and right edges
+    if -1.2 < ax < -0.7 and az > 0.2:
+        return 3
+    if -0.7 < ax < 0 and (-0.2/0.7) * ax < az < 0.2:
+        return 3
+    if ax > 0 and 0 < az < 0.2:
+        return 3
     
     # District 4: Lower-central region
     if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
         return 4
-    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
+    if -1.2 < ax < -0.7 and 0 < az < 0.2:
         return 4
-    if -1.8 < ax <= -1.2 and az > 0:
+    if -1.8 < ax < -1.2 and az > 0:
         return 4
-    if 0 < ax <= 0.7 and ((-0.2/0.7) * ax) < az < 0:
+    if 0 < ax < 0.7 and ((-0.2/0.7) * ax) < az < 0:
         return 4
     if ax > 0.7 and -0.2 < az < 0:
         return 4
@@ -234,41 +257,9 @@ def determine_restraint_area_iso(ax, az):
     # District 5: Lower region
     if ax > 0.7 and az < -0.2:
         return 5
-    if 0 < ax <= 0.7 and az < ((-0.2/0.7) * ax):
+    if 0 < ax < 0.7 and az < ((-0.2/0.7) * ax):
         return 5
     if ax < 0 and az < 0:
-        return 5
-    if ax < -1.8:
-        return 5
-    
-    return 2  # Default
-
-def determine_restraint_area_as(ax, az):
-    """Determine restraint area based on AS standard (ax and az in units of g)"""
-    # Region 1: Upper region
-    if ax > 0.2 and az > 0.2:
-        return 1
-    
-    # Zone 2: Upper-central region
-    if -0.7 < ax <= 0.2 and az > 0.2:
-        return 2
-    
-
-    
-    # Zone 4: Lower-central region
-    if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
-        return 4
-    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
-        return 4
-    if -1.8 < ax <= -1.2 and az > 0:
-        return 4
-    
-    # Zone 5: Lower region
-    if ax <= 0 and az <= 0:
-        return 5
-    if 0.7 <= ax and az < -0.2:
-        return 5
-    if 0 < ax < 0.7 and az < ((-0.2/0.7) * ax):
         return 5
     if ax < -1.8:
         return 5
@@ -288,115 +279,111 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     fig = go.Figure()
     
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers',
-                             marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
+    # Plot acceleration envelope as points
+    fig.add_trace(go.Scatter(
+        x=ax_vals, 
+        y=az_vals, 
+        mode='markers',
+        marker=dict(color='#2196F3', size=4),
+        name='Acceleration Points'
+    ))
     
-    # District 1 (Purple)
+    # Draw ISO zone boundaries
+    # District 1 (Purple - upper)
     x_d1 = [0.2, 2.0, 2.0, 0.2, 0, -0.2]
     y_d1 = [0.2, 0.2, 2.0, 2.0, 0.7, 0.7]
     fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
-                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, 
-                      font=dict(size=11, color="purple", family="Arial Black"))
+                             line=dict(color='purple', width=2, dash='dash'), name='District 1', showlegend=False))
+    fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, font=dict(size=11, color="purple", family="Arial Black"))
     
-    # District 2 (Orange)
-    x_d2 = [-0.7, -0.2, 0, 0.2, 0.2, 0, -0.2, -0.7]
-    y_d2 = [0.2, 0.2, 0.7, 0.7, 0.2, 0.2, 0.4, 0.2]
+    # District 2 (Orange - upper-central)
+    x_d2_part1 = np.linspace(0, 0.2, 50)
+    y_d2_part1_lower = 0.2 * np.ones_like(x_d2_part1)
+    y_d2_part1_upper = 0.7 * np.ones_like(x_d2_part1)
+    
+    x_d2_part2 = np.linspace(-0.2, 0, 50)
+    y_d2_part2_lower = 0.2 * np.ones_like(x_d2_part2)
+    y_d2_part2_upper = -1.5 * x_d2_part2 + 0.7
+    
+    x_d2 = [-0.7, -0.2] + list(x_d2_part2) + list(x_d2_part1) + [0.2]
+    y_d2 = [0.2, 0.2] + list(y_d2_part2_upper) + list(y_d2_part1_upper) + [0.2]
     fig.add_trace(go.Scatter(x=x_d2, y=y_d2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
-                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False,
-                      font=dict(size=11, color="orange", family="Arial Black"))
+                             line=dict(color='orange', width=2, dash='dash'), name='District 2', showlegend=False))
+    fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False, font=dict(size=11, color="orange", family="Arial Black"))
     
-    # District 3 (Yellow)
-    x_d3 = [-1.2, -0.7, -0.7, 0, 2.0, 2.0, 0, -0.7, -1.2]
-    y_d3 = [0.2, 0.2, 0, 0, 0, 0.2, 0.2, 0.08571, 0.2]
-    fig.add_trace(go.Scatter(x=x_d3, y=y_d3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=0.1, text="District 3", showarrow=False,
-                      font=dict(size=11, color="gold", family="Arial Black"))
+    # District 3 (Yellow - central edges)
+    x_d3_left = [-1.2, -0.7, -0.7, -1.2, -1.2]
+    y_d3_left = [0.2, 0.2, 2.0, 2.0, 0.2]
+    fig.add_trace(go.Scatter(x=x_d3_left, y=y_d3_left, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), name='District 3 Left', showlegend=False))
     
-    # District 4 (Green)
-    x_d4 = [-1.8, -1.2, -0.7, 0, 0.7, 2.0, 2.0, 0.7, 0, -0.7, -1.2, -1.8]
-    y_d4 = [0, 0, 0, 0, 0, 0, -0.2, -0.2, -0.2, -0.2, 0, 0]
-    fig.add_trace(go.Scatter(x=x_d4, y=y_d4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.4, y=-0.05, text="District 4", showarrow=False,
-                      font=dict(size=11, color="green", family="Arial Black"))
+    x_d3_center = np.linspace(-0.7, 0, 50)
+    y_d3_center_lower = (-0.2/0.7) * x_d3_center
+    x_d3_right = [0, 2.0, 2.0, 0]
+    y_d3_right = [0, 0, 0.2, 0.2]
+    fig.add_trace(go.Scatter(x=list(x_d3_center) + x_d3_right, y=list(y_d3_center_lower) + y_d3_right, 
+                             fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), name='District 3 Right', showlegend=False))
+    fig.add_annotation(x=-0.9, y=0.6, text="District 3", showarrow=False, font=dict(size=11, color="gold", family="Arial Black"))
+    fig.add_annotation(x=0.5, y=0.1, text="District 3", showarrow=False, font=dict(size=11, color="gold", family="Arial Black"))
     
-    # District 5 (Red)
-    x_d5 = [0.7, 2.0, 2.0, 0, -2.0, -2.0, -1.8, -1.8, -2.0, -2.0, 0, 0.7]
-    y_d5 = [-0.2, -0.2, -2.0, -2.0, -2.0, 0, 0, 2.0, 2.0, -2.0, -0.2, -0.2]
-    fig.add_trace(go.Scatter(x=x_d5, y=y_d5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=-0.8, text="District 5", showarrow=False,
-                      font=dict(size=11, color="red", family="Arial Black"))
+    # District 4 (Green - lower-central)
+    x_d4_1 = np.linspace(-0.7, 0, 50)
+    y_d4_1_upper = (-0.2/0.7) * x_d4_1
+    y_d4_1_lower = np.zeros_like(x_d4_1)
     
-    fig.update_layout(title="ISO Standard - Acceleration Envelope", xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
-    return fig
-
-def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9.81):
-    """Plot the ax vs az acceleration envelope with AS zones"""
-    theta_vals = np.linspace(0, 2*np.pi, 360)
-    ax_vals = []
-    az_vals = []
+    x_d4_2 = [-1.2, -0.7]
+    y_d4_2 = [0, 0]
     
-    for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
-        ax_vals.append(a_x / g)
-        az_vals.append(a_z / g)
+    x_d4_3 = np.linspace(0, 0.7, 50)
+    y_d4_3_upper = (-0.2/0.7) * x_d4_3
+    y_d4_3_lower = np.zeros_like(x_d4_3)
     
-    fig = go.Figure()
+    x_d4_4 = [0.7, 2.0, 2.0, 0.7]
+    y_d4_4 = [0, 0, -0.2, -0.2]
     
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers',
-                             marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
+    fig.add_trace(go.Scatter(x=[-1.8, -1.2] + x_d4_2 + list(x_d4_1) + list(x_d4_3) + x_d4_4,
+                             y=[0, 0] + y_d4_2 + list(y_d4_1_upper) + list(y_d4_3_upper) + y_d4_4,
+                             fill='toself', fillcolor='rgba(0,255,0,0.15)',
+                             line=dict(color='green', width=2, dash='dash'), name='District 4', showlegend=False))
+    fig.add_annotation(x=-0.4, y=-0.05, text="District 4", showarrow=False, font=dict(size=11, color="green", family="Arial Black"))
     
-    # Region 1 (Purple)
-    x_r1 = [0.2, 2.0, 2.0, 0.2]
-    y_r1 = [0.2, 0.2, 2.0, 2.0]
-    fig.add_trace(go.Scatter(x=x_r1, y=y_r1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
-                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.8, y=1.0, text="Region 1", showarrow=False,
-                      font=dict(size=11, color="purple", family="Arial Black"))
+    # District 5 (Red - lower region)
+    x_d5_1 = [0.7, 2.0, 2.0, 0.7]
+    y_d5_1 = [-0.2, -0.2, -2.0, -2.0]
     
-    # Zone 2 (Orange)
-    x_z2 = [-0.7, 0.2, 0.2, -0.7]
-    y_z2 = [0.2, 0.2, 2.0, 2.0]
-    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
-                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=0.8, text="Zone 2", showarrow=False,
-                      font=dict(size=11, color="orange", family="Arial Black"))
+    x_d5_2 = np.linspace(0, 0.7, 50)
+    y_d5_2 = (-0.2/0.7) * x_d5_2
     
-    # Zone 3 (Yellow)
-    x_z3 = [-1.2, -0.7, -0.7, 0.7, 2.0, 2.0, 0.7, -0.7, -1.2]
-    y_z3 = [0.2, 0.2, -0.2, -0.2, -0.2, 0.2, 0.2, 0.2, 0.2]
-    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=0.05, text="Zone 3", showarrow=False,
-                      font=dict(size=11, color="gold", family="Arial Black"))
+    x_d5_3 = [-2.0, 0, 0, -2.0]
+    y_d5_3 = [-2.0, -2.0, 0, 0]
     
-    # Zone 4 (Green)
-    x_z4 = [-1.8, -1.2, -0.7, 0, 0, -1.8]
-    y_z4 = [0, 0, 0, 0.2, 0, 0]
-    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.5, y=0.05, text="Zone 4", showarrow=False,
-                      font=dict(size=11, color="green", family="Arial Black"))
+    x_d5_4 = [-2.0, -1.8, -1.8, -2.0]
+    y_d5_4 = [2.0, 2.0, 0, 0]
     
-    # Zone 5 (Red)
-    x_z5 = [0.7, 2.0, 2.0, 0, -2.0, -2.0, -1.8, -1.8, -2.0, -2.0, 0, 0.7]
-    y_z5 = [-0.2, -0.2, -2.0, -2.0, -2.0, 0, 0, 2.0, 2.0, -2.0, -0.2, -0.2]
-    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
-                      font=dict(size=11, color="red", family="Arial Black"))
+    fig.add_trace(go.Scatter(x=x_d5_1, y=y_d5_1, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), name='District 5-1', showlegend=False))
+    fig.add_trace(go.Scatter(x=list(x_d5_2) + [0.7, 0.7, 0], y=list(y_d5_2) + [-0.2, -2.0, -2.0], 
+                             fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), name='District 5-2', showlegend=False))
+    fig.add_trace(go.Scatter(x=x_d5_3, y=y_d5_3, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), name='District 5-3', showlegend=False))
+    fig.add_trace(go.Scatter(x=x_d5_4, y=y_d5_4, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), name='District 5-4', showlegend=False))
+    fig.add_annotation(x=1.0, y=-0.8, text="District 5", showarrow=False, font=dict(size=11, color="red", family="Arial Black"))
+    fig.add_annotation(x=-0.7, y=-0.8, text="District 5", showarrow=False, font=dict(size=11, color="red", family="Arial Black"))
     
-    fig.update_layout(title="AS Standard - Acceleration Envelope", xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
+    fig.update_layout(
+        title="Passenger Acceleration Envelope - ISO Standard (ax vs az)",
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]",
+        height=700,
+        template="plotly_white",
+        showlegend=True,
+        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black', gridcolor='lightgray'),
+        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black', gridcolor='lightgray')
+    )
+    
     return fig
 
 def create_orientation_diagram(selected_direction):
@@ -406,11 +393,13 @@ def create_orientation_diagram(selected_direction):
     
     fig = go.Figure()
     
+    # Draw compass circle
     theta = np.linspace(0, 2*np.pi, 100)
     x_circle = np.cos(theta)
     y_circle = np.sin(theta)
     fig.add_trace(go.Scatter(x=x_circle, y=y_circle, mode='lines', line=dict(color='gray', width=2), showlegend=False))
     
+    # Draw direction markers
     for direction, angle in zip(directions, angles):
         angle_rad = np.radians(angle)
         x = 1.2 * np.cos(angle_rad)
@@ -425,6 +414,7 @@ def create_orientation_diagram(selected_direction):
                                 textfont=dict(size=size, color=color, family='Arial Black' if direction == selected_direction else 'Arial'),
                                 showlegend=False))
     
+    # Draw ferris wheel representation in selected direction
     if selected_direction in directions:
         idx = directions.index(selected_direction)
         angle_rad = np.radians(angles[idx])
@@ -439,10 +429,16 @@ def create_orientation_diagram(selected_direction):
                                 fill='toself', fillcolor='rgba(33, 150, 243, 0.3)',
                                 line=dict(color='#2196F3', width=3), showlegend=False))
     
-    fig.update_layout(title=f"Ferris Wheel Orientation: {selected_direction}",
-                      xaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False),
-                      yaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="x", scaleratio=1),
-                      height=500, template="plotly_white", paper_bgcolor='white', plot_bgcolor='white')
+    fig.update_layout(
+        title=f"Ferris Wheel Orientation: {selected_direction}",
+        xaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="x", scaleratio=1),
+        height=500,
+        template="plotly_white",
+        paper_bgcolor='white',
+        plot_bgcolor='white'
+    )
+    
     return fig
 
 # --- Navigation & validation ---
@@ -496,12 +492,11 @@ def validate_current_step_and_next():
         if 'wind_max' not in env or env['wind_max'] is None:
             errors.append("Enter maximum wind speed (km/h).")
     elif s.step == 5:
-        if not s.terrain_calculated:
-            errors.append("Please click 'Calculate Terrain Parameters' before continuing.")
-    elif s.step == 6:
         if not s.soil_type:
             errors.append("Please select a soil type.")
-    elif s.step == 7:
+        if not s.importance_group:
+            errors.append("Please select an importance group.")
+    elif s.step == 6:
         if not s.orientation_confirmed:
             errors.append("Please confirm the carousel orientation or select a custom direction.")
     
@@ -511,11 +506,11 @@ def validate_current_step_and_next():
             st.error(e)
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(11, st.session_state.step + 1)
+        st.session_state.step = min(10, st.session_state.step + 1)
 
 # --- UI ---
 st.title("🎡 Ferris Wheel Designer")
-total_steps = 12
+total_steps = 11
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**Step {st.session_state.get('step', 0) + 1} of {total_steps}**")
 st.markdown("---")
@@ -525,19 +520,30 @@ if st.session_state.get('step', 0) == 0:
 
 # === STEP 0: Generation selection ===
 if st.session_state.get('step', 0) == 0:
-    image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
-    captions = ["1st Generation (Truss type)", "2nd Generation (Cable type)", "2nd Generation (Pure cable type)", "4th Generation (Hubless centerless)"]
-    
+    image_files = [
+        "./git/assets/1st.jpg",
+        "./git/assets/2nd_1.jpg",
+        "./git/assets/2nd_2.jpg",
+        "./git/assets/4th.jpg"
+    ]
+    captions = [
+        "1st Generation (Truss type)",
+        "2nd Generation (Cable type)",
+        "2nd Generation (Pure cable type)",
+        "4th Generation (Hubless centerless)"
+    ]
+    img_width = 180
+
     cols = st.columns(4, gap="small")
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
         with col:
             try:
-                st.image(img_path, width=180)
-            except:
+                st.image(img_path, width=img_width)
+            except Exception:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
             st.button(f"Select\n{caption}", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
-    
+
     st.markdown("---")
     st.write("Click the button under the image to select a generation and proceed.")
 
@@ -545,24 +551,31 @@ if st.session_state.get('step', 0) == 0:
 elif st.session_state.step == 1:
     st.header("Step 2: Cabin Geometry Selection")
     st.markdown("Choose a cabin shape.")
-    geom_images = [("Square", "./git/assets/square.jpg"), ("Vertical Cylinder", "./git/assets/vertical.jpg"),
-                   ("Horizontal Cylinder", "./git/assets/horizontal.jpg"), ("Spherical", "./git/assets/sphere.jpg")]
+    geom_images = [
+        ("Square", "./git/assets/square.jpg"),
+        ("Vertical Cylinder", "./git/assets/vertical.jpg"),
+        ("Horizontal Cylinder", "./git/assets/horizontal.jpg"),
+        ("Spherical", "./git/assets/sphere.jpg")
+    ]
     cols = st.columns(4, gap="small")
     for i, (label, img_path) in enumerate(geom_images):
         with cols[i]:
             try:
                 st.image(img_path, use_column_width=True)
-            except:
+            except Exception:
                 st.write(f"Image not found: {img_path}")
             st.caption(label)
             if st.button(f"Select\n{label}", key=f"geom_img_btn_{i}"):
                 st.session_state.cabin_geometry = label
                 base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
                 min_c, max_c = calc_min_max_from_base(base)
-                st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
+                if st.session_state.num_cabins < min_c:
+                    st.session_state.num_cabins = min_c
+                elif st.session_state.num_cabins > max_c:
+                    st.session_state.num_cabins = max_c
                 st.session_state.capacities_calculated = False
                 st.session_state.step = 2
-    
+
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
@@ -578,25 +591,50 @@ elif st.session_state.step == 2:
 
     col1, col2 = st.columns(2)
     with col1:
-        diameter = st.number_input("Ferris Wheel Diameter (m)", min_value=30, max_value=80, value=int(st.session_state.diameter), step=1, key="diameter_input")
+        diameter = st.number_input(
+            "Ferris Wheel Diameter (m)",
+            min_value=30,
+            max_value=80,
+            value=int(st.session_state.diameter),
+            step=1,
+            key="diameter_input"
+        )
         st.session_state.diameter = diameter
 
     geometry = st.session_state.cabin_geometry
     base = base_for_geometry(diameter, geometry) if geometry else (np.pi * diameter / 4.0)
     min_c, max_c = calc_min_max_from_base(base)
 
-    num_cabins = st.number_input("Number of Cabins", min_value=min_c, max_value=max_c, 
-                                  value=min(max(int(st.session_state.num_cabins), min_c), max_c), step=1, key="num_cabins_input")
+    num_cabins = st.number_input(
+        "Number of Cabins",
+        min_value=min_c,
+        max_value=max_c,
+        value=min(max(int(st.session_state.num_cabins), min_c), max_c),
+        step=1,
+        key="num_cabins_input"
+    )
     st.session_state.num_cabins = num_cabins
 
     c1, c2 = st.columns(2)
     with c1:
-        cabin_capacity = st.number_input("Cabin Capacity (passengers per cabin)", min_value=4, max_value=8, 
-                                         value=st.session_state.cabin_capacity, step=1, key="cabin_capacity_input")
+        cabin_capacity = st.number_input(
+            "Cabin Capacity (passengers per cabin)",
+            min_value=4,
+            max_value=8,
+            value=st.session_state.cabin_capacity,
+            step=1,
+            key="cabin_capacity_input"
+        )
         st.session_state.cabin_capacity = cabin_capacity
     with c2:
-        num_vip = st.number_input("Number of VIP Cabins", min_value=0, max_value=st.session_state.num_cabins, 
-                                   value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins), step=1, key="num_vip_input")
+        num_vip = st.number_input(
+            "Number of VIP Cabins",
+            min_value=0,
+            max_value=st.session_state.num_cabins,
+            value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins),
+            step=1,
+            key="num_vip_input"
+        )
         st.session_state.num_vip_cabins = num_vip
 
     st.markdown("---")
@@ -628,9 +666,15 @@ elif st.session_state.step == 3:
     circumference = np.pi * diameter
     default_rotation_time_min = (circumference / 0.2) / 60.0 if diameter > 0 else 1.0
 
-    rotation_time_min = st.number_input("Rotation time (minutes per full rotation)", min_value=0.01, max_value=60.0, 
-                                         value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min), 
-                                         step=0.01, format="%.2f", key="rotation_time_input")
+    rotation_time_min = st.number_input(
+        "Rotation time (minutes per full rotation)",
+        min_value=0.01,
+        max_value=60.0,
+        value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min),
+        step=0.01,
+        format="%.2f",
+        key="rotation_time_input"
+    )
     st.session_state.rotation_time_min = rotation_time_min
 
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
@@ -639,8 +683,12 @@ elif st.session_state.step == 3:
     st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
     st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
-    cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
-                                                          st.session_state.num_vip_cabins, rotation_time_min)
+    cap_per_hour = calculate_capacity_per_hour_from_time(
+        st.session_state.num_cabins,
+        st.session_state.cabin_capacity,
+        st.session_state.num_vip_cabins,
+        rotation_time_min
+    )
     st.metric("Estimated Capacity per Hour", f"{cap_per_hour:.0f} passengers/hour")
 
     st.markdown("---")
@@ -663,15 +711,27 @@ elif st.session_state.step == 4:
     with c2:
         region_name = st.text_input("Region / Area name", value=st.session_state.environment_data.get('region_name', ''), key="region_name_input")
 
+    # Show terrain and seismic data
+    if province in TERRAIN_CATEGORIES:
+        terrain = TERRAIN_CATEGORIES[province]
+        seismic = SEISMIC_HAZARD.get(province, "Unknown")
+        
+        st.markdown("---")
+        st.subheader("Provincial Characteristics")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.info(f"**Terrain Category:** {terrain['category']}\n\n**Description:** {terrain['desc']}\n\n**z₀:** {terrain['z0']} m\n\n**z_min:** {terrain['zmin']} m")
+        with col2:
+            seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢"}
+            st.warning(f"{seismic_color.get(seismic, '')} **Seismic Hazard:** {seismic}")
+
     st.markdown("---")
     st.subheader("Land Surface Area (meters)")
     l1, l2 = st.columns(2)
     with l1:
-        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, 
-                                      value=st.session_state.environment_data.get('land_length', 100.0), key="land_length_input")
+        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_length', 100.0), key="land_length_input")
     with l2:
-        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, 
-                                     value=st.session_state.environment_data.get('land_width', 100.0), key="land_width_input")
+        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, value=st.session_state.environment_data.get('land_width', 100.0), key="land_width_input")
     st.metric("Total Land Area", f"{land_length * land_width:.2f} m²")
 
     st.markdown("---")
@@ -695,23 +755,27 @@ elif st.session_state.step == 4:
     st.markdown("---")
     load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.wind_rose_loaded, key="load_wind_checkbox")
     st.session_state.wind_rose_loaded = load_wind
+    wind_file = None
     if load_wind:
         wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
         st.session_state.wind_rose_file = wind_file
 
-    if province in TERRAIN_CATEGORIES:
-        terrain = TERRAIN_CATEGORIES[province]
-        seismic = SEISMIC_HAZARD.get(province, "Unknown")
-    else:
-        terrain = {"category": "II", "z0": 0.05, "zmin": 2, "desc": ""}
-        seismic = "Unknown"
-
     st.session_state.environment_data = {
-        'province': province, 'region_name': region_name, 'land_length': land_length, 'land_width': land_width,
-        'land_area': land_length * land_width, 'altitude': altitude, 'temp_min': temp_min, 'temp_max': temp_max,
-        'wind_direction': wind_dir, 'wind_max': wind_max, 'wind_avg': wind_avg,
-        'terrain_category': terrain['category'], 'terrain_z0': terrain['z0'], 'terrain_zmin': terrain['zmin'],
-        'terrain_desc': terrain.get('desc', ''), 'seismic_hazard': seismic
+        'province': province,
+        'region_name': region_name,
+        'land_length': land_length,
+        'land_width': land_width,
+        'land_area': land_length * land_width,
+        'altitude': altitude,
+        'temp_min': temp_min,
+        'temp_max': temp_max,
+        'wind_direction': wind_dir,
+        'wind_max': wind_max,
+        'wind_avg': wind_avg,
+        'terrain_category': terrain['category'],
+        'terrain_z0': terrain['z0'],
+        'terrain_zmin': terrain['zmin'],
+        'seismic_hazard': seismic
     }
 
     st.markdown("---")
@@ -721,62 +785,9 @@ elif st.session_state.step == 4:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 5: Provincial Characteristics (Terrain Calculation) ===
+# === STEP 5: Soil Type & Importance Group ===
 elif st.session_state.step == 5:
-    st.header("Step 6: Provincial Characteristics & Terrain Parameters")
-    st.markdown("---")
-    
-    env = st.session_state.environment_data
-    province = env.get('province', 'Tehran')
-    
-    st.subheader(f"Selected Province: {province}")
-    st.info(f"**Region:** {env.get('region_name', 'N/A')}")
-    
-    if province in TERRAIN_CATEGORIES:
-        terrain = TERRAIN_CATEGORIES[province]
-        seismic = SEISMIC_HAZARD.get(province, "Unknown")
-        
-        st.markdown("---")
-        st.subheader("Terrain Information")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(f"**Terrain Category:** {terrain['category']}")
-            st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
-        with col2:
-            seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢"}
-            st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard:** {seismic}")
-        
-        st.markdown("---")
-        
-        if st.button("🔄 Calculate Terrain Parameters", type="primary"):
-            st.session_state.terrain_calculated = True
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Terrain Category", terrain['category'])
-            with col2:
-                st.metric("Roughness Length (z₀)", f"{terrain['z0']} m")
-            with col3:
-                st.metric("Minimum Height (z_min)", f"{terrain['zmin']} m")
-            
-            st.success("✅ Terrain parameters calculated successfully!")
-            st.info(f"**z₀ = {terrain['z0']} m** - This value will be used for wind load calculations.")
-        
-        if st.session_state.terrain_calculated:
-            st.markdown("---")
-            st.success("✅ Terrain parameters have been calculated. You can proceed to the next step.")
-    
-    st.markdown("---")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
-        st.button("⬅️ Back", on_click=go_back)
-    with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
-
-# === STEP 6: Soil Type (auto-calculate Importance Group) ===
-elif st.session_state.step == 6:
-    st.header("Step 7: Soil Type & Importance Classification")
+    st.header("Step 6: Soil Type & Importance Classification")
     st.markdown("---")
     
     st.subheader("Soil Type Selection")
@@ -784,23 +795,19 @@ elif st.session_state.step == 6:
     soil_types = {
         "Type I": {
             "desc": "a. Coarse- and fine-grained igneous rocks, very hard and strong sedimentary rocks, and other hard conglomerate and silicate sedimentary rocks.\nb. Hard soils (dense sand and very stiff clay) with a total thickness of less than 30 meters above bedrock.",
-            "group_factor": 1.4,
-            "importance_group": "Group 1"
+            "group_factor": 1.4
         },
         "Type II": {
             "desc": "a. Weak igneous rocks (such as tuff), moderately cemented sedimentary rocks, and rocks that have been partially weathered.\nb. Hard soils (dense sand and very stiff clay) with a total thickness greater than 30 meters.",
-            "group_factor": 1.2,
-            "importance_group": "Group 2"
+            "group_factor": 1.2
         },
         "Type III": {
             "desc": "a. Weathered or decomposed metamorphic rocks.\nb. Medium dense soils, layers of sand and clay with moderate cohesion and medium stiffness.",
-            "group_factor": 1.0,
-            "importance_group": "Group 3"
+            "group_factor": 1.0
         },
         "Type IV": {
             "desc": "a. Soft soils with high moisture content due to a shallow groundwater level.\nb. Any soil profile that includes at least 7 meters of clayey soil with a plasticity index greater than 20 or a moisture content higher than 40 percent.",
-            "group_factor": 0.8,
-            "importance_group": "Group 4"
+            "group_factor": 0.8
         }
     }
     
@@ -811,16 +818,21 @@ elif st.session_state.step == 6:
     selected_soil = st.selectbox("Select Soil Type", options=list(soil_types.keys()), key="soil_type_select")
     st.session_state.soil_type = selected_soil
     
-    # Auto-calculate importance group based on soil type
-    auto_importance_group = soil_types[selected_soil]['importance_group']
-    auto_importance_factor = soil_types[selected_soil]['group_factor']
-    st.session_state.importance_group = auto_importance_group
-    
     st.markdown("---")
-    st.subheader("Automatically Calculated Importance Group")
+    st.subheader("Importance Group Selection")
     
-    st.success(f"**Importance Group:** {auto_importance_group} (Factor: {auto_importance_factor})")
-    st.info("The importance group is automatically determined based on the selected soil type.")
+    importance_groups = {
+        "Group 1": {"factor": 1.4, "desc": "Critical infrastructure, high importance"},
+        "Group 2": {"factor": 1.2, "desc": "Important facilities"},
+        "Group 3": {"factor": 1.0, "desc": "Standard facilities"},
+        "Group 4": {"factor": 0.8, "desc": "Low importance facilities"}
+    }
+    
+    for group, data in importance_groups.items():
+        st.info(f"**{group}:** {data['desc']} (Factor: {data['factor']})")
+    
+    selected_importance = st.selectbox("Select Importance Group", options=list(importance_groups.keys()), key="importance_group_select")
+    st.session_state.importance_group = selected_importance
     
     # Display selected factors
     st.markdown("---")
@@ -830,7 +842,7 @@ elif st.session_state.step == 6:
     with col2:
         st.metric("Soil Factor", soil_types[selected_soil]['group_factor'])
     with col3:
-        st.metric("Importance Factor", auto_importance_factor)
+        st.metric("Importance Factor", importance_groups[selected_importance]['factor'])
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
@@ -839,16 +851,18 @@ elif st.session_state.step == 6:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 7: Carousel Orientation ===
-elif st.session_state.step == 7:
-    st.header("Step 8: Carousel Orientation Selection")
+# === STEP 6: Carousel Orientation ===
+elif st.session_state.step == 6:
+    st.header("Step 7: Carousel Orientation Selection")
     st.markdown("---")
     
+    # Get wind direction from environment data
     wind_direction = st.session_state.environment_data.get('wind_direction', 'North')
     
     st.subheader(f"Suggested Orientation Based on Wind Direction: {wind_direction}")
     st.info(f"Based on the prevailing wind direction ({wind_direction}), we recommend orienting the carousel in the same direction for optimal wind load distribution.")
     
+    # Show orientation diagram with wind direction
     fig_orientation = create_orientation_diagram(wind_direction)
     st.plotly_chart(fig_orientation, use_container_width=True)
     
@@ -865,9 +879,7 @@ elif st.session_state.step == 7:
         st.markdown("**Or select custom orientation:**")
     
     directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
-    custom_direction = st.selectbox("Custom Direction", options=directions, 
-                                    index=directions.index(wind_direction) if wind_direction in directions else 0, 
-                                    key="custom_orientation_select")
+    custom_direction = st.selectbox("Custom Direction", options=directions, index=directions.index(wind_direction) if wind_direction in directions else 0, key="custom_orientation_select")
     
     if st.button("Set Custom Orientation"):
         st.session_state.carousel_orientation = custom_direction
@@ -883,9 +895,9 @@ elif st.session_state.step == 7:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 8: Device Classification ===
-elif st.session_state.step == 8:
-    st.header("Step 9: Device Classification")
+# === STEP 7: Device Classification ===
+elif st.session_state.step == 7:
+    st.header("Step 8: Device Classification")
     st.markdown("**Calculation per National Standard 8987**")
     st.markdown("---")
 
@@ -902,9 +914,15 @@ elif st.session_state.step == 8:
         rpm = 0.0
     
     st.subheader("Braking Acceleration Parameter")
-    braking_accel = st.number_input("Braking Acceleration (m/s²)", min_value=0.01, max_value=2.0, 
-                                    value=st.session_state.braking_acceleration, step=0.01, format="%.2f", 
-                                    key="braking_accel_input")
+    braking_accel = st.number_input(
+        "Braking Acceleration (m/s²)",
+        min_value=0.01,
+        max_value=2.0,
+        value=st.session_state.braking_acceleration,
+        step=0.01,
+        format="%.2f",
+        key="braking_accel_input"
+    )
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
@@ -914,7 +932,9 @@ elif st.session_state.step == 8:
     omega_design = 1.0 * (2.0 * np.pi / 60.0)
     a_brake_design = 0.7
     
-    p_design, n_design, max_accel_design = calculate_dynamic_product(diameter, height, omega_design, a_brake_design)
+    p_design, n_design, max_accel_design = calculate_dynamic_product(
+        diameter, height, omega_design, a_brake_design
+    )
     class_design = classify_device(p_design)
     
     col1, col2, col3 = st.columns(3)
@@ -930,7 +950,9 @@ elif st.session_state.step == 8:
     st.subheader("Actual Operation Analysis")
     st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
     
-    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(diameter, height, angular_velocity, braking_accel)
+    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
+        diameter, height, angular_velocity, braking_accel
+    )
     class_actual = classify_device(p_actual)
     
     col1, col2, col3 = st.columns(3)
@@ -943,8 +965,14 @@ elif st.session_state.step == 8:
         st.metric("Device Class (Actual)", f"Class {class_actual}")
     
     st.session_state.classification_data = {
-        'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
-        'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual
+        'p_design': p_design,
+        'class_design': class_design,
+        'max_accel_design': max_accel_design,
+        'n_design': n_design,
+        'p_actual': p_actual,
+        'class_actual': class_actual,
+        'max_accel_actual': max_accel_actual,
+        'n_actual': n_actual
     }
     
     st.markdown("---")
@@ -954,10 +982,10 @@ elif st.session_state.step == 8:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 9: Restraint Type (Both ISO and AS Standards) ===
-elif st.session_state.step == 9:
-    st.header("Step 10: Restraint Type Determination (ISO & AS Standards)")
-    st.markdown("**Based on acceleration analysis per ISO and AS Standards**")
+# === STEP 8: Restraint Type (ISO Standard) ===
+elif st.session_state.step == 8:
+    st.header("Step 9: Restraint Type Determination (ISO Standard)")
+    st.markdown("**Based on acceleration analysis per ISO Standard**")
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -977,11 +1005,12 @@ elif st.session_state.step == 9:
     max_az = -float('inf')
     min_ax = float('inf')
     min_az = float('inf')
-    restraint_districts_iso = []
-    restraint_zones_as = []
+    restraint_districts = []
     
     for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel)
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel
+        )
         a_x_g = a_x / 9.81
         a_z_g = a_z / 9.81
         
@@ -994,18 +1023,12 @@ elif st.session_state.step == 9:
         if a_z_g < min_az:
             min_az = a_z_g
         
-        district_iso = determine_restraint_area_iso(a_x_g, a_z_g)
-        restraint_districts_iso.append(district_iso)
-        
-        zone_as = determine_restraint_area_as(a_x_g, a_z_g)
-        restraint_zones_as.append(zone_as)
+        district = determine_restraint_area_iso(a_x_g, a_z_g)
+        restraint_districts.append(district)
     
     from collections import Counter
-    district_counts_iso = Counter(restraint_districts_iso)
-    predominant_district_iso = district_counts_iso.most_common(1)[0][0]
-    
-    zone_counts_as = Counter(restraint_zones_as)
-    predominant_zone_as = zone_counts_as.most_common(1)[0][0]
+    district_counts = Counter(restraint_districts)
+    predominant_district = district_counts.most_common(1)[0][0]
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -1017,11 +1040,6 @@ elif st.session_state.step == 9:
     with col4:
         st.metric("Min az", f"{min_az:.3f}g")
     
-    st.markdown("---")
-    
-    # ISO Standard Results
-    st.subheader("📋 ISO Standard Analysis")
-    
     restraint_descriptions_iso = {
         1: "District 1 - Upper region: Maximum restraint required (full body harness)",
         2: "District 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
@@ -1030,66 +1048,30 @@ elif st.session_state.step == 9:
         5: "District 5 - Lower region: Special consideration required (enhanced harness system)"
     }
     
-    st.success(f"**Predominant District (ISO):** {predominant_district_iso}")
-    st.info(f"**Recommended Restraint (ISO):** {restraint_descriptions_iso.get(predominant_district_iso, 'Standard restraint')}")
-    
-    # AS Standard Results
-    st.markdown("---")
-    st.subheader("📋 AS Standard Analysis")
-    
-    restraint_descriptions_as = {
-        1: "Region 1 - Upper region: Maximum restraint required (full body harness)",
-        2: "Zone 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
-        3: "Zone 3 - Central region: Standard restraint (lap bar or seat belt)",
-        4: "Zone 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
-        5: "Zone 5 - Lower region: Special consideration required (enhanced harness system)"
-    }
-    
-    st.success(f"**Predominant Zone (AS):** {predominant_zone_as}")
-    st.info(f"**Recommended Restraint (AS):** {restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')}")
+    st.success(f"**Predominant District:** {predominant_district}")
+    st.info(f"**Recommended Restraint:** {restraint_descriptions_iso.get(predominant_district, 'Standard restraint')}")
     
     st.markdown("---")
+    st.subheader("ISO Acceleration Envelope Diagram")
+    fig_accel_iso = plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel)
+    st.plotly_chart(fig_accel_iso, use_container_width=True)
     
-    # Display both diagrams side by side
-    col_iso, col_as = st.columns(2)
-    
-    with col_iso:
-        st.subheader("ISO Acceleration Envelope")
-        fig_accel_iso = plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel)
-        st.plotly_chart(fig_accel_iso, use_container_width=True)
-        
-        st.markdown("""
-        **ISO District Classifications:**
-        - **District 1** (Purple): Maximum restraint
-        - **District 2** (Orange): Enhanced restraint
-        - **District 3** (Yellow): Standard restraint
-        - **District 4** (Green): Moderate restraint
-        - **District 5** (Red): Special consideration
-        """)
-    
-    with col_as:
-        st.subheader("AS Acceleration Envelope")
-        fig_accel_as = plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel)
-        st.plotly_chart(fig_accel_as, use_container_width=True)
-        
-        st.markdown("""
-        **AS Zone Classifications:**
-        - **Region 1** (Purple): Maximum restraint
-        - **Zone 2** (Orange): Enhanced restraint
-        - **Zone 3** (Yellow): Standard restraint
-        - **Zone 4** (Green): Moderate restraint
-        - **Zone 5** (Red): Special consideration
-        """)
+    st.markdown("""
+    **ISO District Classifications:**
+    - **District 1** (Purple): Upper region - Maximum restraint (full body harness)
+    - **District 2** (Orange): Upper-central - Enhanced restraint (over-shoulder)
+    - **District 3** (Yellow): Central edges - Standard restraint (lap bar/seat belt)
+    - **District 4** (Green): Lower-central - Moderate restraint (seat belt with lap bar)
+    - **District 5** (Red): Lower region - Special consideration (enhanced harness)
+    """)
     
     st.session_state.classification_data.update({
-        'restraint_district_iso': predominant_district_iso,
-        'restraint_zone_as': predominant_zone_as,
+        'restraint_district': predominant_district,
         'max_ax_g': max_ax,
         'max_az_g': max_az,
         'min_ax_g': min_ax,
         'min_az_g': min_az,
-        'restraint_description_iso': restraint_descriptions_iso.get(predominant_district_iso, 'Standard restraint'),
-        'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')
+        'restraint_description': restraint_descriptions_iso.get(predominant_district, 'Standard restraint')
     })
     
     st.markdown("---")
@@ -1099,9 +1081,9 @@ elif st.session_state.step == 9:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 10: Final Design Overview ===
-elif st.session_state.step == 10:
-    st.header("Step 11: Complete Design Summary")
+# === STEP 9: Final Design Overview ===
+elif st.session_state.step == 9:
+    st.header("Step 10: Complete Design Summary")
     st.markdown("---")
 
     # Basic Parameters
@@ -1119,8 +1101,12 @@ elif st.session_state.step == 10:
         if st.session_state.cabin_geometry:
             st.write(f"**Cabin Geometry:** {st.session_state.cabin_geometry}")
         st.write(f"**Rotation Time:** {st.session_state.rotation_time_min:.2f} min")
-        cap_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity,
-                                                          st.session_state.num_vip_cabins, st.session_state.rotation_time_min)
+        cap_hour = calculate_capacity_per_hour_from_time(
+            st.session_state.num_cabins,
+            st.session_state.cabin_capacity,
+            st.session_state.num_vip_cabins,
+            st.session_state.rotation_time_min
+        )
         st.write(f"**Capacity/Hour:** {cap_hour:.0f} pax/hr")
 
     st.markdown("---")
@@ -1178,12 +1164,7 @@ elif st.session_state.step == 10:
             st.metric("Max Acceleration", f"{class_data.get('n_actual',0):.3f}g")
             st.caption("Actual operation")
         
-        st.markdown("---")
-        col_iso, col_as = st.columns(2)
-        with col_iso:
-            st.info(f"**ISO Restraint System:** District {class_data.get('restraint_district_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
-        with col_as:
-            st.info(f"**AS Restraint System:** Zone {class_data.get('restraint_zone_as','N/A')}\n\n{class_data.get('restraint_description_as', 'N/A')}")
+        st.info(f"**ISO Restraint System:** District {class_data.get('restraint_district','N/A')} - {class_data.get('restraint_description', 'N/A')}")
 
     st.markdown("---")
     
@@ -1191,8 +1172,7 @@ elif st.session_state.step == 10:
     st.subheader("📊 Design Visualization")
     height = st.session_state.diameter * 1.1
     vip_cap = max(0, st.session_state.cabin_capacity - 2)
-    total_capacity_per_rotation = (st.session_state.num_vip_cabins * vip_cap + 
-                                   (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity)
+    total_capacity_per_rotation = st.session_state.num_vip_cabins * vip_cap + (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
 
     ang = (2.0 * np.pi) / (st.session_state.rotation_time_min * 60.0) if st.session_state.rotation_time_min else 0.0
     total_mass = st.session_state.num_cabins * st.session_state.cabin_capacity * 80.0
