@@ -206,8 +206,6 @@ def determine_restraint_area_iso(ax, az):
         return 1
     if 0 < ax <= 0.2 and  az > 0.7:
         return 1
-    if 0 < ax <= 0.2 and  az > (6.5 *ax +0.7):
-        return 1
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
@@ -306,7 +304,7 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
                              marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
     
     # District 1 (Purple)
-    x_d1 = [0.2, 2.0, 2.0, 0.2, 0, -0.2]
+    x_d1 = [0.2, 2.0, 2.0, 0 , 0, 0.2]
     y_d1 = [0.2, 0.2, 2.0, 2.0, 0.7, 0.7]
     fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
@@ -314,32 +312,32 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
                       font=dict(size=11, color="purple", family="Arial Black"))
     
     # District 2 (Orange)
-    x_d2 = [-0.7, -0.2, 0, 0.2, 0.2, 0, -0.2, -0.7]
-    y_d2 = [0.2, 0.2, 0.7, 0.7, 0.2, 0.2, 0.4, 0.2]
+    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2 ]
+    y_d2 = [0.2, 0.2, 0.7, 0.7, 1 , 2 ]
     fig.add_trace(go.Scatter(x=x_d2, y=y_d2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False,
                       font=dict(size=11, color="orange", family="Arial Black"))
     
     # District 3 (Yellow)
-    x_d3 = [-1.2, -0.7, -0.7, 0, 2.0, 2.0, 0, -0.7, -1.2]
-    y_d3 = [0.2, 0.2, 0, 0, 0, 0.2, 0.2, 0.08571, 0.2]
+    x_d3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
+    y_d3 = [0.2, 0.2, 0, 0, 0.2, 0.2, 0.2, 2, 2]
     fig.add_trace(go.Scatter(x=x_d3, y=y_d3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=0.1, text="District 3", showarrow=False,
                       font=dict(size=11, color="gold", family="Arial Black"))
     
     # District 4 (Green)
-    x_d4 = [-1.8, -1.2, -0.7, 0, 0.7, 2.0, 2.0, 0.7, 0, -0.7, -1.2, -1.8]
-    y_d4 = [0, 0, 0, 0, 0, 0, -0.2, -0.2, -0.2, -0.2, 0, 0]
+    x_d4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
+    y_d4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2 , 2]
     fig.add_trace(go.Scatter(x=x_d4, y=y_d4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.4, y=-0.05, text="District 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
     # District 5 (Red)
-    x_d5 = [0.7, 2.0, 2.0, 0, -2.0, -2.0, -1.8, -1.8, -2.0, -2.0, 0, 0.7]
-    y_d5 = [-0.2, -0.2, -2.0, -2.0, -2.0, 0, 0, 2.0, 2.0, -2.0, -0.2, -0.2]
+    x_d5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
+    y_d5 = [-0.2,-0.2,-2.0,-2.0, 0, 2 ,  2 , 0 , 0]
     fig.add_trace(go.Scatter(x=x_d5, y=y_d5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=1.0, y=-0.8, text="District 5", showarrow=False,
