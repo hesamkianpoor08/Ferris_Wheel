@@ -304,16 +304,16 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
                              marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
     
     # District 1 (Purple)
-    x_d1 = [0.2, 2.0, 2.0, 0 , 0, 0.2]
-    y_d1 = [0.2, 0.2, 2.0, 2.0, 0.7, 0.7]
+    x_d1 = [0.2, 2.0, 2.0, -0.2 , -0.2, 0,0.2]
+    y_d1 = [0.2, 0.2, 2.0, 2.0, 1 , 0.7,0.2]
     fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, 
                       font=dict(size=11, color="purple", family="Arial Black"))
     
     # District 2 (Orange)
-    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2 ]
-    y_d2 = [0.2, 0.2, 0.7, 0.7, 1 , 2 ]
+    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2 , -0.7 ]
+    y_d2 = [0.2, 0.2, 0.7, 0.7, 1 , 2 , 2]
     fig.add_trace(go.Scatter(x=x_d2, y=y_d2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False,
@@ -374,7 +374,7 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
                       font=dict(size=11, color="purple", family="Arial Black"))
     
     # Zone 2 (Orange)
-    x_z2 = [-0.7, 0.2, 0.2, -0.7]
+    x_z2 = [0.2, -0.7, -0.7, 0.2]
     y_z2 = [0.2, 0.2, 2.0, 2.0]
     fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
@@ -382,24 +382,24 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
                       font=dict(size=11, color="orange", family="Arial Black"))
     
     # Zone 3 (Yellow)
-    x_z3 = [-1.2, -0.7, -0.7, 0.7, 2.0, 2.0, 0.7, -0.7, -1.2]
-    y_z3 = [0.2, 0.2, -0.2, -0.2, -0.2, 0.2, 0.2, 0.2, 0.2]
+    x_z3 = [-1.2, -1.2, -0.7, 2 , 2.0, 0.7, 0, -0.7, -1.2]
+    y_z3 = [0.2, 2 , 2 , 0.2, -0.2, -0.2, 0 , 0.2, 0.2]
     fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=0.05, text="Zone 3", showarrow=False,
                       font=dict(size=11, color="gold", family="Arial Black"))
     
     # Zone 4 (Green)
-    x_z4 = [-1.8, -1.2, -0.7, 0, 0, -1.8]
-    y_z4 = [0, 0, 0, 0.2, 0, 0]
+    x_z4 = [-1.8, -1.8, -1.2, -1.2, -0.7, 0]
+    y_z4 = [0, 2 , 2, 0.2, 0.2, 0]
     fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.5, y=0.05, text="Zone 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
     # Zone 5 (Red)
-    x_z5 = [0.7, 2.0, 2.0, 0, -2.0, -2.0, -1.8, -1.8, -2.0, -2.0, 0, 0.7]
-    y_z5 = [-0.2, -0.2, -2.0, -2.0, -2.0, 0, 0, 2.0, 2.0, -2.0, -0.2, -0.2]
+    x_z5 = [0, -1.8, -1.8, -2.0, -2, -2 , 2 , 2 , 0.7 ]
+    y_z5 = [0,  0 ,   2 ,  2.0, 0 , 2  , 2 , -0.2 , -0.2]
     fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
