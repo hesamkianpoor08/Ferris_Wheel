@@ -538,7 +538,7 @@ if st.session_state.get('step', 0) == 0:
 # === STEP 0: Generation selection ===
 if st.session_state.get('step', 0) == 0:
     image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
-    captions = ["1st Generation (Truss type)", "2nd Generation (Cable type)", "2nd Generation (Pure cable type)", "4th Generation (Hubless centerless)"]
+    captions = ["1st Generation (Truss type)", "2nd Generation_1st type (Cable type)", "2nd Generation_2nd type (Pure cable type)", "4th Generation (Hubless centerless)"]
     
     cols = st.columns(4, gap="small")
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
@@ -548,14 +548,14 @@ if st.session_state.get('step', 0) == 0:
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
-            st.button(f"Select\n{caption}", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
+            st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
     
     st.markdown("---")
     st.write("Click the button under the image to select a generation and proceed.")
 
 # === STEP 1: Cabin Geometry ===
 elif st.session_state.step == 1:
-    st.header("Step 2: Cabin Geometry Selection")
+    st.header("Step 2:select Cabin Geometry")
     st.markdown("Choose a cabin shape.")
     geom_images = [("Square", "./git/assets/square.jpg"), ("Vertical Cylinder", "./git/assets/vertical.jpg"),
                    ("Horizontal Cylinder", "./git/assets/horizontal.jpg"), ("Spherical", "./git/assets/sphere.jpg")]
@@ -574,13 +574,9 @@ elif st.session_state.step == 1:
                 st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
                 st.session_state.capacities_calculated = False
                 st.session_state.step = 2
+            st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
     
-    st.markdown("---")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
-        st.button("⬅️ Back", on_click=go_back)
-    with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 2: Primary parameters ===
 elif st.session_state.step == 2:
