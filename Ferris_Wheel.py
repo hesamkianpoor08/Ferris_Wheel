@@ -555,7 +555,7 @@ if st.session_state.get('step', 0) == 0:
 
 # === STEP 1: Cabin Geometry ===
 elif st.session_state.step == 1:
-    st.header("Step 2:select Cabin Geometry")
+    st.header("Step 2: select Cabin Geometry")
     st.markdown("Choose a cabin shape.")
     geom_images = [("Square", "./git/assets/square.jpg"), ("Vertical Cylinder", "./git/assets/vertical.jpg"),
                    ("Horizontal Cylinder", "./git/assets/horizontal.jpg"), ("Spherical", "./git/assets/sphere.jpg")]
@@ -584,7 +584,7 @@ elif st.session_state.step == 1:
 
 # === STEP 2: Primary parameters ===
 elif st.session_state.step == 2:
-    st.header("Step 3: Primary Parameters, Cabin Capacity & VIP")
+    st.header("Step 3: Cabin Capacity & VIP")
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
 
@@ -617,10 +617,9 @@ elif st.session_state.step == 2:
         vip_total = st.session_state.num_vip_cabins * vip_cap
         regular_total = (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
         per_rotation = vip_total + regular_total
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         c1.metric("Per-rotation capacity", f"{per_rotation} passengers")
         c2.metric("VIP capacity (per rotation)", f"{vip_total} passengers (each VIP: {vip_cap})")
-        c3.metric("Total cabins", f"{st.session_state.num_cabins}")
         st.success("Capacities calculated.")
         st.session_state.capacities_calculated = True
 
@@ -647,8 +646,8 @@ elif st.session_state.step == 3:
 
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
-    st.text_input("Angular speed (rad/s)", value=f"{ang:.6f}", disabled=True)
     st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
+    st.caption(f"Angular speed (rad/s): {ang:.6f}  — (shown as comment)")
     st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
     cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
