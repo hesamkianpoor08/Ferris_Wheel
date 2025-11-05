@@ -574,9 +574,13 @@ elif st.session_state.step == 1:
                 st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
                 st.session_state.capacities_calculated = False
                 st.session_state.step = 2
-            st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
     
-
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
+    with right_col:
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 2: Primary parameters ===
 elif st.session_state.step == 2:
