@@ -750,7 +750,7 @@ elif st.session_state.get('step', 0) == 1:
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
         with col:
             try:
-                st.image(img_path, width=180)
+                st.image(img_path, width=220)
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
@@ -760,33 +760,48 @@ elif st.session_state.get('step', 0) == 1:
     st.write("Click the button under the image to select a generation and proceed.")
 
 # === STEP 2: Cabin Geometry ===
-elif st.session_state.step == 2:
+if st.session_state.get("step", 0) == 2:
     st.header("Step 2: Select Cabin Geometry")
     st.markdown("Choose a cabin shape.")
-    geom_images = [("Square", "./git/assets/square.jpg"), ("Vertical Cylinder", "./git/assets/vertical.jpg"),
-                   ("Horizontal Cylinder", "./git/assets/horizontal.jpg"), ("Spherical", "./git/assets/sphere.jpg")]
+    
+    geom_images = [
+        ("Square", "./git/assets/square.jpg"),
+        ("Vertical Cylinder", "./git/assets/vertical.jpg"),
+        ("Horizontal Cylinder", "./git/assets/horizontal.jpg"),
+        ("Spherical", "./git/assets/sphere.jpg"),
+    ]
+
     cols = st.columns(4, gap="small")
+
+    def select_geometry_callback(selected_label):
+        st.session_state.cabin_geometry = selected_label
+
+        if "diameter" not in st.session_state:
+            st.session_state.diameter = 0.0
+        if "num_cabins" not in st.session_state:
+            st.session_state.num_cabins = 1
+
+        base = base_for_geometry(st.session_state.diameter, selected_label)
+        min_c, max_c = calc_min_max_from_base(base)
+        st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
+
+        st.session_state.capacities_calculated = False
+        st.session_state.step = 3   # ← مرحله‌ی بعدی
+        st.experimental_rerun()
+
     for i, (label, img_path) in enumerate(geom_images):
         with cols[i]:
             try:
-                st.image(img_path,width=180)
-            except:
-                st.write(f"Image not found: {img_path}")
+                st.image(img_path, width=400)
+            except Exception as e:
+                import os
+                st.write(f"Could not load image: {img_path}")
+                st.write("Exists:", os.path.exists(img_path))
+                st.write("Abs path:", os.path.abspath(img_path))
+                st.write("Error:", e)
             st.caption(label)
-            if st.button(f"Select {label}", key=f"geom_img_btn_{i}"):
-                st.session_state.cabin_geometry = label
-                base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
-                min_c, max_c = calc_min_max_from_base(base)
-                st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
-                st.session_state.capacities_calculated = False
-                st.rerun()
-    
-    st.markdown("---")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
-        st.button("⬅️ Back", on_click=go_back)
-    with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+            st.button("Select", key=f"geom_img_btn_{i}", on_click=select_geometry_callback, args=(label,))
+
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
