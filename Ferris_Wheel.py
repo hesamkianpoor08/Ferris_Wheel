@@ -647,7 +647,7 @@ elif st.session_state.step == 3:
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
     st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
-    st.caption(f"Angular speed (rad/s): {ang:.6f}  — (shown as comment)")
+    st.caption(f"Angular speed (rad/s): {ang:.6f} ")
     st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
     cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
