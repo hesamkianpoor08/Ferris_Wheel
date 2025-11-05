@@ -13,6 +13,8 @@ st.set_page_config(
 # --- Session State Initialization ---
 if 'step' not in st.session_state:
     st.session_state.step = 0
+if 'standards_confirmed' not in st.session_state:
+    st.session_state.standards_confirmed = False
 if 'generation_type' not in st.session_state:
     st.session_state.generation_type = None
 if 'diameter' not in st.session_state:
@@ -188,6 +190,7 @@ def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel,
     return p, n, max_accel
 
 def classify_device(dynamic_product):
+    """Classification per INSO 8987-1-2023"""
     if 0.1 < dynamic_product <= 25:
         return 2
     elif 25 < dynamic_product <= 100:
@@ -200,11 +203,11 @@ def classify_device(dynamic_product):
         return None
 
 def determine_restraint_area_iso(ax, az):
-    """Determine restraint area based on ISO standard (ax and az in units of g)"""
+    """Determine restraint area based on ISO 17842-2023 (ax and az in units of g)"""
     # District 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
-    if 0 < ax <= 0.2 and  az > 0.7:
+    if 0 < ax <= 0.2 and az > 0.7:
         return 1
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
@@ -250,7 +253,7 @@ def determine_restraint_area_iso(ax, az):
     return 2  # Default
 
 def determine_restraint_area_as(ax, az):
-    """Determine restraint area based on AS standard (ax and az in units of g)"""
+    """Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)"""
     # Region 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
@@ -288,7 +291,7 @@ def determine_restraint_area_as(ax, az):
     return 2  # Default
 
 def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=9.81):
-    """Plot the ax vs az acceleration envelope with ISO zones"""
+    """Plot the ax vs az acceleration envelope with ISO 17842 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
@@ -300,20 +303,17 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     fig = go.Figure()
     
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers',
-                             marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
-    
     # District 1 (Purple)
-    x_d1 = [0.2, 2.0, 2.0, -0.2 , -0.2, 0,0.2]
-    y_d1 = [0.2, 0.2, 2.0, 2.0, 1 , 0.7,0.7]
+    x_d1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
+    y_d1 = [0.2, 0.2, 2.0, 2.0, 1, 0.7, 0.7]
     fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, 
                       font=dict(size=11, color="purple", family="Arial Black"))
     
     # District 2 (Orange)
-    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2 , -0.7 ]
-    y_d2 = [0.2, 0.2, 0.7, 0.7, 1 , 2 , 2]
+    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
+    y_d2 = [0.2, 0.2, 0.7, 0.7, 1, 2, 2]
     fig.add_trace(go.Scatter(x=x_d2, y=y_d2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False,
@@ -329,7 +329,7 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     # District 4 (Green)
     x_d4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
-    y_d4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2 , 2]
+    y_d4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2, 2]
     fig.add_trace(go.Scatter(x=x_d4, y=y_d4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.4, y=-0.05, text="District 4", showarrow=False,
@@ -337,20 +337,48 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     # District 5 (Red)
     x_d5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
-    y_d5 = [-0.2,-0.2,-2.0,-2.0, 0, 2 ,  2 , 0 , 0]
+    y_d5 = [-0.2, -0.2, -2.0, -2.0, 0, 2, 2, 0, 0]
     fig.add_trace(go.Scatter(x=x_d5, y=y_d5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=1.0, y=-0.8, text="District 5", showarrow=False,
                       font=dict(size=11, color="red", family="Arial Black"))
     
-    fig.update_layout(title="ISO Standard - Acceleration Envelope", xaxis_title="Horizontal Acceleration ax [g]",
+    # Plot actual acceleration points (after zones for visibility)
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
+                             marker=dict(color='#2196F3', size=6, symbol='circle',
+                                       line=dict(color='darkblue', width=1)),
+                             line=dict(color='#2196F3', width=2),
+                             name='Acceleration Envelope'))
+    
+    # Highlight extreme points
+    max_ax_idx = np.argmax(ax_vals)
+    min_ax_idx = np.argmin(ax_vals)
+    max_az_idx = np.argmax(az_vals)
+    min_az_idx = np.argmin(az_vals)
+    
+    extreme_points = [
+        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
+        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
+        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
+        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
+    ]
+    
+    for ax, az, label in extreme_points:
+        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
+                                marker=dict(size=12, color='red', symbol='star'),
+                                text=[label], textposition='top center',
+                                textfont=dict(size=9, color='red', family='Arial Black'),
+                                showlegend=False))
+    
+    fig.update_layout(title="ISO 17842 - Acceleration Envelope with Actual Operating Points", 
+                      xaxis_title="Horizontal Acceleration ax [g]",
                       yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
                       xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
                       yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
     return fig
 
 def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9.81):
-    """Plot the ax vs az acceleration envelope with AS zones"""
+    """Plot the ax vs az acceleration envelope with AS 3533.1 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
@@ -361,9 +389,6 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
         az_vals.append(a_z / g)
     
     fig = go.Figure()
-    
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers',
-                             marker=dict(color='#2196F3', size=4), name='Acceleration Points'))
     
     # Region 1 (Purple)
     x_r1 = [0.2, 2.0, 2.0, 0.2]
@@ -382,8 +407,8 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
                       font=dict(size=11, color="orange", family="Arial Black"))
     
     # Zone 3 (Yellow)
-    x_z3 = [-1.2, -1.2, -0.7, -0.7 , 2 , 2.0, 0.7, 0, -0.7, -1.2]
-    y_z3 = [0.2, 2 , 2 , 0.2 , 0.2 , -0.2, -0.2, 0 , 0.2, 0.2]
+    x_z3 = [-1.2, -1.2, -0.7, -0.7, 2, 2.0, 0.7, 0, -0.7, -1.2]
+    y_z3 = [0.2, 2, 2, 0.2, 0.2, -0.2, -0.2, 0, 0.2, 0.2]
     fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=0.5, y=0.05, text="Zone 3", showarrow=False,
@@ -391,76 +416,159 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
     
     # Zone 4 (Green)
     x_z4 = [-1.8, -1.8, -1.2, -1.2, -0.7, 0]
-    y_z4 = [0, 2 , 2, 0.2, 0.2, 0]
+    y_z4 = [0, 2, 2, 0.2, 0.2, 0]
     fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=-0.5, y=0.05, text="Zone 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
     # Zone 5 (Red)
-    x_z5 = [0, -1.8, -1.8, -2.0, -2, -2 , 2 , 2 , 0.7 ]
-    y_z5 = [0,  0 ,   2 ,  2.0, 0 , -2  , -2 , -0.2 , -0.2]
+    x_z5 = [0, -1.8, -1.8, -2.0, -2, -2, 2, 2, 0.7]
+    y_z5 = [0, 0, 2, 2.0, 0, -2, -2, -0.2, -0.2]
     fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
     fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
                       font=dict(size=11, color="red", family="Arial Black"))
     
-    fig.update_layout(title="AS Standard - Acceleration Envelope", xaxis_title="Horizontal Acceleration ax [g]",
+    # Plot actual acceleration points (after zones for visibility)
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
+                             marker=dict(color='#2196F3', size=6, symbol='circle',
+                                       line=dict(color='darkblue', width=1)),
+                             line=dict(color='#2196F3', width=2),
+                             name='Acceleration Envelope'))
+    
+    # Highlight extreme points
+    max_ax_idx = np.argmax(ax_vals)
+    min_ax_idx = np.argmin(ax_vals)
+    max_az_idx = np.argmax(az_vals)
+    min_az_idx = np.argmin(az_vals)
+    
+    extreme_points = [
+        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
+        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
+        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
+        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
+    ]
+    
+    for ax, az, label in extreme_points:
+        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
+                                marker=dict(size=12, color='red', symbol='star'),
+                                text=[label], textposition='top center',
+                                textfont=dict(size=9, color='red', family='Arial Black'),
+                                showlegend=False))
+    
+    fig.update_layout(title="AS 3533.1 - Acceleration Envelope with Actual Operating Points", 
+                      xaxis_title="Horizontal Acceleration ax [g]",
                       yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
                       xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
                       yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
     return fig
 
-def create_orientation_diagram(selected_direction):
-    """Create a visual diagram showing the carousel orientation"""
+def create_orientation_diagram(selected_direction, land_length=None, land_width=None, diameter=None):
+    """Create a visual diagram showing the carousel orientation on land area"""
     directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
     angles = [90, 45, 0, 315, 270, 225, 180, 135]
     
     fig = go.Figure()
     
-    theta = np.linspace(0, 2*np.pi, 100)
-    x_circle = np.cos(theta)
-    y_circle = np.sin(theta)
-    fig.add_trace(go.Scatter(x=x_circle, y=y_circle, mode='lines', line=dict(color='gray', width=2), showlegend=False))
+    # Draw land area rectangle if dimensions provided
+    if land_length and land_width:
+        # Normalize to fit in view
+        max_dim = max(land_length, land_width)
+        scale = 2.0 / max_dim  # Scale to fit in ±1.5 range
+        
+        rect_width = land_width * scale
+        rect_height = land_length * scale
+        
+        # Draw land area
+        land_x = [-rect_width/2, rect_width/2, rect_width/2, -rect_width/2, -rect_width/2]
+        land_y = [-rect_height/2, -rect_height/2, rect_height/2, rect_height/2, -rect_height/2]
+        
+        fig.add_trace(go.Scatter(x=land_x, y=land_y, mode='lines', 
+                                fill='toself', fillcolor='rgba(200, 200, 200, 0.3)',
+                                line=dict(color='gray', width=2),
+                                name='Land Area',
+                                showlegend=True))
+        
+        # Add land dimensions annotation
+        fig.add_annotation(x=0, y=rect_height/2 + 0.15, 
+                          text=f"Land: {land_length}m × {land_width}m",
+                          showarrow=False, font=dict(size=12, color='gray'))
     
+    # Draw compass rose
+    theta = np.linspace(0, 2*np.pi, 100)
+    x_circle = 0.8 * np.cos(theta)
+    y_circle = 0.8 * np.sin(theta)
+    fig.add_trace(go.Scatter(x=x_circle, y=y_circle, mode='lines', 
+                            line=dict(color='lightgray', width=1, dash='dash'), 
+                            showlegend=False))
+    
+    # Draw direction indicators
     for direction, angle in zip(directions, angles):
         angle_rad = np.radians(angle)
-        x = 1.2 * np.cos(angle_rad)
-        y = 1.2 * np.sin(angle_rad)
+        x = 1.0 * np.cos(angle_rad)
+        y = 1.0 * np.sin(angle_rad)
         
         color = 'red' if direction == selected_direction else 'blue'
-        size = 15 if direction == selected_direction else 10
+        size = 14 if direction == selected_direction else 10
+        width = 3 if direction == selected_direction else 1
         
         fig.add_trace(go.Scatter(x=[0, x], y=[0, y], mode='lines+text', 
-                                line=dict(color=color, width=3 if direction == selected_direction else 1),
+                                line=dict(color=color, width=width),
                                 text=['', direction], textposition='top center',
-                                textfont=dict(size=size, color=color, family='Arial Black' if direction == selected_direction else 'Arial'),
+                                textfont=dict(size=size, color=color, 
+                                            family='Arial Black' if direction == selected_direction else 'Arial'),
                                 showlegend=False))
     
-    if selected_direction in directions:
+    # Draw ferris wheel on land area
+    if selected_direction in directions and diameter:
         idx = directions.index(selected_direction)
         angle_rad = np.radians(angles[idx])
-        wheel_center_x = 0.5 * np.cos(angle_rad)
-        wheel_center_y = 0.5 * np.sin(angle_rad)
         
+        # Scale wheel to fit
+        if land_length and land_width:
+            max_dim = max(land_length, land_width)
+            scale = 2.0 / max_dim
+            wheel_radius = (diameter / 2) * scale * 0.8  # 80% of actual size for visibility
+        else:
+            wheel_radius = 0.15
+        
+        # Position wheel at center
+        wheel_center_x = 0
+        wheel_center_y = 0
+        
+        # Draw wheel
         wheel_theta = np.linspace(0, 2*np.pi, 50)
-        wheel_x = wheel_center_x + 0.15 * np.cos(wheel_theta)
-        wheel_y = wheel_center_y + 0.15 * np.sin(wheel_theta)
+        wheel_x = wheel_center_x + wheel_radius * np.cos(wheel_theta)
+        wheel_y = wheel_center_y + wheel_radius * np.sin(wheel_theta)
         
         fig.add_trace(go.Scatter(x=wheel_x, y=wheel_y, mode='lines', 
                                 fill='toself', fillcolor='rgba(33, 150, 243, 0.3)',
-                                line=dict(color='#2196F3', width=3), showlegend=False))
+                                line=dict(color='#2196F3', width=3), 
+                                name='Ferris Wheel',
+                                showlegend=True))
+        
+        # Draw orientation arrow on wheel
+        arrow_length = wheel_radius * 0.7
+        arrow_x = wheel_center_x + arrow_length * np.cos(angle_rad)
+        arrow_y = wheel_center_y + arrow_length * np.sin(angle_rad)
+        
+        fig.add_annotation(x=arrow_x, y=arrow_y, ax=wheel_center_x, ay=wheel_center_y,
+                          xref='x', yref='y', axref='x', ayref='y',
+                          showarrow=True, arrowhead=3, arrowsize=2, arrowwidth=3,
+                          arrowcolor='red')
     
     fig.update_layout(title=f"Ferris Wheel Orientation: {selected_direction}",
-                      xaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False),
-                      yaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="x", scaleratio=1),
-                      height=500, template="plotly_white", paper_bgcolor='white', plot_bgcolor='white')
+                      xaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="y"),
+                      yaxis=dict(range=[-1.5, 1.5], showgrid=False, zeroline=False, showticklabels=False, scaleratio=1),
+                      height=600, template="plotly_white", paper_bgcolor='white', plot_bgcolor='white',
+                      legend=dict(x=0.02, y=0.98, bgcolor='rgba(255,255,255,0.8)'))
     return fig
 
 # --- Navigation & validation ---
 def select_generation(gen):
     st.session_state.generation_type = gen
-    st.session_state.step = 1
+    st.session_state.step = 2
 
 def go_back():
     st.session_state.step = max(0, st.session_state.step - 1)
@@ -474,12 +582,15 @@ def validate_current_step_and_next():
     errors = []
 
     if s.step == 0:
+        if not s.standards_confirmed:
+            errors.append("Please confirm your understanding of the standards.")
+    elif s.step == 1:
         if not s.generation_type:
             errors.append("Please select a generation.")
-    elif s.step == 1:
+    elif s.step == 2:
         if not s.cabin_geometry:
             errors.append("Please select a cabin geometry.")
-    elif s.step == 2:
+    elif s.step == 3:
         if s.diameter is None or s.diameter < 30 or s.diameter > 80:
             errors.append("Diameter must be between 30 and 80 meters.")
         if s.num_cabins is None or s.num_cabins <= 0:
@@ -490,10 +601,10 @@ def validate_current_step_and_next():
             errors.append("Number of VIP cabins must be between 0 and total cabins.")
         if not s.capacities_calculated:
             errors.append("Please click 'Calculate Capacities' before continuing.")
-    elif s.step == 3:
+    elif s.step == 4:
         if s.rotation_time_min is None or s.rotation_time_min <= 0:
             errors.append("Enter valid rotation time (minutes per rotation).")
-    elif s.step == 4:
+    elif s.step == 5:
         env = s.environment_data
         if not env.get('province'):
             errors.append("Select a province.")
@@ -507,13 +618,13 @@ def validate_current_step_and_next():
             errors.append("Enter altitude.")
         if 'wind_max' not in env or env['wind_max'] is None:
             errors.append("Enter maximum wind speed (km/h).")
-    elif s.step == 5:
+    elif s.step == 6:
         if not s.terrain_calculated:
             errors.append("Please click 'Calculate Terrain Parameters' before continuing.")
-    elif s.step == 6:
+    elif s.step == 7:
         if not s.soil_type:
             errors.append("Please select a soil type.")
-    elif s.step == 7:
+    elif s.step == 8:
         if not s.orientation_confirmed:
             errors.append("Please confirm the carousel orientation or select a custom direction.")
     
@@ -523,20 +634,115 @@ def validate_current_step_and_next():
             st.error(e)
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(11, st.session_state.step + 1)
+        st.session_state.step = min(12, st.session_state.step + 1)
 
 # --- UI ---
 st.title("🎡 Ferris Wheel Designer")
-total_steps = 12
+total_steps = 13
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**Step {st.session_state.get('step', 0) + 1} of {total_steps}**")
 st.markdown("---")
 
+# === STEP 0: Welcome and Standards ===
 if st.session_state.get('step', 0) == 0:
-    st.header("Step 1: Select Ferris Wheel Generation")
+    st.header("Welcome to Ferris Wheel Designer")
+    st.markdown("---")
+    
+    st.markdown("""
+    ### 🎯 About This Application
+    
+    This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, 
+    and compliant ferris wheel installations. The application guides you through:
+    
+    - **Generation Selection**: Choose from various ferris wheel generations and structural types
+    - **Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements
+    - **Performance Analysis**: Calculate rotation times, speeds, and passenger capacity
+    - **Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters
+    - **Safety Classification**: Determine device class and restraint requirements
+    - **Structural Design**: Generate comprehensive design specifications
+    
+    ### 📋 Design Standards & References
+    
+    This application implements calculations and requirements based on the following international and national standards:
+    """)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        #### Current Standards for Amusement Devices:
+        - **AS 3533.1-2009+A1-2011** - Amusement rides and devices - Design and construction
+        - **INSO 8987-1-2023** - Safety of amusement rides and amusement devices - Part 1: General requirements
+        - **INSO 8987-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+        - **INSO 8987-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+        - **ISO 17842-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+        - **ISO 17842-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+        - **ISO 17842-2023** - Safety of amusement rides and amusement devices
+        
+        #### Legacy Standards (Reference):
+        - **AS 3533.2-2009+A1-2011** - Amusement rides and devices - Operation and maintenance
+        - **AS 3533.3-2003 R2013** - Amusement rides and devices - Qualification of inspection personnel
+        - **INSO 8987-2-2009** - Safety of amusement rides (Previous edition)
+        - **INSO 8987-3-2003** - Safety of amusement rides (Previous edition)
+        - **INSO 8987-2009** - Safety of amusement rides (Previous edition)
+        """)
+    
+    with col2:
+        st.markdown("""
+        #### Standards for Load Analysis:
+        - **ISIRI 519** - Iranian National Standard - Design loads for buildings
+        - **AS 1170.4-2007(A1)** - Structural design actions - Wind actions
+        - **BS EN 1991-1-4:2005+A1-2010** - Eurocode 1: Actions on structures - Wind actions
+        - **DIN 18800-1-1990** - Structural steelwork - Design and construction
+        - **DIN 18800-2-1990** - Structural steelwork - Stability, buckling of shells
+        - **EN 1991-1-3:2003** - Eurocode 1: Actions on structures - Snow loads
+        - **EN 1993-1-9:2005** - Eurocode 3: Design of steel structures - Fatigue
+        - **EN1993-1-9-AC 2009** - Eurocode 3: Design of steel structures - Fatigue (Amendment)
+        - **ISIRI 2800** - Iranian Code of Practice for Seismic Resistant Design of Buildings (4th Edition)
+        
+        #### Key Application Areas:
+        - **Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800
+        - **Seismic Analysis**: ISIRI 2800
+        - **Structural Design**: DIN 18800, EN 1993
+        - **Safety Classification**: INSO 8987, ISO 17842
+        """)
+    
+    st.markdown("---")
+    st.warning("""
+    ⚠️ **Important Notice:**
+    
+    By proceeding, you acknowledge that:
+    - This tool provides preliminary design calculations based on the referenced standards
+    - Final designs must be reviewed and approved by licensed professional engineers
+    - Local building codes and regulations must be consulted and followed
+    - Site-specific conditions may require additional analysis beyond this tool's scope
+    - The designer assumes responsibility for verifying all calculations and compliance
+    """)
+    
+    st.markdown("---")
+    
+    # Confirmation checkbox
+    standards_accepted = st.checkbox(
+        "✅ I understand and accept that all calculations are based on the standards listed above, "
+        "and I will ensure compliance with local regulations and professional engineering review.",
+        key="standards_confirmation"
+    )
+    
+    st.session_state.standards_confirmed = standards_accepted
+    
+    if standards_accepted:
+        st.success("✅ Standards confirmed. You may proceed to the design process.")
+        if st.button("🚀 Start Design Process", type="primary"):
+            st.session_state.step = 1
+            st.rerun()
+    else:
+        st.info("Please confirm your understanding of the standards to continue.")
 
-# === STEP 0: Generation selection ===
-if st.session_state.get('step', 0) == 0:
+# === STEP 1: Generation selection ===
+elif st.session_state.get('step', 0) == 1:
+    st.header("Step 1: Select Ferris Wheel Generation")
+    st.markdown("---")
+    
     image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
     captions = ["1st Generation (Truss type)", "2nd Generation_1st type (Cable type)", "2nd Generation_2nd type (Pure cable type)", "4th Generation (Hubless centerless)"]
     
@@ -544,7 +750,7 @@ if st.session_state.get('step', 0) == 0:
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
         with col:
             try:
-                st.image(img_path, width=180)
+                st.image(img_path, use_container_width=True)
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
@@ -553,9 +759,9 @@ if st.session_state.get('step', 0) == 0:
     st.markdown("---")
     st.write("Click the button under the image to select a generation and proceed.")
 
-# === STEP 1: Cabin Geometry ===
-elif st.session_state.step == 1:
-    st.header("Step 2: select Cabin Geometry")
+# === STEP 2: Cabin Geometry ===
+elif st.session_state.step == 2:
+    st.header("Step 2: Select Cabin Geometry")
     st.markdown("Choose a cabin shape.")
     geom_images = [("Square", "./git/assets/square.jpg"), ("Vertical Cylinder", "./git/assets/vertical.jpg"),
                    ("Horizontal Cylinder", "./git/assets/horizontal.jpg"), ("Spherical", "./git/assets/sphere.jpg")]
@@ -563,17 +769,17 @@ elif st.session_state.step == 1:
     for i, (label, img_path) in enumerate(geom_images):
         with cols[i]:
             try:
-                st.image(img_path, use_column_width=True)
+                st.image(img_path, use_container_width=True)
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(label)
-            if st.button(f"Select\n{label}", key=f"geom_img_btn_{i}"):
+            if st.button(f"Select {label}", key=f"geom_img_btn_{i}"):
                 st.session_state.cabin_geometry = label
                 base = base_for_geometry(st.session_state.diameter, st.session_state.cabin_geometry)
                 min_c, max_c = calc_min_max_from_base(base)
                 st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
                 st.session_state.capacities_calculated = False
-                st.session_state.step = 2
+                st.rerun()
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
@@ -582,8 +788,8 @@ elif st.session_state.step == 1:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 2: Primary parameters ===
-elif st.session_state.step == 2:
+# === STEP 3: Primary parameters ===
+elif st.session_state.step == 3:
     st.header("Step 3: Cabin Capacity & VIP")
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
@@ -630,8 +836,8 @@ elif st.session_state.step == 2:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 3: Rotation Time ===
-elif st.session_state.step == 3:
+# === STEP 4: Rotation Time ===
+elif st.session_state.step == 4:
     st.header("Step 4: Rotation Time & Derived Speeds")
     st.markdown("---")
 
@@ -647,7 +853,7 @@ elif st.session_state.step == 3:
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
     st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
-    st.caption(f"Angular speed (rad/s): {ang:.6f} ")
+    st.caption(f"Angular speed (rad/s): {ang:.6f}")
     st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
     cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
@@ -661,9 +867,10 @@ elif st.session_state.step == 3:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 4: Environment Conditions ===
-elif st.session_state.step == 4:
+# === STEP 5: Environment Conditions ===
+elif st.session_state.step == 5:
     st.header("Step 5: Environment Conditions")
+    st.markdown("**Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800**")
     st.markdown("---")
 
     iran_provinces = list(TERRAIN_CATEGORIES.keys())
@@ -779,9 +986,10 @@ elif st.session_state.step == 4:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 5: Provincial Characteristics (Terrain Calculation) ===
-elif st.session_state.step == 5:
+# === STEP 6: Provincial Characteristics (Terrain Calculation) ===
+elif st.session_state.step == 6:
     st.header("Step 6: Provincial Characteristics & Terrain Parameters")
+    st.markdown("**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**")
     st.markdown("---")
     
     env = st.session_state.environment_data
@@ -803,7 +1011,7 @@ elif st.session_state.step == 5:
             st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
         with col2:
             seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢"}
-            st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard:** {seismic}")
+            st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
         
         st.markdown("---")
         
@@ -819,7 +1027,7 @@ elif st.session_state.step == 5:
                 st.metric("Minimum Height (z_min)", f"{terrain['zmin']} m")
             
             st.success("✅ Terrain parameters calculated successfully!")
-            st.info(f"**z₀ = {terrain['z0']} m** - This value will be used for wind load calculations.")
+            st.info(f"**z₀ = {terrain['z0']} m** - This value will be used for wind load calculations per AS 1170.4.")
         
         if st.session_state.terrain_calculated:
             st.markdown("---")
@@ -832,9 +1040,10 @@ elif st.session_state.step == 5:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 6: Soil Type (auto-calculate Importance Group) ===
-elif st.session_state.step == 6:
+# === STEP 7: Soil Type (auto-calculate Importance Group) ===
+elif st.session_state.step == 7:
     st.header("Step 7: Soil Type & Importance Classification")
+    st.markdown("**Soil classification per ISIRI 2800 (4th Edition)**")
     st.markdown("---")
     
     st.subheader("Soil Type Selection")
@@ -878,7 +1087,7 @@ elif st.session_state.step == 6:
     st.subheader("Automatically Calculated Importance Group")
     
     st.success(f"**Importance Group:** {auto_importance_group} (Factor: {auto_importance_factor})")
-    st.info("The importance group is automatically determined based on the selected soil type.")
+    st.info("The importance group is automatically determined based on the selected soil type per ISIRI 2800.")
     
     # Display selected factors
     st.markdown("---")
@@ -897,17 +1106,21 @@ elif st.session_state.step == 6:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 7: Carousel Orientation ===
-elif st.session_state.step == 7:
+# === STEP 8: Carousel Orientation ===
+elif st.session_state.step == 8:
     st.header("Step 8: Carousel Orientation Selection")
+    st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
     
     wind_direction = st.session_state.environment_data.get('wind_direction', 'North')
+    land_length = st.session_state.environment_data.get('land_length', 100)
+    land_width = st.session_state.environment_data.get('land_width', 100)
+    diameter = st.session_state.diameter
     
     st.subheader(f"Suggested Orientation Based on Wind Direction: {wind_direction}")
     st.info(f"Based on the prevailing wind direction ({wind_direction}), we recommend orienting the carousel in the same direction for optimal wind load distribution.")
     
-    fig_orientation = create_orientation_diagram(wind_direction)
+    fig_orientation = create_orientation_diagram(wind_direction, land_length, land_width, diameter)
     st.plotly_chart(fig_orientation, use_container_width=True)
     
     st.markdown("---")
@@ -931,7 +1144,7 @@ elif st.session_state.step == 7:
         st.session_state.carousel_orientation = custom_direction
         st.session_state.orientation_confirmed = True
         st.success(f"Custom orientation set: {custom_direction}")
-        fig_custom = create_orientation_diagram(custom_direction)
+        fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
         st.plotly_chart(fig_custom, use_container_width=True)
     
     st.markdown("---")
@@ -941,10 +1154,10 @@ elif st.session_state.step == 7:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 8: Device Classification ===
-elif st.session_state.step == 8:
+# === STEP 9: Device Classification ===
+elif st.session_state.step == 9:
     st.header("Step 9: Device Classification")
-    st.markdown("**Calculation per National Standard 8987**")
+    st.markdown("**Calculation per INSO 8987-1-2023**")
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -1012,10 +1225,10 @@ elif st.session_state.step == 8:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 9: Restraint Type (Both ISO and AS Standards) ===
-elif st.session_state.step == 9:
-    st.header("Step 10: Restraint Type Determination (ISO & AS Standards)")
-    st.markdown("**Based on acceleration analysis per ISO and AS Standards**")
+# === STEP 10: Restraint Type (Both ISO and AS Standards) ===
+elif st.session_state.step == 10:
+    st.header("Step 10: Restraint Type Determination")
+    st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -1078,7 +1291,7 @@ elif st.session_state.step == 9:
     st.markdown("---")
     
     # ISO Standard Results
-    st.subheader("📋 ISO Standard Analysis")
+    st.subheader("📋 ISO 17842-2023 Analysis")
     
     restraint_descriptions_iso = {
         1: "District 1 - Upper region: Maximum restraint required (full body harness)",
@@ -1093,7 +1306,7 @@ elif st.session_state.step == 9:
     
     # AS Standard Results
     st.markdown("---")
-    st.subheader("📋 AS Standard Analysis")
+    st.subheader("📋 AS 3533.1-2009+A1-2011 Analysis")
     
     restraint_descriptions_as = {
         1: "Region 1 - Upper region: Maximum restraint required (full body harness)",
@@ -1112,7 +1325,7 @@ elif st.session_state.step == 9:
     col_iso, col_as = st.columns(2)
     
     with col_iso:
-        st.subheader("ISO Acceleration Envelope")
+        st.subheader("ISO 17842 Acceleration Envelope")
         fig_accel_iso = plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel)
         st.plotly_chart(fig_accel_iso, use_container_width=True)
         
@@ -1126,7 +1339,7 @@ elif st.session_state.step == 9:
         """)
     
     with col_as:
-        st.subheader("AS Acceleration Envelope")
+        st.subheader("AS 3533.1 Acceleration Envelope")
         fig_accel_as = plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel)
         st.plotly_chart(fig_accel_as, use_container_width=True)
         
@@ -1157,8 +1370,8 @@ elif st.session_state.step == 9:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 10: Final Design Overview ===
-elif st.session_state.step == 10:
+# === STEP 11: Final Design Overview ===
+elif st.session_state.step == 11:
     st.header("Step 11: Complete Design Summary")
     st.markdown("---")
 
@@ -1185,6 +1398,7 @@ elif st.session_state.step == 10:
     
     # Environment & Site Conditions
     st.subheader("🌍 Environment & Site Conditions")
+    st.caption("Per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800")
     env = st.session_state.environment_data
     col1, col2 = st.columns(2)
     with col1:
@@ -1197,7 +1411,7 @@ elif st.session_state.step == 10:
         st.write(f"**Terrain Category:** {env.get('terrain_category','N/A')}")
         st.write(f"**z₀:** {env.get('terrain_z0','N/A')} m")
         st.write(f"**z_min:** {env.get('terrain_zmin','N/A')} m")
-        st.write(f"**Seismic Hazard:** {env.get('seismic_hazard','N/A')}")
+        st.write(f"**Seismic Hazard (ISIRI 2800):** {env.get('seismic_hazard','N/A')}")
         st.write(f"**Wind Direction:** {env.get('wind_direction','N/A')}")
         st.write(f"**Max Wind Speed:** {env.get('wind_max',0)} km/h")
 
@@ -1205,6 +1419,7 @@ elif st.session_state.step == 10:
     
     # Soil & Importance
     st.subheader("🏗️ Soil & Structural Importance")
+    st.caption("Per ISIRI 2800 (4th Edition)")
     col1, col2 = st.columns(2)
     with col1:
         st.write(f"**Soil Type:** {st.session_state.soil_type}")
@@ -1215,14 +1430,21 @@ elif st.session_state.step == 10:
     
     # Orientation
     st.subheader("🧭 Carousel Orientation")
+    st.caption("Per AS 1170.4-2007(A1), EN 1991-1-4:2005")
     st.write(f"**Selected Orientation:** {st.session_state.carousel_orientation}")
-    fig_final_orientation = create_orientation_diagram(st.session_state.carousel_orientation)
+    fig_final_orientation = create_orientation_diagram(
+        st.session_state.carousel_orientation,
+        env.get('land_length'),
+        env.get('land_width'),
+        st.session_state.diameter
+    )
     st.plotly_chart(fig_final_orientation, use_container_width=True)
 
     st.markdown("---")
     
     # Safety Classification
-    st.subheader("⚠️ Safety Classification (NS 8987)")
+    st.subheader("⚠️ Safety Classification")
+    st.caption("Per INSO 8987-1-2023")
     if st.session_state.classification_data:
         class_data = st.session_state.classification_data
         col1, col2, col3 = st.columns(3)
@@ -1237,11 +1459,12 @@ elif st.session_state.step == 10:
             st.caption("Actual operation")
         
         st.markdown("---")
+        st.subheader("🔒 Restraint System Requirements")
         col_iso, col_as = st.columns(2)
         with col_iso:
-            st.info(f"**ISO Restraint System:** District {class_data.get('restraint_district_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
+            st.info(f"**ISO 17842-2023**\n\nDistrict {class_data.get('restraint_district_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
         with col_as:
-            st.info(f"**AS Restraint System:** Zone {class_data.get('restraint_zone_as','N/A')}\n\n{class_data.get('restraint_description_as', 'N/A')}")
+            st.info(f"**AS 3533.1-2009+A1-2011**\n\nZone {class_data.get('restraint_zone_as','N/A')}\n\n{class_data.get('restraint_description_as', 'N/A')}")
 
     st.markdown("---")
     
@@ -1260,7 +1483,95 @@ elif st.session_state.step == 10:
     fig = create_component_diagram(st.session_state.diameter, height, total_capacity_per_rotation, motor_power)
     st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
 
-    st.info("🚧 Note: Detailed structural, electrical, and safety analyses require professional engineering consultation.")
+    st.markdown("---")
+    
+    # Design Summary Report
+    st.subheader("📄 Design Summary Report")
+    
+    with st.expander("📋 View Complete Design Report"):
+        st.markdown(f"""
+        ## Ferris Wheel Design Report
+        
+        ### Project Information
+        - **Project Name:** {env.get('region_name', 'N/A')} Ferris Wheel
+        - **Location:** {env.get('province', 'N/A')}, Iran
+        - **Generation Type:** {st.session_state.generation_type}
+        
+        ### Structural Parameters
+        - **Wheel Diameter:** {st.session_state.diameter} m
+        - **Total Height:** {height:.1f} m
+        - **Number of Cabins:** {st.session_state.num_cabins}
+        - **Cabin Geometry:** {st.session_state.cabin_geometry}
+        - **Passenger Capacity per Cabin:** {st.session_state.cabin_capacity}
+        - **VIP Cabins:** {st.session_state.num_vip_cabins}
+        - **Total Capacity per Hour:** {cap_hour:.0f} passengers
+        
+        ### Operating Parameters
+        - **Rotation Time:** {st.session_state.rotation_time_min:.2f} minutes
+        - **Rotational Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
+        - **Linear Speed at Rim:** {ang * (st.session_state.diameter / 2.0):.3f} m/s
+        - **Estimated Motor Power:** {motor_power:.1f} kW
+        
+        ### Site Conditions
+        - **Province:** {env.get('province', 'N/A')}
+        - **Region:** {env.get('region_name', 'N/A')}
+        - **Land Dimensions:** {env.get('land_length', 0)} m × {env.get('land_width', 0)} m
+        - **Total Land Area:** {env.get('land_area', 0)} m²
+        - **Altitude:** {env.get('altitude', 0)} m above sea level
+        - **Temperature Range:** {env.get('temp_min', 0)}°C to {env.get('temp_max', 0)}°C
+        
+        ### Wind & Environmental Data (AS 1170.4, EN 1991-1-4, ISIRI 2800)
+        - **Prevailing Wind Direction:** {env.get('wind_direction', 'N/A')}
+        - **Maximum Wind Speed:** {env.get('wind_max', 0)} km/h
+        - **Average Wind Speed:** {env.get('wind_avg', 0)} km/h
+        - **Terrain Category:** {env.get('terrain_category', 'N/A')}
+        - **Roughness Length (z₀):** {env.get('terrain_z0', 'N/A')} m
+        - **Minimum Height (z_min):** {env.get('terrain_zmin', 'N/A')} m
+        - **Carousel Orientation:** {st.session_state.carousel_orientation}
+        
+        ### Geotechnical Data (ISIRI 2800)
+        - **Soil Type:** {st.session_state.soil_type}
+        - **Importance Group:** {st.session_state.importance_group}
+        - **Seismic Hazard Level:** {env.get('seismic_hazard', 'N/A')}
+        
+        ### Safety Classification (INSO 8987-1-2023)
+        - **Design Class:** Class {class_data.get('class_design', 'N/A')}
+        - **Design Dynamic Product:** {class_data.get('p_design', 0):.2f}
+        - **Actual Operating Class:** Class {class_data.get('class_actual', 'N/A')}
+        - **Actual Dynamic Product:** {class_data.get('p_actual', 0):.2f}
+        - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
+        - **Braking Acceleration:** {st.session_state.braking_acceleration} m/s²
+        
+        ### Restraint System Requirements
+        
+        #### ISO 17842-2023 Classification
+        - **District:** {class_data.get('restraint_district_iso', 'N/A')}
+        - **Requirement:** {class_data.get('restraint_description_iso', 'N/A')}
+        - **Acceleration Range:** ax = [{class_data.get('min_ax_g', 0):.3f}g to {class_data.get('max_ax_g', 0):.3f}g], az = [{class_data.get('min_az_g', 0):.3f}g to {class_data.get('max_az_g', 0):.3f}g]
+        
+        #### AS 3533.1-2009+A1-2011 Classification
+        - **Zone:** {class_data.get('restraint_zone_as', 'N/A')}
+        - **Requirement:** {class_data.get('restraint_description_as', 'N/A')}
+        
+        ### Applicable Standards
+        - INSO 8987-1-2023 (Safety of amusement rides - General requirements)
+        - ISO 17842-2023 (Safety of amusement rides and devices)
+        - AS 3533.1-2009+A1-2011 (Design and construction)
+        - AS 1170.4-2007(A1) (Wind actions)
+        - EN 1991-1-4:2005+A1-2010 (Eurocode - Wind actions)
+        - ISIRI 2800 (Seismic resistant design)
+        - ISIRI 519 (Design loads for buildings)
+        - DIN 18800 (Structural steelwork)
+        - EN 1993 (Design of steel structures)
+        
+        ---
+        
+        **Note:** This is a preliminary design report. Final engineering calculations, detailed 
+        structural analysis, and professional review by licensed engineers are required before 
+        construction. All designs must comply with local building codes and regulations.
+        """)
+    
+    st.info("🚧 **Note:** Detailed structural, electrical, and safety analyses require professional engineering consultation.")
     
     st.markdown("---")
     l, m, r = st.columns([1,0.5,1])
@@ -1268,5 +1579,30 @@ elif st.session_state.step == 10:
         st.button("⬅️ Back", on_click=go_back)
     with m:
         st.button("🔄 New Design", on_click=reset_design)
+    with r:
+        if st.button("📥 Export Report"):
+            st.info("Report export functionality - Coming soon!")
     
     st.success("✅ Design Complete! All parameters have been configured.")
+
+# === STEP 12: Additional Analysis (Optional Future Step) ===
+elif st.session_state.step == 12:
+    st.header("Step 12: Additional Analysis")
+    st.markdown("---")
+    
+    st.info("This step is reserved for future enhancements such as:")
+    st.markdown("""
+    - Detailed structural load calculations
+    - Finite element analysis integration
+    - Cost estimation
+    - Construction timeline
+    - Maintenance schedule
+    - Safety inspection checklist
+    """)
+    
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
+    with right_col:
+        st.button("🔄 New Design", on_click=reset_design)
