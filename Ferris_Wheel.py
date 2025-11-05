@@ -679,20 +679,20 @@ elif st.session_state.step == 4:
     l1, l2 = st.columns(2)
     with l1:
         land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, 
-                                      value=st.session_state.environment_data.get('land_length', 100.0), key="land_length_input")
+                                      value=int(st.session_state.environment_data.get('land_length', 100.0), key="land_length_input"))
     with l2:
         land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, 
-                                     value=st.session_state.environment_data.get('land_width', 100.0), key="land_width_input")
+                                     value=int(st.session_state.environment_data.get('land_width', 100.0), key="land_width_input"))
     st.metric("Total Land Area", f"{land_length * land_width:.2f} m²")
 
     st.markdown("---")
     st.subheader("Altitude and Temperature")
     a1, a2 = st.columns(2)
     with a1:
-        altitude = st.number_input("Altitude (m)", value=st.session_state.environment_data.get('altitude', 0.0), key="altitude_input")
+        temp_max = st.number_input("Maximum Temperature (°C)", value=int(st.session_state.environment_data.get('temp_max', 40.0), key="temp_max_input"))
     with a2:
-        temp_min = st.number_input("Minimum Temperature (°C)", value=st.session_state.environment_data.get('temp_min', -10.0), key="temp_min_input")
-    temp_max = st.number_input("Maximum Temperature (°C)", value=st.session_state.environment_data.get('temp_max', 40.0), key="temp_max_input")
+        temp_min = st.number_input("Minimum Temperature (°C)", value=int(st.session_state.environment_data.get('temp_min', -10.0), key="temp_min_input"))
+    altitude = st.number_input("Altitude (m)", value=int(st.session_state.environment_data.get('altitude', 0.0), key="altitude_input"))
 
     st.markdown("---")
     st.subheader("Wind Information")
