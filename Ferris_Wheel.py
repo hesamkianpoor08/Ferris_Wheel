@@ -672,39 +672,86 @@ elif st.session_state.step == 4:
     with c1:
         province = st.selectbox("Province", options=iran_provinces, index=0, key="province_select")
     with c2:
-        region_name = st.text_input("Region / Area name", value=st.session_state.environment_data.get('region_name', ''), key="region_name_input")
+        region_name = st.text_input(
+            "Region / Area name",
+            value=st.session_state.environment_data.get('region_name', ''),
+            key="region_name_input"
+        )
 
     st.markdown("---")
     st.subheader("Land Surface Area (meters)")
     l1, l2 = st.columns(2)
     with l1:
-        land_length = st.number_input("Land Length (m)", min_value=10.0, max_value=150.0, 
-                                      value=int(st.session_state.environment_data.get('land_length', 100.0), key="land_length_input"))
+        land_length = st.number_input(
+            "Land Length (m)",
+            min_value=10,
+            max_value=150,
+            value=int(st.session_state.environment_data.get('land_length', 100)),
+            step=1,
+            key="land_length_input"
+        )
     with l2:
-        land_width = st.number_input("Land Width (m)", min_value=10.0, max_value=150.0, 
-                                     value=int(st.session_state.environment_data.get('land_width', 100.0), key="land_width_input"))
-    st.metric("Total Land Area", f"{land_length * land_width:.2f} m²")
+        land_width = st.number_input(
+            "Land Width (m)",
+            min_value=10,
+            max_value=150,
+            value=int(st.session_state.environment_data.get('land_width', 100)),
+            step=1,
+            key="land_width_input"
+        )
+    st.metric("Total Land Area", f"{land_length * land_width} m²")
 
     st.markdown("---")
     st.subheader("Altitude and Temperature")
     a1, a2 = st.columns(2)
     with a1:
-        temp_max = st.number_input("Maximum Temperature (°C)", value=int(st.session_state.environment_data.get('temp_max', 40.0), key="temp_max_input"))
+        temp_max = st.number_input(
+            "Maximum Temperature (°C)",
+            value=int(st.session_state.environment_data.get('temp_max', 40)),
+            step=1,
+            key="temp_max_input"
+        )
     with a2:
-        temp_min = st.number_input("Minimum Temperature (°C)", value=int(st.session_state.environment_data.get('temp_min', -10.0), key="temp_min_input"))
-    altitude = st.number_input("Altitude (m)", value=int(st.session_state.environment_data.get('altitude', 0.0), key="altitude_input"))
+        temp_min = st.number_input(
+            "Minimum Temperature (°C)",
+            value=int(st.session_state.environment_data.get('temp_min', -10)),
+            step=1,
+            key="temp_min_input"
+        )
+    altitude = st.number_input(
+        "Altitude (m)",
+        value=int(st.session_state.environment_data.get('altitude', 0)),
+        step=1,
+        key="altitude_input"
+    )
 
     st.markdown("---")
     st.subheader("Wind Information")
     w1, w2 = st.columns(2)
     with w1:
-        wind_dir = st.selectbox("Wind Direction", options=["North", "South", "East", "West", "Northeast", "Northwest", "Southeast", "Southwest"], key="wind_dir_input")
+        wind_dir = st.selectbox(
+            "Wind Direction",
+            options=["North", "South", "East", "West", "Northeast", "Northwest", "Southeast", "Southwest"],
+            key="wind_dir_input"
+        )
     with w2:
-        wind_max = st.number_input("Maximum Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_max', 108.0), key="wind_max_input")
-        wind_avg = st.number_input("Average Wind Speed (km/h)", min_value=0.0, value=st.session_state.environment_data.get('wind_avg', 54.0), key="wind_avg_input")
+        wind_max = st.number_input(
+            "Maximum Wind Speed (km/h)",
+            min_value=0,
+            value=int(st.session_state.environment_data.get('wind_max', 108)),
+            step=1,
+            key="wind_max_input"
+        )
+        wind_avg = st.number_input(
+            "Average Wind Speed (km/h)",
+            min_value=0,
+            value=int(st.session_state.environment_data.get('wind_avg', 54)),
+            step=1,
+            key="wind_avg_input"
+        )
 
     st.markdown("---")
-    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.wind_rose_loaded, key="load_wind_checkbox")
+    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.get('wind_rose_loaded', False), key="load_wind_checkbox")
     st.session_state.wind_rose_loaded = load_wind
     if load_wind:
         wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
