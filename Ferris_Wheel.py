@@ -750,7 +750,7 @@ elif st.session_state.get('step', 0) == 1:
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
         with col:
             try:
-                st.image(img_path, width=220)
+                st.image(img_path, width=240)
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
