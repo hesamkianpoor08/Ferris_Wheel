@@ -1572,7 +1572,8 @@ elif st.session_state.step == 11:
     moment_of_inertia = total_mass * (st.session_state.diameter/2.0)**2
     motor_power = moment_of_inertia * ang**2 / 1000.0 if ang else 0.0
     num_cabins = st.session_state.num_cabins
-    fig = create_component_diagram(st.session_state.diameter, height , total_capacity_per_rotation, motor_power , num_cabins)
+    cabin_geometry = st.session_state.cabin_geometry
+    fig = create_component_diagram(st.session_state.diameter, height , total_capacity_per_rotation, motor_power , num_cabins ,cabin_geometry)
     st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
 
     st.markdown("---")
