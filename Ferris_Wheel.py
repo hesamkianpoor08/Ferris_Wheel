@@ -134,24 +134,100 @@ def calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter):
         return ang, rpm, linear
     return 0.0, 0.0, 0.0
 
-def create_component_diagram(diameter, height, capacity, motor_power):
+def create_component_diagram(diameter, height, capacity, motor_power, num_cabins=12, cabin_geometry="Square"):
+    """Enhanced carousel diagram with properly scaled cabins"""
+    # Draw wheel as a perfect circle
     theta = np.linspace(0, 2*np.pi, 200)
-    x_wheel = diameter/2 * np.cos(theta)
-    y_wheel = diameter/2 * np.sin(theta) + height/2
+    radius = diameter / 2
+    x_wheel = radius * np.cos(theta)
+    y_wheel = radius * np.sin(theta) + height/2
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_wheel, y=y_wheel, mode='lines', line=dict(color='#2196F3', width=3), showlegend=False))
-    fig.add_trace(go.Scatter(x=[0,0], y=[0,height/2], mode='lines', line=dict(color='#FF5722', width=6), showlegend=False))
+    
+    # Draw wheel
+    fig.add_trace(go.Scatter(x=x_wheel, y=y_wheel, mode='lines', 
+                            line=dict(color='#2196F3', width=3), 
+                            showlegend=False, name='Wheel'))
+    
+    # Draw support structure
+    fig.add_trace(go.Scatter(x=[0,0], y=[0,height/2], mode='lines', 
+                            line=dict(color='#FF5722', width=6), 
+                            showlegend=False, name='Support'))
+    
+    # Draw cabins based on geometry
+    cabin_scale = diameter * 0.04  # Scale cabins relative to wheel size
+    
+    for i in range(num_cabins):
+        angle = 2 * np.pi * i / num_cabins
+        cabin_x = radius * np.cos(angle)
+        cabin_y = radius * np.sin(angle) + height/2
+        
+        if cabin_geometry == "Spherical":
+            # Draw circle for spherical cabin
+            cabin_theta = np.linspace(0, 2*np.pi, 30)
+            cx = cabin_x + cabin_scale * 0.5 * np.cos(cabin_theta)
+            cy = cabin_y + cabin_scale * 0.5 * np.sin(cabin_theta)
+            fig.add_trace(go.Scatter(x=cx, y=cy, mode='lines', 
+                                    fill='toself', fillcolor='rgba(255, 193, 7, 0.6)',
+                                    line=dict(color='#FFC107', width=1.5),
+                                    showlegend=False, hoverinfo='skip'))
+        
+        elif cabin_geometry == "Vertical Cylinder":
+            # Draw vertical rectangle
+            w = cabin_scale * 0.4
+            h = cabin_scale * 0.8
+            rect_x = [cabin_x - w/2, cabin_x + w/2, cabin_x + w/2, cabin_x - w/2, cabin_x - w/2]
+            rect_y = [cabin_y - h/2, cabin_y - h/2, cabin_y + h/2, cabin_y + h/2, cabin_y - h/2]
+            fig.add_trace(go.Scatter(x=rect_x, y=rect_y, mode='lines', 
+                                    fill='toself', fillcolor='rgba(76, 175, 80, 0.6)',
+                                    line=dict(color='#4CAF50', width=1.5),
+                                    showlegend=False, hoverinfo='skip'))
+        
+        elif cabin_geometry == "Horizontal Cylinder":
+            # Draw horizontal rectangle
+            w = cabin_scale * 0.8
+            h = cabin_scale * 0.4
+            rect_x = [cabin_x - w/2, cabin_x + w/2, cabin_x + w/2, cabin_x - w/2, cabin_x - w/2]
+            rect_y = [cabin_y - h/2, cabin_y - h/2, cabin_y + h/2, cabin_y + h/2, cabin_y - h/2]
+            fig.add_trace(go.Scatter(x=rect_x, y=rect_y, mode='lines', 
+                                    fill='toself', fillcolor='rgba(156, 39, 176, 0.6)',
+                                    line=dict(color='#9C27B0', width=1.5),
+                                    showlegend=False, hoverinfo='skip'))
+        
+        else:  # Square
+            # Draw square
+            s = cabin_scale * 0.6
+            square_x = [cabin_x - s/2, cabin_x + s/2, cabin_x + s/2, cabin_x - s/2, cabin_x - s/2]
+            square_y = [cabin_y - s/2, cabin_y - s/2, cabin_y + s/2, cabin_y + s/2, cabin_y - s/2]
+            fig.add_trace(go.Scatter(x=square_x, y=square_y, mode='lines', 
+                                    fill='toself', fillcolor='rgba(244, 67, 54, 0.6)',
+                                    line=dict(color='#F44336', width=1.5),
+                                    showlegend=False, hoverinfo='skip'))
 
     annotations = [
-        dict(x=0, y=height + diameter*0.05 + 2, text=f"Height: {height} m", showarrow=False, font=dict(color='black')),
-        dict(x=diameter/2 + 2, y=height/2, text=f"Diameter: {diameter} m", showarrow=False, font=dict(color='black')),
-        dict(x=0, y=-5, text=f"Motor Power: {motor_power:.1f} kW", showarrow=False, font=dict(color='black')),
-        dict(x=0, y=-8, text=f"Capacity: {capacity} passengers", showarrow=False, font=dict(color='black'))
+        dict(x=0, y=height + diameter*0.05 + 2, text=f"Height: {height:.1f} m", 
+             showarrow=False, font=dict(color='black', size=12)),
+        dict(x=diameter/2 + 2, y=height/2, text=f"Diameter: {diameter} m", 
+             showarrow=False, font=dict(color='black', size=12)),
+        dict(x=0, y=-5, text=f"Motor Power: {motor_power:.1f} kW", 
+             showarrow=False, font=dict(color='black', size=12)),
+        dict(x=0, y=-8, text=f"Capacity: {capacity} passengers", 
+             showarrow=False, font=dict(color='black', size=12)),
+        dict(x=0, y=-11, text=f"Cabins: {num_cabins} ({cabin_geometry})", 
+             showarrow=False, font=dict(color='black', size=10))
     ]
-    fig.update_layout(title=dict(text="Ferris Wheel Design Overview", font=dict(color='black')),
-                      height=620, template="plotly_white", plot_bgcolor='white', paper_bgcolor='white',
-                      annotations=annotations, margin=dict(l=80, r=80, t=80, b=80))
+    
+    fig.update_layout(
+        title=dict(text="Ferris Wheel Design Overview", font=dict(color='black', size=16)),
+        height=650, 
+        template="plotly_white", 
+        plot_bgcolor='white', 
+        paper_bgcolor='white',
+        annotations=annotations, 
+        margin=dict(l=80, r=80, t=80, b=80),
+        xaxis=dict(scaleanchor="y", scaleratio=1, showgrid=True, gridcolor='lightgray'),
+        yaxis=dict(showgrid=True, gridcolor='lightgray')
+    )
     return fig
 
 def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g=9.81):
@@ -344,37 +420,55 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
                       font=dict(size=11, color="red", family="Arial Black"))
     
     # Plot actual acceleration points (after zones for visibility)
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
-                             marker=dict(color='#2196F3', size=6, symbol='circle',
-                                       line=dict(color='darkblue', width=1)),
-                             line=dict(color='#2196F3', width=2),
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='lines',
+                             line=dict(color='#2196F3', width=3),
                              name='Acceleration Envelope'))
     
-    # Highlight extreme points
+    # Find and highlight ONLY the true extreme points
     max_ax_idx = np.argmax(ax_vals)
     min_ax_idx = np.argmin(ax_vals)
     max_az_idx = np.argmax(az_vals)
     min_az_idx = np.argmin(az_vals)
     
-    extreme_points = [
-        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
-        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
-        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
-        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
-    ]
+    # Get unique extreme points
+    extreme_indices = list(set([max_ax_idx, min_ax_idx, max_az_idx, min_az_idx]))
     
+    extreme_points = []
+    for idx in extreme_indices:
+        if idx == max_ax_idx:
+            label = f'Max ax: {ax_vals[idx]:.3f}g'
+        elif idx == min_ax_idx:
+            label = f'Min ax: {ax_vals[idx]:.3f}g'
+        elif idx == max_az_idx:
+            label = f'Max az: {az_vals[idx]:.3f}g'
+        else:
+            label = f'Min az: {az_vals[idx]:.3f}g'
+        extreme_points.append((ax_vals[idx], az_vals[idx], label))
+    
+    # Plot each extreme point with clear labeling
     for ax, az, label in extreme_points:
-        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
-                                marker=dict(size=12, color='red', symbol='star'),
-                                text=[label], textposition='top center',
-                                textfont=dict(size=9, color='red', family='Arial Black'),
-                                showlegend=False))
+        fig.add_trace(go.Scatter(
+            x=[ax], y=[az], 
+            mode='markers+text',
+            marker=dict(size=14, color='red', symbol='star',
+                       line=dict(color='darkred', width=2)),
+            text=[label], 
+            textposition='top center',
+            textfont=dict(size=10, color='darkred', family='Arial Black'),
+            showlegend=False,
+            hoverinfo='text',
+            hovertext=label
+        ))
     
-    fig.update_layout(title="ISO 17842 - Acceleration Envelope with Actual Operating Points", 
-                      xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
+    fig.update_layout(
+        title="ISO 17842 - Acceleration Envelope with Operating Points", 
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]", 
+        height=700, 
+        template="plotly_white",
+        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+    )
     return fig
 
 def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9.81):
@@ -431,37 +525,55 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
                       font=dict(size=11, color="red", family="Arial Black"))
     
     # Plot actual acceleration points (after zones for visibility)
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
-                             marker=dict(color='#2196F3', size=6, symbol='circle',
-                                       line=dict(color='darkblue', width=1)),
-                             line=dict(color='#2196F3', width=2),
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='lines',
+                             line=dict(color='#2196F3', width=3),
                              name='Acceleration Envelope'))
     
-    # Highlight extreme points
+    # Find and highlight ONLY the true extreme points
     max_ax_idx = np.argmax(ax_vals)
     min_ax_idx = np.argmin(ax_vals)
     max_az_idx = np.argmax(az_vals)
     min_az_idx = np.argmin(az_vals)
     
-    extreme_points = [
-        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
-        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
-        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
-        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
-    ]
+    # Get unique extreme points
+    extreme_indices = list(set([max_ax_idx, min_ax_idx, max_az_idx, min_az_idx]))
     
+    extreme_points = []
+    for idx in extreme_indices:
+        if idx == max_ax_idx:
+            label = f'Max ax: {ax_vals[idx]:.3f}g'
+        elif idx == min_ax_idx:
+            label = f'Min ax: {ax_vals[idx]:.3f}g'
+        elif idx == max_az_idx:
+            label = f'Max az: {az_vals[idx]:.3f}g'
+        else:
+            label = f'Min az: {az_vals[idx]:.3f}g'
+        extreme_points.append((ax_vals[idx], az_vals[idx], label))
+    
+    # Plot each extreme point with clear labeling
     for ax, az, label in extreme_points:
-        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
-                                marker=dict(size=12, color='red', symbol='star'),
-                                text=[label], textposition='top center',
-                                textfont=dict(size=9, color='red', family='Arial Black'),
-                                showlegend=False))
+        fig.add_trace(go.Scatter(
+            x=[ax], y=[az], 
+            mode='markers+text',
+            marker=dict(size=14, color='red', symbol='star',
+                       line=dict(color='darkred', width=2)),
+            text=[label], 
+            textposition='top center',
+            textfont=dict(size=10, color='darkred', family='Arial Black'),
+            showlegend=False,
+            hoverinfo='text',
+            hovertext=label
+        ))
     
-    fig.update_layout(title="AS 3533.1 - Acceleration Envelope with Actual Operating Points", 
-                      xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
+    fig.update_layout(
+        title="AS 3533.1 - Acceleration Envelope with Operating Points", 
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]", 
+        height=700, 
+        template="plotly_white",
+        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+    )
     return fig
 
 def create_orientation_diagram(selected_direction, land_length=None, land_width=None, diameter=None):
