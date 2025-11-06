@@ -9,6 +9,40 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+st.markdown(
+    """
+    <style>
+    :root { color-scheme: light; }
+
+    /* اصلی‌ترین container های Streamlit */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    /* متن‌ها و المان‌های عمومی */
+    body, p, span, div, label, input, button, a {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* قالب نمودارهای Plotly داخل استریم‌لیت */
+    .stPlotlyChart > div {
+        background-color: #ffffff !important;
+    }
+
+    /* در صورت نیاز: override برای کارت‌ها و کانتینرها */
+    .css-1d391kg, .css-1v3fvcr, .css-1v0mbdj {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # --- Session State Initialization ---
 if 'step' not in st.session_state:
