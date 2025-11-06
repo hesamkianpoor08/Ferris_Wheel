@@ -9,43 +9,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
-st.markdown("""
-<style>
-:root { color-scheme: light; }
-
-/* همه‌ی انواع input در Streamlit */
-input, textarea, select {
-    border: 1px solid #000000 !important;   /* 🔸 خط مشکی دور کادر */
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-radius: 6px !important;
-    box-shadow: none !important;
-}
-
-/* وقتی کاربر روی input کلیک می‌کند */
-input:focus, textarea:focus, select:focus {
-    border: 1.5px solid #000000 !important;
-    outline: none !important;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.08) !important;
-}
-
-/* لیبل‌ها و توضیحات هم مشکی */
-label, p, span, div {
-    color: #000000 !important;
-}
-
-/* مخصوص Streamlit ویجت‌ها (برای اطمینان کامل) */
-[data-baseweb="input"] input,
-[data-testid="stTextInput"] input,
-[data-testid="stNumberInput"] input,
-[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    border: 1px solid #000000 !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    box-shadow: none !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # --- Session State Initialization ---
 if 'step' not in st.session_state:
