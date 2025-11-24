@@ -10,9 +10,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# --- Language Support ---
+def get_text(key, persian=False):
+    """Get text in selected language"""
+    texts = {
+        'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراح چرخ و فلک خوش آمدید"},
+        'step': {'en': "Step", 'fa': "مرحله"},
+        'of': {'en': "of", 'fa': "از"},
+        'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
+        'select_cabin_geometry': {'en': "Select Cabin Geometry", 'fa': "انتخاب هندسه کابین"},
+        'cabin_capacity_vip': {'en': "Cabin Capacity & VIP", 'fa': "ظرفیت کابین و VIP"},
+        'rotation_time': {'en': "Rotation Time & Derived Speeds", 'fa': "زمان چرخش و سرعت های مشتق شده"},
+        'environment_conditions': {'en': "Environment Conditions", 'fa': "شرایط محیطی"},
+        'provincial_characteristics': {'en': "Provincial Characteristics & Terrain Parameters", 'fa': "ویژگی های استانی و پارامترهای زمین"},
+        'soil_type': {'en': "Soil Type & Importance Classification", 'fa': "نوع خاک و طبقه بندی اهمیت"},
+        'carousel_orientation': {'en': "Carousel Orientation Selection", 'fa': "انتخاب جهت چرخش چرخ و فلک"},
+        'device_classification': {'en': "Device Classification", 'fa': "طبقه بندی دستگاه"},
+        'restraint_type': {'en': "Restraint Type Determination", 'fa': "تعیین نوع مهار"},
+        'design_summary': {'en': "Complete Design Summary", 'fa': "خلاصه کامل طراحی"},
+        'additional_analysis': {'en': "Additional Analysis", 'fa': "تحلیل های اضافی"},
+        'select_province': {'en': "Select Province", 'fa': "انتخاب استان"},
+        'select_city': {'en': "Select City", 'fa': "انتخاب شهر"},
+        'region_name': {'en': "Region / Area name", 'fa': "نام منطقه / ناحیه"},
+        'zone': {'en': "Zone", 'fa': "منطقه"},
+        'confirm_orientation': {'en': "Confirm Suggested Orientation", 'fa': "تایید جهت پیشنهادی"},
+        'custom_direction': {'en': "Custom Direction", 'fa': "جهت سفارشی"},
+        'back': {'en': "Back", 'fa': "بازگشت"},
+        'next': {'en': "Next", 'fa': "بعدی"},
+        'calculate': {'en': "Calculate", 'fa': "محاسبه"},
+        'confirm': {'en': "Confirm", 'fa': "تایید"}
+    }
+    return texts.get(key, {}).get('fa' if persian else 'en', key)
+
 # --- Session State Initialization ---
 if 'step' not in st.session_state:
     st.session_state.step = 0
+if 'persian' not in st.session_state:
+    st.session_state.persian = False
 if 'standards_confirmed' not in st.session_state:
     st.session_state.standards_confirmed = False
 if 'generation_type' not in st.session_state:
@@ -89,18 +123,558 @@ TERRAIN_CATEGORIES = {
     "Alborz": {"category": "IV", "z0": 1.0, "zmin": 10, "desc": "Densely built-up urban area"}
 }
 
-SEISMIC_HAZARD = {
-    "Tehran": "Very High", "Alborz": "Very High", "Kermanshah": "Very High",
-    "Kohgiluyeh and Boyer-Ahmad": "Very High", "Lorestan": "Very High",
-    "West Azerbaijan": "Very High", "East Azerbaijan": "Very High",
-    "Fars": "Very High", "Hormozgan": "Very High", "Kurdistan": "High",
-    "Ilam": "High", "Chaharmahal and Bakhtiari": "High", "Bushehr": "High",
-    "Mazandaran": "High", "Gilan": "High", "Khorasan Razavi": "High",
-    "South Khorasan": "High", "Qazvin": "Moderate", "Zanjan": "Moderate",
-    "Semnan": "Moderate", "Markazi": "Moderate", "Isfahan": "Moderate",
-    "Kerman": "Moderate", "Qom": "Low", "Yazd": "Low", "Khuzestan": "Low",
-    "Golestan": "Low", "North Khorasan": "Low", "Sistan and Baluchestan": "Low"
+# City data with seismic hazard levels
+CITIES_DATA = {
+    "Khuzestan": [
+        {"city": "Abadan", "hazard": "Very Low"},
+        {"city": "Aghajari", "hazard": "Moderate"},
+        {"city": "Omidiyeh", "hazard": "Low"},
+        {"city": "Andimeshk", "hazard": "Moderate"},
+        {"city": "Izeh", "hazard": "Moderate"},
+        {"city": "Ahvaz", "hazard": "Low"},
+        {"city": "Baghmalk", "hazard": "Moderate"},
+        {"city": "Bandar Imam Khomeini", "hazard": "Very Low"},
+        {"city": "Bandar Mahshahr", "hazard": "Very Low"},
+        {"city": "Bastan", "hazard": "Low"},
+        {"city": "Behbahan", "hazard": "Moderate"},
+        {"city": "Khorramshahr", "hazard": "Very Low"},
+        {"city": "Dezful", "hazard": "Moderate"},
+        {"city": "Dehdez", "hazard": "Moderate"},
+        {"city": "Ramshir", "hazard": "Low"},
+        {"city": "Ramhormoz", "hazard": "Moderate"},
+        {"city": "Sarbandar", "hazard": "Very Low"},
+        {"city": "Shadegan", "hazard": "Very Low"},
+        {"city": "Shahr-e-stan", "hazard": "Very Low"},
+        {"city": "Sosangerd", "hazard": "Low"},
+        {"city": "Hamidiyeh", "hazard": "Low"},
+        {"city": "Masjed Soleyman", "hazard": "Moderate"},
+        {"city": "Mollasani", "hazard": "Very Low"}
+    ],
+    "Ilam": [
+        {"city": "Abdanan", "hazard": "Low"},
+        {"city": "Ilam", "hazard": "Low"},
+        {"city": "Ivan", "hazard": "Low"},
+        {"city": "Darreh Shahr", "hazard": "Low"},
+        {"city": "Dashte Abbas", "hazard": "Low"},
+        {"city": "Dehloran", "hazard": "Low"},
+        {"city": "Mehran", "hazard": "Moderate"},
+        {"city": "Malekshahi", "hazard": "Moderate"}
+    ],
+    "Fars": [
+        {"city": "Abadeh", "hazard": "Moderate"},
+        {"city": "Arsanjan", "hazard": "Low"},
+        {"city": "Eqlid", "hazard": "Moderate"},
+        {"city": "Behrestān", "hazard": "Moderate"},
+        {"city": "Khavaran", "hazard": "Moderate"},
+        {"city": "Kharameh", "hazard": "Moderate"},
+        {"city": "Khonj", "hazard": "Moderate"},
+        {"city": "Darab", "hazard": "Moderate"},
+        {"city": "Dehbid", "hazard": "Moderate"},
+        {"city": "Zarqan", "hazard": "Moderate"},
+        {"city": "Zargaran", "hazard": "Low"},
+        {"city": "Safashahr", "hazard": "Low"},
+        {"city": "Sepidan", "hazard": "Low"},
+        {"city": "Surian", "hazard": "Moderate"},
+        {"city": "Shiraz", "hazard": "Low"},
+        {"city": "Farashband", "hazard": "Low"},
+        {"city": "Fasa", "hazard": "Low"},
+        {"city": "Firuzabad", "hazard": "Low"},
+        {"city": "Qaderabād", "hazard": "Low"},
+        {"city": "Qazlabad", "hazard": "Low"},
+        {"city": "Kazerun", "hazard": "Moderate"},
+        {"city": "Gerash", "hazard": "Low"},
+        {"city": "Lar", "hazard": "Low"},
+        {"city": "Larestan", "hazard": "Low"},
+        {"city": "Lamerd", "hazard": "Low"},
+        {"city": "Marvdasht", "hazard": "Low"},
+        {"city": "Mehr", "hazard": "Low"},
+        {"city": "Neyriz", "hazard": "Low"},
+        {"city": "Nourabad", "hazard": "Low"},
+        {"city": "Jahrom", "hazard": "Moderate"}
+    ],
+    "Qazvin": [
+        {"city": "Ab-e Garm", "hazard": "Moderate"},
+        {"city": "Abyek", "hazard": "High"},
+        {"city": "Avaj", "hazard": "Moderate"},
+        {"city": "Takestan", "hazard": "Moderate"},
+        {"city": "Qazvin", "hazard": "High"},
+        {"city": "Moalem Kalayeh", "hazard": "Moderate"}
+    ],
+    "Zanjan": [
+        {"city": "Ab Bar", "hazard": "High"},
+        {"city": "Khorramdarreh", "hazard": "Moderate"},
+        {"city": "Zanjan", "hazard": "Moderate"},
+        {"city": "Soltaniyeh", "hazard": "Moderate"},
+        {"city": "Soltanabad", "hazard": "Moderate"},
+        {"city": "Qaydar", "hazard": "Low"},
+        {"city": "Mahneshan", "hazard": "Moderate"},
+        {"city": "Tarom", "hazard": "Moderate"}
+    ],
+    "Hamedan": [
+        {"city": "Asadabad", "hazard": "Moderate"},
+        {"city": "Bahar", "hazard": "Moderate"},
+        {"city": "Tuyserkan", "hazard": "Moderate"},
+        {"city": "Razan", "hazard": "Moderate"},
+        {"city": "Kabutarāhang", "hazard": "Moderate"},
+        {"city": "Malayer", "hazard": "Moderate"},
+        {"city": "Nahavand", "hazard": "High"},
+        {"city": "Hamedan", "hazard": "High"},
+        {"city": "Famenin", "hazard": "Moderate"}
+    ],
+    "Markazi": [
+        {"city": "Ashtian", "hazard": "Moderate"},
+        {"city": "Arak", "hazard": "Low"},
+        {"city": "Astaneh", "hazard": "Low"},
+        {"city": "Tafresh", "hazard": "Moderate"},
+        {"city": "Khondab", "hazard": "Low"},
+        {"city": "Delijan", "hazard": "Moderate"},
+        {"city": "Zarandieh", "hazard": "Moderate"},
+        {"city": "Sarband", "hazard": "Moderate"},
+        {"city": "Shazand", "hazard": "Moderate"},
+        {"city": "Saveh", "hazard": "Moderate"},
+        {"city": "Komijan", "hazard": "Low"},
+        {"city": "Mahallat", "hazard": "Moderate"},
+        {"city": "Naragh", "hazard": "Low"}
+    ],
+    "Yazd": [
+        {"city": "Abarkuh", "hazard": "Low"},
+        {"city": "Ardakan", "hazard": "Low"},
+        {"city": "Bafq", "hazard": "Moderate"},
+        {"city": "Behābād", "hazard": "Moderate"},
+        {"city": "Taft", "hazard": "Low"},
+        {"city": "Khor", "hazard": "Low"},
+        {"city": "Dihuk", "hazard": "High"},
+        {"city": "Rābat Posht-e Bādām", "hazard": "Moderate"},
+        {"city": "Robāt Posht-e Bādam", "hazard": "Moderate"},
+        {"city": "Zarch", "hazard": "Low"},
+        {"city": "Marzadaran", "hazard": "Low"},
+        {"city": "Mehriz", "hazard": "Low"},
+        {"city": "Māmūnīyeh", "hazard": "Low"},
+        {"city": "Meybod", "hazard": "Low"},
+        {"city": "Nāīn", "hazard": "Low"},
+        {"city": "Yazd", "hazard": "Low"},
+        {"city": "Tabas", "hazard": "Moderate"}
+    ],
+    "Semnan": [
+        {"city": "Aradan", "hazard": "Moderate"},
+        {"city": "Astaneh", "hazard": "Moderate"},
+        {"city": "Isfarayen", "hazard": "Moderate"},
+        {"city": "Damghan", "hazard": "Moderate"},
+        {"city": "Sorkheh", "hazard": "Moderate"},
+        {"city": "Semnan", "hazard": "Moderate"},
+        {"city": "Shahrud", "hazard": "High"},
+        {"city": "Absarabād", "hazard": "Low"},
+        {"city": "Garmsar", "hazard": "Moderate"},
+        {"city": "Mehdishahr", "hazard": "Moderate"},
+        {"city": "Meyāmey", "hazard": "Low"},
+        {"city": "Shahmirzad", "hazard": "Low"},
+        {"city": "Ivānkī", "hazard": "Moderate"},
+        {"city": "Jām", "hazard": "Moderate"},
+        {"city": "Biarjmand", "hazard": "Low"}
+    ],
+    "Qom": [
+        {"city": "Qom", "hazard": "Moderate"},
+        {"city": "Sūfīān", "hazard": "Low"},
+        {"city": "Kahak", "hazard": "Low"}
+    ],
+    "South Khorasan": [
+        {"city": "Birjand", "hazard": "Moderate"},
+        {"city": "Tabas Masina", "hazard": "High"},
+        {"city": "Khosvaf", "hazard": "Low"},
+        {"city": "Darmiyan", "hazard": "Moderate"},
+        {"city": "Sarayan", "hazard": "High"},
+        {"city": "Sarbisheh", "hazard": "Moderate"},
+        {"city": "Khezri", "hazard": "High"},
+        {"city": "Sade", "hazard": "Moderate"},
+        {"city": "Kohun", "hazard": "Low"},
+        {"city": "Qaen", "hazard": "Moderate"},
+        {"city": "Nehbandan", "hazard": "Low"},
+        {"city": "Boshruyeh", "hazard": "Moderate"}
+    ],
+    "Kerman": [
+        {"city": "Anār", "hazard": "Moderate"},
+        {"city": "Baft", "hazard": "Moderate"},
+        {"city": "Bārdsar", "hazard": "Moderate"},
+        {"city": "Bam", "hazard": "Moderate"},
+        {"city": "Jiroft", "hazard": "Moderate"},
+        {"city": "Rafsanjan", "hazard": "Moderate"},
+        {"city": "Ravār", "hazard": "Moderate"},
+        {"city": "Ravar", "hazard": "Moderate"},
+        {"city": "Rayen", "hazard": "Low"},
+        {"city": "Zarand", "hazard": "Moderate"},
+        {"city": "Sīrjān", "hazard": "Low"},
+        {"city": "Sirch", "hazard": "High"},
+        {"city": "Shahdad", "hazard": "Low"},
+        {"city": "Shahrbabak", "hazard": "Low"},
+        {"city": "Kerman", "hazard": "Low"},
+        {"city": "Kahnuj", "hazard": "Low"},
+        {"city": "Kohbanān", "hazard": "Low"},
+        {"city": "Manujan", "hazard": "Low"}
+    ],
+    "East Azerbaijan": [
+        {"city": "Ahar", "hazard": "Moderate"},
+        {"city": "Azhdarshur", "hazard": "Moderate"},
+        {"city": "Osku", "hazard": "High"},
+        {"city": "Bostanābād", "hazard": "High"},
+        {"city": "Tabriz", "hazard": "High"},
+        {"city": "Tasuj", "hazard": "High"},
+        {"city": "Jolfa", "hazard": "Moderate"},
+        {"city": "Khajeh", "hazard": "Moderate"},
+        {"city": "Sarab", "hazard": "Moderate"},
+        {"city": "Shabestar", "hazard": "High"},
+        {"city": "Sharafkhaneh", "hazard": "High"},
+        {"city": "Sofian", "hazard": "Moderate"},
+        {"city": "Qazalābād", "hazard": "Low"},
+        {"city": "Kaleybar", "hazard": "High"},
+        {"city": "Maragheh", "hazard": "Moderate"},
+        {"city": "Marand", "hazard": "Moderate"},
+        {"city": "Mianeh", "hazard": "High"},
+        {"city": "Haris", "hazard": "High"},
+        {"city": "Heris", "hazard": "High"},
+        {"city": "Hashtrud", "hazard": "High"},
+        {"city": "Varzaqān", "hazard": "High"},
+        {"city": "Zonūz", "hazard": "Moderate"}
+    ],
+    "West Azerbaijan": [
+        {"city": "Oshnaviyeh", "hazard": "Moderate"},
+        {"city": "Bukan", "hazard": "Low"},
+        {"city": "Piranshahr", "hazard": "Moderate"},
+        {"city": "Takab", "hazard": "Low"},
+        {"city": "Chaypareh", "hazard": "Moderate"},
+        {"city": "Khoy", "hazard": "Moderate"},
+        {"city": "Salmas", "hazard": "High"},
+        {"city": "Sarv", "hazard": "Low"},
+        {"city": "Sardasht", "hazard": "Moderate"},
+        {"city": "Siyah Cheshmeh", "hazard": "Moderate"},
+        {"city": "Showt", "hazard": "Moderate"},
+        {"city": "Qarah Zīā od Dīn", "hazard": "Moderate"},
+        {"city": "Kelayeh", "hazard": "Moderate"},
+        {"city": "Maku", "hazard": "High"},
+        {"city": "Mahābād", "hazard": "High"},
+        {"city": "Miandoab", "hazard": "High"},
+        {"city": "Naqadeh", "hazard": "High"},
+        {"city": "Urmia", "hazard": "Low"},
+        {"city": "Poldasht", "hazard": "Moderate"}
+    ],
+    "Ardabil": [
+        {"city": "Aslānduz", "hazard": "Moderate"},
+        {"city": "Ardabil", "hazard": "Moderate"},
+        {"city": "Parsābād", "hazard": "Moderate"},
+        {"city": "Beleh Savar", "hazard": "Moderate"},
+        {"city": "Khalkhal", "hazard": "Moderate"},
+        {"city": "Sarein", "hazard": "Moderate"},
+        {"city": "Zaviyeh", "hazard": "Low"},
+        {"city": "Germi", "hazard": "Moderate"},
+        {"city": "Meshginshahr", "hazard": "High"},
+        {"city": "Namin", "hazard": "Moderate"},
+        {"city": "Nir", "hazard": "Low"}
+    ],
+    "Kurdistan": [
+        {"city": "Baneh", "hazard": "Moderate"},
+        {"city": "Bijar", "hazard": "Low"},
+        {"city": "Qorveh", "hazard": "High"},
+        {"city": "Kamyaran", "hazard": "High"},
+        {"city": "Marivan", "hazard": "High"},
+        {"city": "Sanandaj", "hazard": "Moderate"},
+        {"city": "Saqez", "hazard": "Moderate"},
+        {"city": "Divandarreh", "hazard": "Low"}
+    ],
+    "Kermanshah": [
+        {"city": "Eslamābād-e Gharb", "hazard": "Moderate"},
+        {"city": "Paveh", "hazard": "Moderate"},
+        {"city": "Sarab-e Neelofar", "hazard": "Moderate"},
+        {"city": "Bisetun", "hazard": "Moderate"},
+        {"city": "Javanrud", "hazard": "Moderate"},
+        {"city": "Harsin", "hazard": "High"},
+        {"city": "Ravansar", "hazard": "Moderate"},
+        {"city": "Sar-e Pol-e Zahab", "hazard": "Moderate"},
+        {"city": "Songhor", "hazard": "Moderate"},
+        {"city": "Sahneh", "hazard": "High"},
+        {"city": "Somar", "hazard": "Low"},
+        {"city": "Qasr-e Shirin", "hazard": "High"},
+        {"city": "Kangavar", "hazard": "High"},
+        {"city": "Kermanshah", "hazard": "High"},
+        {"city": "Kerend", "hazard": "High"},
+        {"city": "Gilan-e Gharb", "hazard": "Moderate"}
+    ],
+    "Lorestan": [
+        {"city": "Azna", "hazard": "High"},
+        {"city": "Aleshtar", "hazard": "Moderate"},
+        {"city": "Aligudarz", "hazard": "Moderate"},
+        {"city": "Borujerd", "hazard": "High"},
+        {"city": "Poldokhtar", "hazard": "Low"},
+        {"city": "Khorramabad", "hazard": "Moderate"},
+        {"city": "Dorud", "hazard": "High"},
+        {"city": "Kuhdasht", "hazard": "High"},
+        {"city": "Nurābād", "hazard": "Moderate"},
+        {"city": "Kelvār", "hazard": "Moderate"}
+    ],
+    "Chaharmahal and Bakhtiari": [
+        {"city": "Ardal", "hazard": "Moderate"},
+        {"city": "Borūjen", "hazard": "Moderate"},
+        {"city": "Boldaji", "hazard": "Moderate"},
+        {"city": "Dogoombadan", "hazard": "Moderate"},
+        {"city": "Saman", "hazard": "Moderate"},
+        {"city": "Shahrekord", "hazard": "Moderate"},
+        {"city": "Shahr-e Kord", "hazard": "Moderate"},
+        {"city": "Farsan", "hazard": "Low"},
+        {"city": "Kamleh", "hazard": "Low"},
+        {"city": "Lordegan", "hazard": "Low"},
+        {"city": "Komileh", "hazard": "Low"}
+    ],
+    "Kohgiluyeh and Boyer-Ahmad": [
+        {"city": "Dehdasht", "hazard": "Moderate"},
+        {"city": "Dishmuk", "hazard": "Moderate"},
+        {"city": "Yasuj", "hazard": "Moderate"},
+        {"city": "Gachsaran", "hazard": "Low"},
+        {"city": "Si Sakhti", "hazard": "Moderate"}
+    ],
+    "Isfahan": [
+        {"city": "Abyaneh", "hazard": "Moderate"},
+        {"city": "Ardestan", "hazard": "Moderate"},
+        {"city": "Isfahan", "hazard": "Low"},
+        {"city": "Anarak", "hazard": "Low"},
+        {"city": "Badrud", "hazard": "Low"},
+        {"city": "Tiran", "hazard": "Low"},
+        {"city": "Charmhin", "hazard": "Moderate"},
+        {"city": "Chadegan", "hazard": "Moderate"},
+        {"city": "Dehaqan", "hazard": "Moderate"},
+        {"city": "Daran", "hazard": "Moderate"},
+        {"city": "Jondoq", "hazard": "Moderate"},
+        {"city": "Khur", "hazard": "Low"},
+        {"city": "Khansar", "hazard": "Low"},
+        {"city": "Dorche", "hazard": "Moderate"},
+        {"city": "Zarrinshahr", "hazard": "Moderate"},
+        {"city": "Semīrom", "hazard": "Moderate"},
+        {"city": "Shahreza", "hazard": "Moderate"},
+        {"city": "Golpayegan", "hazard": "Moderate"},
+        {"city": "Kashan", "hazard": "Moderate"},
+        {"city": "Kuhpayeh", "hazard": "Low"},
+        {"city": "Meimeh", "hazard": "Low"},
+        {"city": "Natanz", "hazard": "Low"},
+        {"city": "Najaf Abad", "hazard": "Moderate"},
+        {"city": "Nayeser", "hazard": "Low"},
+        {"city": "Alvandeh", "hazard": "Low"},
+        {"city": "Majlesi", "hazard": "Low"},
+        {"city": "Qom", "hazard": "Low"},
+        {"city": "Freydunshahr", "hazard": "Moderate"},
+        {"city": "Aran", "hazard": "Moderate"}
+    ],
+    "Tehran": [
+        {"city": "Eshtahard", "hazard": "High"},
+        {"city": "Bumehen", "hazard": "High"},
+        {"city": "Pishva", "hazard": "Moderate"},
+        {"city": "Tehran", "hazard": "High"},
+        {"city": "Damaavand", "hazard": "High"},
+        {"city": "Rey", "hazard": "High"},
+        {"city": "Rudehen", "hazard": "High"},
+        {"city": "Sarbandan", "hazard": "High"},
+        {"city": "Solegān", "hazard": "High"},
+        {"city": "Shahriar", "hazard": "Moderate"},
+        {"city": "Shahr-e Qods", "hazard": "Moderate"},
+        {"city": "Shahr-e Jadid-e Parand", "hazard": "Moderate"},
+        {"city": "Taleqān", "hazard": "High"},
+        {"city": "Fasham", "hazard": "Low"},
+        {"city": "Firuzkooh", "hazard": "High"},
+        {"city": "Gejr", "hazard": "Low"},
+        {"city": "Kilan", "hazard": "Low"},
+        {"city": "Hasanābād", "hazard": "Moderate"},
+        {"city": "Erjmand", "hazard": "High"},
+        {"city": "Dizin", "hazard": "High"},
+        {"city": "Varamin", "hazard": "Moderate"}
+    ],
+    "Alborz": [
+        {"city": "Karaj", "hazard": "High"},
+        {"city": "Hashtgerd", "hazard": "Moderate"},
+        {"city": "Savojbolagh", "hazard": "Moderate"},
+        {"city": "Nazarābād", "hazard": "Moderate"}
+    ],
+    "Gilan": [
+        {"city": "Astara", "hazard": "Moderate"},
+        {"city": "Astaneh", "hazard": "Moderate"},
+        {"city": "Bandar Anzali", "hazard": "Moderate"},
+        {"city": "Jirandeh", "hazard": "High"},
+        {"city": "Chaboksar", "hazard": "Moderate"},
+        {"city": "Rudsar", "hazard": "Moderate"},
+        {"city": "Rudbar", "hazard": "High"},
+        {"city": "Rezvanshahr", "hazard": "Low"},
+        {"city": "Rasht", "hazard": "Moderate"},
+        {"city": "Siahkal", "hazard": "Moderate"},
+        {"city": "Sowme'eh Sara", "hazard": "Moderate"},
+        {"city": "Shaft", "hazard": "Moderate"},
+        {"city": "Fuman", "hazard": "Moderate"},
+        {"city": "Kelachay", "hazard": "Low"},
+        {"city": "Langerud", "hazard": "Moderate"},
+        {"city": "Lahijan", "hazard": "Moderate"},
+        {"city": "Masal", "hazard": "Moderate"},
+        {"city": "Hashtpar", "hazard": "Low"},
+        {"city": "Deylaman", "hazard": "Moderate"},
+        {"city": "Talesh", "hazard": "Moderate"}
+    ],
+    "Mazandaran": [
+        {"city": "Amol", "hazard": "Moderate"},
+        {"city": "Babolsar", "hazard": "Moderate"},
+        {"city": "Babol", "hazard": "Moderate"},
+        {"city": "Behshahr", "hazard": "Moderate"},
+        {"city": "Chalus", "hazard": "Moderate"},
+        {"city": "Ramsar", "hazard": "Moderate"},
+        {"city": "Sari", "hazard": "Moderate"},
+        {"city": "Savadkuh", "hazard": "Moderate"},
+        {"city": "Polur", "hazard": "High"},
+        {"city": "Pol-e Sefid", "hazard": "Moderate"},
+        {"city": "Tonekabon", "hazard": "Moderate"},
+        {"city": "Azmaaldaoleh", "hazard": "Low"},
+        {"city": "Qarakhil", "hazard": "Moderate"},
+        {"city": "Qaemshahr", "hazard": "Moderate"},
+        {"city": "Kelardasht", "hazard": "High"},
+        {"city": "Galugah", "hazard": "Moderate"},
+        {"city": "Neka", "hazard": "Moderate"},
+        {"city": "Nur", "hazard": "Moderate"},
+        {"city": "Noshahr", "hazard": "Moderate"},
+        {"city": "Hasan Kif", "hazard": "Moderate"},
+        {"city": "Kiāsar", "hazard": "Moderate"},
+        {"city": "Beldeh", "hazard": "Moderate"},
+        {"city": "Marzanābād", "hazard": "Low"},
+        {"city": "Freydunkenar", "hazard": "Moderate"},
+        {"city": "Alasht", "hazard": "Moderate"}
+    ],
+    "Golestan": [
+        {"city": "Aq Qala", "hazard": "Moderate"},
+        {"city": "Bandar Gaz", "hazard": "Moderate"},
+        {"city": "Bandar Torkaman", "hazard": "Moderate"},
+        {"city": "Ramian", "hazard": "Low"},
+        {"city": "Ali Abad", "hazard": "Low"},
+        {"city": "Azadshahr", "hazard": "Moderate"},
+        {"city": "Kalaleh", "hazard": "Low"},
+        {"city": "Kordkuy", "hazard": "Low"},
+        {"city": "Gorgan", "hazard": "Moderate"},
+        {"city": "Gonbad Kavus", "hazard": "Low"},
+        {"city": "Minoodasht", "hazard": "Moderate"}
+    ],
+    "North Khorasan": [
+        {"city": "Esfarayen", "hazard": "Moderate"},
+        {"city": "Ashkhaneh", "hazard": "Moderate"},
+        {"city": "Bojnurd", "hazard": "Moderate"},
+        {"city": "Jajarm", "hazard": "Moderate"},
+        {"city": "Rābat", "hazard": "High"},
+        {"city": "Shirvan", "hazard": "Moderate"},
+        {"city": "Farouj", "hazard": "Low"},
+        {"city": "Maneh", "hazard": "Moderate"}
+    ],
+    "Khorasan Razavi": [
+        {"city": "Bajestan", "hazard": "Moderate"},
+        {"city": "Bajgiran", "hazard": "Moderate"},
+        {"city": "Bardaskan", "hazard": "Moderate"},
+        {"city": "Taybad", "hazard": "Low"},
+        {"city": "Torbat-e Jam", "hazard": "Moderate"},
+        {"city": "Torbat-e Heydarieh", "hazard": "Moderate"},
+        {"city": "Joghatay", "hazard": "Moderate"},
+        {"city": "Chenaran", "hazard": "Moderate"},
+        {"city": "Khaf", "hazard": "Moderate"},
+        {"city": "Khavaf", "hazard": "Moderate"},
+        {"city": "Dargaz", "hazard": "Moderate"},
+        {"city": "Daruneh", "hazard": "Moderate"},
+        {"city": "Rivand", "hazard": "Moderate"},
+        {"city": "Roshtkhar", "hazard": "Moderate"},
+        {"city": "Sabzevar", "hazard": "Moderate"},
+        {"city": "Sangān", "hazard": "Moderate"},
+        {"city": "Sarakhs", "hazard": "Moderate"},
+        {"city": "Salehabād", "hazard": "Moderate"},
+        {"city": "Fariman", "hazard": "Moderate"},
+        {"city": "Qalandarābād", "hazard": "Moderate"},
+        {"city": "Quchan", "hazard": "Moderate"},
+        {"city": "Kalat", "hazard": "Moderate"},
+        {"city": "Kashmar", "hazard": "Moderate"},
+        {"city": "Gonabad", "hazard": "Moderate"},
+        {"city": "Golbahār", "hazard": "Moderate"},
+        {"city": "Mashhad", "hazard": "High"},
+        {"city": "Neyshabur", "hazard": "High"},
+        {"city": "Kamberz", "hazard": "Low"},
+        {"city": "Ferdows", "hazard": "Low"},
+        {"city": "Shahrud", "hazard": "Moderate"}
+    ],
+    "Sistan and Baluchestan": [
+        {"city": "Iranshahr", "hazard": "Moderate"},
+        {"city": "Bampur", "hazard": "Low"},
+        {"city": "Zabol", "hazard": "Moderate"},
+        {"city": "Zaboli", "hazard": "Moderate"},
+        {"city": "Zahak", "hazard": "Moderate"},
+        {"city": "Zahedan", "hazard": "Low"},
+        {"city": "Zarābād", "hazard": "Low"},
+        {"city": "Saravan", "hazard": "Moderate"},
+        {"city": "Sarbaz", "hazard": "Moderate"},
+        {"city": "Sib va Suran", "hazard": "Low"},
+        {"city": "Fanuj", "hazard": "Very Low"},
+        {"city": "Qasr-e Qand", "hazard": "Very Low"},
+        {"city": "Koochak", "hazard": "Very Low"},
+        {"city": "Konarak", "hazard": "Very Low"},
+        {"city": "Khash", "hazard": "Moderate"},
+        {"city": "Jalq", "hazard": "Moderate"},
+        {"city": "Dehak", "hazard": "Moderate"},
+        {"city": "Bezman", "hazard": "Low"},
+        {"city": "Mirjaveh", "hazard": "Very Low"},
+        {"city": "Nikshahr", "hazard": "Very Low"},
+        {"city": "Chabahar", "hazard": "Moderate"}
+    ],
+    "Bushehr": [
+        {"city": "Ahram", "hazard": "Low"},
+        {"city": "Bandar Dayyer", "hazard": "Moderate"},
+        {"city": "Bandar Deylam", "hazard": "Low"},
+        {"city": "Bandar Taheri", "hazard": "Moderate"},
+        {"city": "Bandar Genaveh", "hazard": "Low"},
+        {"city": "Bandar-e Kangan", "hazard": "Very Low"},
+        {"city": "Bandar-e Maqām", "hazard": "Moderate"},
+        {"city": "Borazjan", "hazard": "Moderate"},
+        {"city": "Bushehr", "hazard": "Low"},
+        {"city": "Jam", "hazard": "Moderate"},
+        {"city": "Khark", "hazard": "Low"},
+        {"city": "Khormoj", "hazard": "Low"},
+        {"city": "Dalaki", "hazard": "Moderate"},
+        {"city": "Deylvar", "hazard": "Low"},
+        {"city": "Riz", "hazard": "Moderate"},
+        {"city": "Shabānkāreh", "hazard": "Low"},
+        {"city": "Gāvbandi", "hazard": "Very Low"},
+        {"city": "Genaveh", "hazard": "Very Low"},
+        {"city": "Asaluyeh", "hazard": "Very Low"}
+    ],
+    "Hormozgan": [
+        {"city": "Bandar Abbas", "hazard": "Moderate"},
+        {"city": "Bandar Khamir", "hazard": "Moderate"},
+        {"city": "Bandar Lengeh", "hazard": "Moderate"},
+        {"city": "Bastak", "hazard": "Moderate"},
+        {"city": "Jask", "hazard": "Moderate"},
+        {"city": "Charak", "hazard": "Moderate"},
+        {"city": "Hajiabad", "hazard": "Moderate"},
+        {"city": "Rudān", "hazard": "Moderate"},
+        {"city": "Qeshm", "hazard": "Very Low"},
+        {"city": "Kish", "hazard": "Very Low"},
+        {"city": "Minab", "hazard": "Very Low"},
+        {"city": "Gavbandi", "hazard": "Very Low"}
+    ]
 }
+
+# Map seismic hazard from city data
+def get_seismic_hazard_from_city(province, city_name):
+    """Get seismic hazard level for a specific city"""
+    if province in CITIES_DATA:
+        for city in CITIES_DATA[province]:
+            if city["city"] == city_name:
+                return city["hazard"]
+    # Fallback to province-level hazard
+    hazard_map = {
+        "Tehran": "High", "Alborz": "High", "Kermanshah": "High",
+        "Kohgiluyeh and Boyer-Ahmad": "High", "Lorestan": "High",
+        "West Azerbaijan": "High", "East Azerbaijan": "High",
+        "Fars": "High", "Hormozgan": "High", "Kurdistan": "Moderate",
+        "Ilam": "Moderate", "Chaharmahal and Bakhtiari": "Moderate", 
+        "Bushehr": "Moderate", "Mazandaran": "Moderate", "Gilan": "Moderate", 
+        "Khorasan Razavi": "Moderate", "South Khorasan": "Moderate", 
+        "Qazvin": "Moderate", "Zanjan": "Moderate", "Semnan": "Moderate", 
+        "Markazi": "Moderate", "Isfahan": "Moderate", "Kerman": "Moderate", 
+        "Qom": "Low", "Yazd": "Low", "Khuzestan": "Low",
+        "Golestan": "Low", "North Khorasan": "Low", "Sistan and Baluchestan": "Low"
+    }
+    return hazard_map.get(province, "Moderate")
 
 # --- Helper functions ---
 def base_for_geometry(diameter, geometry):
@@ -280,7 +854,7 @@ def classify_device(dynamic_product):
 
 def determine_restraint_area_iso(ax, az):
     """Determine restraint area based on ISO 17842-2023 (ax and az in units of g)"""
-    # District 1: Upper region
+    # Zone 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
     if 0 < ax <= 0.2 and az > 0.7:
@@ -288,7 +862,7 @@ def determine_restraint_area_iso(ax, az):
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
-    # District 2: Upper-central region
+    # Zone 2: Upper-central region
     if 0 < ax <= 0.2 and 0.2 < az <= 0.7:
         return 2
     if -0.2 < ax < 0 and 0.2 < az <= (-1.5 * ax + 0.7):
@@ -296,7 +870,7 @@ def determine_restraint_area_iso(ax, az):
     if -0.7 < ax <= -0.2 and az > 0.2:
         return 2
     
-    # District 3: Central edges
+    # Zone 3: Central edges
     if -1.2 < ax <= -0.7 and az > 0.2:
         return 3
     if -0.7 < ax < 0 and ((-0.2/0.7) * ax) < az <= 0.2:
@@ -304,7 +878,7 @@ def determine_restraint_area_iso(ax, az):
     if ax > 0 and 0 < az <= 0.2:
         return 3
     
-    # District 4: Lower-central region
+    # Zone 4: Lower-central region
     if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
         return 4
     if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
@@ -316,7 +890,7 @@ def determine_restraint_area_iso(ax, az):
     if ax > 0.7 and -0.2 < az < 0:
         return 4
     
-    # District 5: Lower region
+    # Zone 5: Lower region
     if ax > 0.7 and az < -0.2:
         return 5
     if 0 < ax <= 0.7 and az < ((-0.2/0.7) * ax):
@@ -330,7 +904,7 @@ def determine_restraint_area_iso(ax, az):
 
 def determine_restraint_area_as(ax, az):
     """Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)"""
-    # Region 1: Upper region
+    # Zone 1: Upper region
     if ax > 0.2 and az > 0.2:
         return 1
     
@@ -379,44 +953,44 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
     
     fig = go.Figure()
     
-    # District 1 (Purple)
-    x_d1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
-    y_d1 = [0.2, 0.2, 2.0, 2.0, 1, 0.7, 0.7]
-    fig.add_trace(go.Scatter(x=x_d1, y=y_d1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
+    # Zone 1 (Purple)
+    x_z1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
+    y_z1 = [0.2, 0.2, 2.0, 2.0, 1, 0.7, 0.7]
+    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=1.2, text="District 1", showarrow=False, 
+    fig.add_annotation(x=0.5, y=1.2, text="Zone 1", showarrow=False, 
                       font=dict(size=11, color="purple", family="Arial Black"))
     
-    # District 2 (Orange)
-    x_d2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
-    y_d2 = [0.2, 0.2, 0.7, 0.7, 1, 2, 2]
-    fig.add_trace(go.Scatter(x=x_d2, y=y_d2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
+    # Zone 2 (Orange)
+    x_z2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
+    y_z2 = [0.2, 0.2, 0.7, 0.7, 1, 2, 2]
+    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=0.45, text="District 2", showarrow=False,
+    fig.add_annotation(x=-0.2, y=0.45, text="Zone 2", showarrow=False,
                       font=dict(size=11, color="orange", family="Arial Black"))
     
-    # District 3 (Yellow)
-    x_d3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
-    y_d3 = [0.2, 0.2, 0, 0, 0.2, 0.2, 0.2, 2, 2]
-    fig.add_trace(go.Scatter(x=x_d3, y=y_d3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+    # Zone 3 (Yellow)
+    x_z3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
+    y_z3 = [0.2, 0.2, 0, 0, 0.2, 0.2, 0.2, 2, 2]
+    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=0.1, text="District 3", showarrow=False,
+    fig.add_annotation(x=0.5, y=0.1, text="Zone 3", showarrow=False,
                       font=dict(size=11, color="gold", family="Arial Black"))
     
-    # District 4 (Green)
-    x_d4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
-    y_d4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2, 2]
-    fig.add_trace(go.Scatter(x=x_d4, y=y_d4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+    # Zone 4 (Green)
+    x_z4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
+    y_z4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2, 2]
+    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.4, y=-0.05, text="District 4", showarrow=False,
+    fig.add_annotation(x=-0.4, y=-0.05, text="Zone 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
-    # District 5 (Red)
-    x_d5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
-    y_d5 = [-0.2, -0.2, -2.0, -2.0, 0, 2, 2, 0, 0]
-    fig.add_trace(go.Scatter(x=x_d5, y=y_d5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+    # Zone 5 (Red)
+    x_z5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
+    y_z5 = [-0.2, -0.2, -2.0, -2.0, 0, 2, 2, 0, 0]
+    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=-0.8, text="District 5", showarrow=False,
+    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
                       font=dict(size=11, color="red", family="Arial Black"))
     
     # Plot actual acceleration points (after zones for visibility)
@@ -466,12 +1040,12 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9
     
     fig = go.Figure()
     
-    # Region 1 (Purple)
-    x_r1 = [0.2, 2.0, 2.0, 0.2]
-    y_r1 = [0.2, 0.2, 2.0, 2.0]
-    fig.add_trace(go.Scatter(x=x_r1, y=y_r1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
+    # Zone 1 (Purple)
+    x_z1 = [0.2, 2.0, 2.0, 0.2]
+    y_z1 = [0.2, 0.2, 2.0, 2.0]
+    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.8, y=1.0, text="Region 1", showarrow=False,
+    fig.add_annotation(x=0.8, y=1.0, text="Zone 1", showarrow=False,
                       font=dict(size=11, color="purple", family="Arial Black"))
     
     # Zone 2 (Orange)
@@ -684,6 +1258,8 @@ def validate_current_step_and_next():
         env = s.environment_data
         if not env.get('province'):
             errors.append("Select a province.")
+        if not env.get('city'):
+            errors.append("Select a city.")
         if not env.get('region_name'):
             errors.append("Enter region name.")
         if 'land_length' not in env or env['land_length'] < 10 or env['land_length'] > 150:
@@ -713,19 +1289,28 @@ def validate_current_step_and_next():
         st.session_state.step = min(12, st.session_state.step + 1)
 
 # --- UI ---
-st.title("🎡 Ferris Wheel Designer")
+# Language toggle in sidebar
+with st.sidebar:
+    st.title("🎡 Ferris Wheel Designer")
+    persian = st.toggle("🇮🇷 فارسی", value=st.session_state.persian, key="persian_toggle")
+    st.session_state.persian = persian
+    
+    if st.button("🔄 Reset Design"):
+        reset_design()
+        st.rerun()
+
 total_steps = 13
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
-st.markdown(f"**Step {st.session_state.get('step', 0) + 1} of {total_steps}**")
+st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
 st.markdown("---")
 
 # === STEP 0: Welcome and Standards ===
 if st.session_state.get('step', 0) == 0:
-    st.header("Welcome to Ferris Wheel Designer")
+    st.header(get_text('welcome_title', persian))
     st.markdown("---")
     
-    st.markdown("""
-    ### 🎯 About This Application
+    st.markdown(f"""
+    ### 🎯 {get_text('welcome_title', persian)}
     
     This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, 
     and compliant ferris wheel installations. The application guides you through:
@@ -736,66 +1321,7 @@ if st.session_state.get('step', 0) == 0:
     - **Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters
     - **Safety Classification**: Determine device class and restraint requirements
     - **Structural Design**: Generate comprehensive design specifications
-    
-    ### 📋 Design Standards & References
-    
-    This application implements calculations and requirements based on the following international and national standards:
     """)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        #### Current Standards for Amusement Devices:
-        - **AS 3533.1-2009+A1-2011** - Amusement rides and devices - Design and construction
-        - **INSO 8987-1-2023** - Safety of amusement rides and amusement devices - Part 1: General requirements
-        - **INSO 8987-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
-        - **INSO 8987-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
-        - **ISO 17842-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
-        - **ISO 17842-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
-        - **ISO 17842-2023** - Safety of amusement rides and amusement devices
-        
-        #### Legacy Standards (Reference):
-        - **AS 3533.2-2009+A1-2011** - Amusement rides and devices - Operation and maintenance
-        - **AS 3533.3-2003 R2013** - Amusement rides and devices - Qualification of inspection personnel
-        - **INSO 8987-2-2009** - Safety of amusement rides (Previous edition)
-        - **INSO 8987-3-2003** - Safety of amusement rides (Previous edition)
-        - **INSO 8987-2009** - Safety of amusement rides (Previous edition)
-        """)
-    
-    with col2:
-        st.markdown("""
-        #### Standards for Load Analysis:
-        - **ISIRI 519** - Iranian National Standard - Design loads for buildings
-        - **AS 1170.4-2007(A1)** - Structural design actions - Wind actions
-        - **BS EN 1991-1-4:2005+A1-2010** - Eurocode 1: Actions on structures - Wind actions
-        - **DIN 18800-1-1990** - Structural steelwork - Design and construction
-        - **DIN 18800-2-1990** - Structural steelwork - Stability, buckling of shells
-        - **EN 1991-1-3:2003** - Eurocode 1: Actions on structures - Snow loads
-        - **EN 1993-1-9:2005** - Eurocode 3: Design of steel structures - Fatigue
-        - **EN1993-1-9-AC 2009** - Eurocode 3: Design of steel structures - Fatigue (Amendment)
-        - **ISIRI 2800** - Iranian Code of Practice for Seismic Resistant Design of Buildings (4th Edition)
-        
-        #### Key Application Areas:
-        - **Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800
-        - **Seismic Analysis**: ISIRI 2800
-        - **Structural Design**: DIN 18800, EN 1993
-        - **Safety Classification**: INSO 8987, ISO 17842
-        """)
-    
-    st.markdown("---")
-    st.warning("""
-    ⚠️ **Important Notice:**
-    
-    By proceeding, you acknowledge that:
-    - This tool provides preliminary design calculations based on the referenced standards
-    - Final designs must be reviewed and approved by licensed professional engineers
-    - Local building codes and regulations must be consulted and followed
-    - Site-specific conditions may require additional analysis beyond this tool's scope
-    - The designer assumes responsibility for verifying all calculations and compliance
-    """)
-    
-    st.markdown("---")
     
     # Confirmation checkbox
     standards_accepted = st.checkbox(
@@ -816,7 +1342,7 @@ if st.session_state.get('step', 0) == 0:
 
 # === STEP 1: Generation selection ===
 elif st.session_state.get('step', 0) == 1:
-    st.header("Step 1: Select Ferris Wheel Generation")
+    st.header(get_text('select_generation', persian))
     st.markdown("---")
     
     image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
@@ -837,7 +1363,7 @@ elif st.session_state.get('step', 0) == 1:
 
 # === STEP 2: Cabin Geometry ===
 if st.session_state.get("step", 0) == 2:
-    st.header("Step 2: Select Cabin Geometry")
+    st.header(get_text('select_cabin_geometry', persian))
     st.markdown("Choose a cabin shape.")
     
     geom_images = [
@@ -863,12 +1389,11 @@ if st.session_state.get("step", 0) == 2:
 
         st.session_state.capacities_calculated = False
         st.session_state.step = 3   
-        st.experimental_rerun()
+        st.rerun()
 
     for i, (label, img_path) in enumerate(geom_images):
         with cols[i]:
             try:
-
                 st.image(img_path, use_column_width=True)
             except Exception as e:
                 import os
@@ -882,7 +1407,7 @@ if st.session_state.get("step", 0) == 2:
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
-    st.header("Step 3: Cabin Capacity & VIP")
+    st.header(get_text('cabin_capacity_vip', persian))
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
 
@@ -930,7 +1455,7 @@ elif st.session_state.step == 3:
 
 # === STEP 4: Rotation Time ===
 elif st.session_state.step == 4:
-    st.header("Step 4: Rotation Time & Derived Speeds")
+    st.header(get_text('rotation_time', persian))
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -961,7 +1486,7 @@ elif st.session_state.step == 4:
 
 # === STEP 5: Environment Conditions ===
 elif st.session_state.step == 5:
-    st.header("Step 5: Environment Conditions")
+    st.header(get_text('environment_conditions', persian))
     st.markdown("**Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800**")
     st.markdown("---")
 
@@ -969,10 +1494,18 @@ elif st.session_state.step == 5:
 
     c1, c2 = st.columns(2)
     with c1:
-        province = st.selectbox("Province", options=iran_provinces, index=0, key="province_select")
+        province = st.selectbox(get_text('select_province', persian), options=iran_provinces, index=0, key="province_select")
+        
+        # City selection based on province
+        cities = [city["city"] for city in CITIES_DATA.get(province, [])]
+        if cities:
+            city = st.selectbox(get_text('select_city', persian), options=cities, key="city_select")
+        else:
+            city = st.text_input(get_text('select_city', persian), key="city_input")
+    
     with c2:
         region_name = st.text_input(
-            "Region / Area name",
+            get_text('region_name', persian),
             value=st.session_state.environment_data.get('region_name', ''),
             key="region_name_input"
         )
@@ -1058,13 +1591,13 @@ elif st.session_state.step == 5:
 
     if province in TERRAIN_CATEGORIES:
         terrain = TERRAIN_CATEGORIES[province]
-        seismic = SEISMIC_HAZARD.get(province, "Unknown")
+        seismic = get_seismic_hazard_from_city(province, city)
     else:
         terrain = {"category": "II", "z0": 0.05, "zmin": 2, "desc": ""}
         seismic = "Unknown"
 
     st.session_state.environment_data = {
-        'province': province, 'region_name': region_name, 'land_length': land_length, 'land_width': land_width,
+        'province': province, 'city': city, 'region_name': region_name, 'land_length': land_length, 'land_width': land_width,
         'land_area': land_length * land_width, 'altitude': altitude, 'temp_min': temp_min, 'temp_max': temp_max,
         'wind_direction': wind_dir, 'wind_max': wind_max, 'wind_avg': wind_avg,
         'terrain_category': terrain['category'], 'terrain_z0': terrain['z0'], 'terrain_zmin': terrain['zmin'],
@@ -1080,19 +1613,21 @@ elif st.session_state.step == 5:
 
 # === STEP 6: Provincial Characteristics (Terrain Calculation) ===
 elif st.session_state.step == 6:
-    st.header("Step 6: Provincial Characteristics & Terrain Parameters")
+    st.header(get_text('provincial_characteristics', persian))
     st.markdown("**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**")
     st.markdown("---")
     
     env = st.session_state.environment_data
     province = env.get('province', 'Tehran')
+    city = env.get('city', '')
     
     st.subheader(f"Selected Province: {province}")
+    st.subheader(f"Selected City: {city}")
     st.info(f"**Region:** {env.get('region_name', 'N/A')}")
     
     if province in TERRAIN_CATEGORIES:
         terrain = TERRAIN_CATEGORIES[province]
-        seismic = SEISMIC_HAZARD.get(province, "Unknown")
+        seismic = get_seismic_hazard_from_city(province, city)
         
         st.markdown("---")
         st.subheader("Terrain Information")
@@ -1102,7 +1637,7 @@ elif st.session_state.step == 6:
             st.markdown(f"**Terrain Category:** {terrain['category']}")
             st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
         with col2:
-            seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢"}
+            seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
             st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
         
         st.markdown("---")
@@ -1134,7 +1669,7 @@ elif st.session_state.step == 6:
 
 # === STEP 7: Soil Type (auto-calculate Importance Group) ===
 elif st.session_state.step == 7:
-    st.header("Step 7: Soil Type & Importance Classification")
+    st.header(get_text('soil_type', persian))
     st.markdown("**Soil classification per ISIRI 2800 (4th Edition)**")
     st.markdown("---")
     
@@ -1200,7 +1735,7 @@ elif st.session_state.step == 7:
 
 # === STEP 8: Carousel Orientation ===
 elif st.session_state.step == 8:
-    st.header("Step 8: Carousel Orientation Selection")
+    st.header(get_text('carousel_orientation', persian))
     st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
     
@@ -1228,13 +1763,14 @@ elif st.session_state.step == 8:
         st.markdown("**Or select custom orientation:**")
     
     directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
-    custom_direction = st.selectbox("Custom Direction", options=directions, 
+    custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, 
                                     index=directions.index(wind_direction) if wind_direction in directions else 0, 
                                     key="custom_orientation_select")
     
     if st.button("Set Custom Orientation"):
         st.session_state.carousel_orientation = custom_direction
-        st.session_state.orientation_confirmed = True
+        st.session_state
+                st.session_state.orientation_confirmed = True
         st.success(f"Custom orientation set: {custom_direction}")
         fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
         st.plotly_chart(fig_custom, use_container_width=True)
@@ -1248,7 +1784,7 @@ elif st.session_state.step == 8:
 
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
-    st.header("Step 9: Device Classification")
+    st.header(get_text('device_classification', persian))
     st.markdown("**Calculation per INSO 8987-1-2023**")
     st.markdown("---")
 
@@ -1319,7 +1855,7 @@ elif st.session_state.step == 9:
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
-    st.header("Step 10: Restraint Type Determination")
+    st.header(get_text('restraint_type', persian))
     st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
@@ -1340,7 +1876,7 @@ elif st.session_state.step == 10:
     max_az = -float('inf')
     min_ax = float('inf')
     min_az = float('inf')
-    restraint_districts_iso = []
+    restraint_zones_iso = []
     restraint_zones_as = []
     
     for theta in theta_vals:
@@ -1357,15 +1893,15 @@ elif st.session_state.step == 10:
         if a_z_g < min_az:
             min_az = a_z_g
         
-        district_iso = determine_restraint_area_iso(a_x_g, a_z_g)
-        restraint_districts_iso.append(district_iso)
+        zone_iso = determine_restraint_area_iso(a_x_g, a_z_g)
+        restraint_zones_iso.append(zone_iso)
         
         zone_as = determine_restraint_area_as(a_x_g, a_z_g)
         restraint_zones_as.append(zone_as)
     
     from collections import Counter
-    district_counts_iso = Counter(restraint_districts_iso)
-    predominant_district_iso = district_counts_iso.most_common(1)[0][0]
+    zone_counts_iso = Counter(restraint_zones_iso)
+    predominant_zone_iso = zone_counts_iso.most_common(1)[0][0]
     
     zone_counts_as = Counter(restraint_zones_as)
     predominant_zone_as = zone_counts_as.most_common(1)[0][0]
@@ -1386,22 +1922,22 @@ elif st.session_state.step == 10:
     st.subheader("📋 ISO 17842-2023 Analysis")
     
     restraint_descriptions_iso = {
-        1: "District 1 - Upper region: Maximum restraint required (full body harness)",
-        2: "District 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
-        3: "District 3 - Central edges: Standard restraint (lap bar or seat belt)",
-        4: "District 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
-        5: "District 5 - Lower region: Special consideration required (enhanced harness system)"
+        1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
+        2: "Zone 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
+        3: "Zone 3 - Central edges: Standard restraint (lap bar or seat belt)",
+        4: "Zone 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
+        5: "Zone 5 - Lower region: Special consideration required (enhanced harness system)"
     }
     
-    st.success(f"**Predominant District (ISO):** {predominant_district_iso}")
-    st.info(f"**Recommended Restraint (ISO):** {restraint_descriptions_iso.get(predominant_district_iso, 'Standard restraint')}")
+    st.success(f"**Predominant Zone (ISO):** {predominant_zone_iso}")
+    st.info(f"**Recommended Restraint (ISO):** {restraint_descriptions_iso.get(predominant_zone_iso, 'Standard restraint')}")
     
     # AS Standard Results
     st.markdown("---")
     st.subheader("📋 AS 3533.1-2009+A1-2011 Analysis")
     
     restraint_descriptions_as = {
-        1: "Region 1 - Upper region: Maximum restraint required (full body harness)",
+        1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
         2: "Zone 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
         3: "Zone 3 - Central region: Standard restraint (lap bar or seat belt)",
         4: "Zone 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
@@ -1422,12 +1958,12 @@ elif st.session_state.step == 10:
         st.plotly_chart(fig_accel_iso, use_container_width=True)
         
         st.markdown("""
-        **ISO District Classifications:**
-        - **District 1** (Purple): Maximum restraint
-        - **District 2** (Orange): Enhanced restraint
-        - **District 3** (Yellow): Standard restraint
-        - **District 4** (Green): Moderate restraint
-        - **District 5** (Red): Special consideration
+        **ISO Zone Classifications:**
+        - **Zone 1** (Purple): Maximum restraint
+        - **Zone 2** (Orange): Enhanced restraint
+        - **Zone 3** (Yellow): Standard restraint
+        - **Zone 4** (Green): Moderate restraint
+        - **Zone 5** (Red): Special consideration
         """)
     
     with col_as:
@@ -1437,7 +1973,7 @@ elif st.session_state.step == 10:
         
         st.markdown("""
         **AS Zone Classifications:**
-        - **Region 1** (Purple): Maximum restraint
+        - **Zone 1** (Purple): Maximum restraint
         - **Zone 2** (Orange): Enhanced restraint
         - **Zone 3** (Yellow): Standard restraint
         - **Zone 4** (Green): Moderate restraint
@@ -1445,13 +1981,13 @@ elif st.session_state.step == 10:
         """)
     
     st.session_state.classification_data.update({
-        'restraint_district_iso': predominant_district_iso,
+        'restraint_zone_iso': predominant_zone_iso,
         'restraint_zone_as': predominant_zone_as,
         'max_ax_g': max_ax,
         'max_az_g': max_az,
         'min_ax_g': min_ax,
         'min_az_g': min_az,
-        'restraint_description_iso': restraint_descriptions_iso.get(predominant_district_iso, 'Standard restraint'),
+        'restraint_description_iso': restraint_descriptions_iso.get(predominant_zone_iso, 'Standard restraint'),
         'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')
     })
     
@@ -1464,7 +2000,7 @@ elif st.session_state.step == 10:
 
 # === STEP 11: Final Design Overview ===
 elif st.session_state.step == 11:
-    st.header("Step 11: Complete Design Summary")
+    st.header(get_text('design_summary', persian))
     st.markdown("---")
 
     # Basic Parameters
@@ -1495,6 +2031,7 @@ elif st.session_state.step == 11:
     col1, col2 = st.columns(2)
     with col1:
         st.write(f"**Province:** {env.get('province','N/A')}")
+        st.write(f"**City:** {env.get('city','N/A')}")
         st.write(f"**Region:** {env.get('region_name','N/A')}")
         st.write(f"**Land Area:** {env.get('land_area',0):.2f} m²")
         st.write(f"**Altitude:** {env.get('altitude',0)} m")
@@ -1554,7 +2091,7 @@ elif st.session_state.step == 11:
         st.subheader("🔒 Restraint System Requirements")
         col_iso, col_as = st.columns(2)
         with col_iso:
-            st.info(f"**ISO 17842-2023**\n\nDistrict {class_data.get('restraint_district_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
+            st.info(f"**ISO 17842-2023**\n\nZone {class_data.get('restraint_zone_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
         with col_as:
             st.info(f"**AS 3533.1-2009+A1-2011**\n\nZone {class_data.get('restraint_zone_as','N/A')}\n\n{class_data.get('restraint_description_as', 'N/A')}")
 
@@ -1587,7 +2124,7 @@ elif st.session_state.step == 11:
         
         ### Project Information
         - **Project Name:** {env.get('region_name', 'N/A')} Ferris Wheel
-        - **Location:** {env.get('province', 'N/A')}, Iran
+        - **Location:** {env.get('province', 'N/A')}, {env.get('city', 'N/A')}, Iran
         - **Generation Type:** {st.session_state.generation_type}
         
         ### Structural Parameters
@@ -1607,6 +2144,7 @@ elif st.session_state.step == 11:
         
         ### Site Conditions
         - **Province:** {env.get('province', 'N/A')}
+        - **City:** {env.get('city', 'N/A')}
         - **Region:** {env.get('region_name', 'N/A')}
         - **Land Dimensions:** {env.get('land_length', 0)} m × {env.get('land_width', 0)} m
         - **Total Land Area:** {env.get('land_area', 0)} m²
@@ -1638,7 +2176,7 @@ elif st.session_state.step == 11:
         ### Restraint System Requirements
         
         #### ISO 17842-2023 Classification
-        - **District:** {class_data.get('restraint_district_iso', 'N/A')}
+        - **Zone:** {class_data.get('restraint_zone_iso', 'N/A')}
         - **Requirement:** {class_data.get('restraint_description_iso', 'N/A')}
         - **Acceleration Range:** ax = [{class_data.get('min_ax_g', 0):.3f}g to {class_data.get('max_ax_g', 0):.3f}g], az = [{class_data.get('min_az_g', 0):.3f}g to {class_data.get('max_az_g', 0):.3f}g]
         
@@ -1680,7 +2218,7 @@ elif st.session_state.step == 11:
 
 # === STEP 12: Additional Analysis (Optional Future Step) ===
 elif st.session_state.step == 12:
-    st.header("Step 12: Additional Analysis")
+    st.header(get_text('additional_analysis', persian))
     st.markdown("---")
     
     st.info("This step is reserved for future enhancements such as:")
