@@ -1767,13 +1767,12 @@ elif st.session_state.step == 8:
                                     index=directions.index(wind_direction) if wind_direction in directions else 0, 
                                     key="custom_orientation_select")
     
-    if st.button("Set Custom Orientation"):
-        st.session_state.carousel_orientation = custom_direction
-        st.session_state
-                st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set: {custom_direction}")
-        fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
-        st.plotly_chart(fig_custom, use_container_width=True)
+if st.button("Set Custom Orientation"):
+    st.session_state.carousel_orientation = custom_direction
+    st.session_state.orientation_confirmed = True
+    st.success(f"Custom orientation set: {custom_direction}")
+    fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
+    st.plotly_chart(fig_custom, use_container_width=True)
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
