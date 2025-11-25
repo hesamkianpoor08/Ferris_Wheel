@@ -18,8 +18,19 @@ def get_text(key, persian=False):
         'step': {'en': "Step", 'fa': "مرحله"},
         'of': {'en': "of", 'fa': "از"},
         'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
+        'gen_1_truss': {'en': "1st Generation (Truss type)", 'fa': "نسل اول "},
+        'gen_2_cable': {'en': "2nd Generation_1st type (Cable type)", 'fa': "نسل دوم - نوع اول (کابلی)"},
+        'gen_2_pure_cable': {'en': "2nd Generation_2nd type (Pure cable type)", 'fa': "نسل دوم - نوع دوم (کاملاً کابلی)"},
+        'gen_4_hubless': {'en': "4th Generation (Hubless centerless)", 'fa': "نسل چهارم (بدون مرکز)"},
         'select_cabin_geometry': {'en': "Select Cabin Geometry", 'fa': "انتخاب هندسه کابین"},
-        'cabin_capacity_vip': {'en': "Cabin Capacity & VIP", 'fa': "ظرفیت کابین و VIP"},
+        'geom_square': {'en': "Square", 'fa': "مربعی"},
+        'geom_vert_cyl': {'en': "Vertical Cylinder", 'fa': "استوانه عمودی"},
+        'geom_horiz_cyl': {'en': "Horizontal Cylinder", 'fa': "استوانه افقی"},
+        'geom_spherical': {'en': "Spherical", 'fa': "کروی"},
+        'diameter_label': {'en': "Ferris Wheel Diameter (m)", 'fa': "قطر چرخ و فلک (متر)"},
+        'num_cabins_label': {'en': "Number of Cabins", 'fa': "تعداد کابین‌ها"},
+        'cabin_cap_label': {'en': "Cabin Capacity (passengers per cabin)", 'fa': "ظرفیت کابین (مسافر به ازای هر کابین)"},
+        'num_vip_label': {'en': "Number of VIP Cabins", 'fa': "تعداد کابین‌های VIP"},
         'rotation_time': {'en': "Rotation Time & Derived Speeds", 'fa': "زمان چرخش و سرعت های مشتق شده"},
         'environment_conditions': {'en': "Environment Conditions", 'fa': "شرایط محیطی"},
         'provincial_characteristics': {'en': "Provincial Characteristics & Terrain Parameters", 'fa': "ویژگی های استانی و پارامترهای زمین"},
@@ -87,6 +98,10 @@ if 'orientation_confirmed' not in st.session_state:
     st.session_state.orientation_confirmed = False
 if 'terrain_calculated' not in st.session_state:
     st.session_state.terrain_calculated = False
+if 'language_set' not in st.session_state:
+    st.session_state.language_set = False
+if 'first_visit' not in st.session_state:
+    st.session_state.first_visit = True
 
 # --- Province Data ---
 TERRAIN_CATEGORIES = {
@@ -1306,11 +1321,29 @@ st.markdown("---")
 
 # === STEP 0: Welcome and Standards ===
 if st.session_state.get('step', 0) == 0:
-    st.header(get_text('welcome_title', persian))
+    col_lang1, col_lang2 = st.columns([3,1])
+    with col_lang1:
+        st.header(get_text('welcome_title', persian))
+    with col_lang2:
+        # Language selector on main page
+        lang_choice = st.radio(
+            "Language / زبان",
+            options=["English", "فارسی"],
+            index=1 if st.session_state.persian else 0,
+            horizontal=True,
+            key="main_page_language"
+        )
+        if (lang_choice == "فارسی") != st.session_state.persian:
+            st.session_state.persian = (lang_choice == "فارسی")
+            st.rerun()
+    
+    st.markdown("---")
+
+    st.header("Welcome to Ferris Wheel Designer")
     st.markdown("---")
     
-    st.markdown(f"""
-    ### 🎯 {get_text('welcome_title', persian)}
+    st.markdown("""
+    ### 🎯 About This Application
     
     This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, 
     and compliant ferris wheel installations. The application guides you through:
@@ -1321,7 +1354,66 @@ if st.session_state.get('step', 0) == 0:
     - **Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters
     - **Safety Classification**: Determine device class and restraint requirements
     - **Structural Design**: Generate comprehensive design specifications
+    
+    ### 📋 Design Standards & References
+    
+    This application implements calculations and requirements based on the following international and national standards:
     """)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        #### Current Standards for Amusement Devices:
+        - **AS 3533.1-2009+A1-2011** - Amusement rides and devices - Design and construction
+        - **INSO 8987-1-2023** - Safety of amusement rides and amusement devices - Part 1: General requirements
+        - **INSO 8987-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+        - **INSO 8987-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+        - **ISO 17842-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+        - **ISO 17842-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+        - **ISO 17842-2023** - Safety of amusement rides and amusement devices
+        
+        #### Legacy Standards (Reference):
+        - **AS 3533.2-2009+A1-2011** - Amusement rides and devices - Operation and maintenance
+        - **AS 3533.3-2003 R2013** - Amusement rides and devices - Qualification of inspection personnel
+        - **INSO 8987-2-2009** - Safety of amusement rides (Previous edition)
+        - **INSO 8987-3-2003** - Safety of amusement rides (Previous edition)
+        - **INSO 8987-2009** - Safety of amusement rides (Previous edition)
+        """)
+    
+    with col2:
+        st.markdown("""
+        #### Standards for Load Analysis:
+        - **ISIRI 519** - Iranian National Standard - Design loads for buildings
+        - **AS 1170.4-2007(A1)** - Structural design actions - Wind actions
+        - **BS EN 1991-1-4:2005+A1-2010** - Eurocode 1: Actions on structures - Wind actions
+        - **DIN 18800-1-1990** - Structural steelwork - Design and construction
+        - **DIN 18800-2-1990** - Structural steelwork - Stability, buckling of shells
+        - **EN 1991-1-3:2003** - Eurocode 1: Actions on structures - Snow loads
+        - **EN 1993-1-9:2005** - Eurocode 3: Design of steel structures - Fatigue
+        - **EN1993-1-9-AC 2009** - Eurocode 3: Design of steel structures - Fatigue (Amendment)
+        - **ISIRI 2800** - Iranian Code of Practice for Seismic Resistant Design of Buildings (4th Edition)
+        
+        #### Key Application Areas:
+        - **Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800
+        - **Seismic Analysis**: ISIRI 2800
+        - **Structural Design**: DIN 18800, EN 1993
+        - **Safety Classification**: INSO 8987, ISO 17842
+        """)
+    
+    st.markdown("---")
+    st.warning("""
+    ⚠️ **Important Notice:**
+    
+    By proceeding, you acknowledge that:
+    - This tool provides preliminary design calculations based on the referenced standards
+    - Final designs must be reviewed and approved by licensed professional engineers
+    - Local building codes and regulations must be consulted and followed
+    - Site-specific conditions may require additional analysis beyond this tool's scope
+    - The designer assumes responsibility for verifying all calculations and compliance
+    """)
+    
+    st.markdown("---")
     
     # Confirmation checkbox
     standards_accepted = st.checkbox(
@@ -1346,7 +1438,12 @@ elif st.session_state.get('step', 0) == 1:
     st.markdown("---")
     
     image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
-    captions = ["1st Generation (Truss type)", "2nd Generation_1st type (Cable type)", "2nd Generation_2nd type (Pure cable type)", "4th Generation (Hubless centerless)"]
+    captions = [
+        get_text('gen_1_truss', persian),
+        get_text('gen_2_cable', persian),
+        get_text('gen_2_pure_cable', persian),
+        get_text('gen_4_hubless', persian)
+    ]
     
     cols = st.columns(4, gap="small")
     for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
@@ -1367,12 +1464,11 @@ if st.session_state.get("step", 0) == 2:
     st.markdown("Choose a cabin shape.")
     
     geom_images = [
-        ("Square", "./git/assets/square.jpg"),
-        ("Vertical Cylinder", "./git/assets/vertical.jpg"),
-        ("Horizontal Cylinder", "./git/assets/horizontal.jpg"),
-        ("Spherical", "./git/assets/sphere.jpg"),
+        (get_text('geom_square', persian), "./git/assets/square.jpg"),
+        (get_text('geom_vert_cyl', persian), "./git/assets/vertical.jpg"),
+        (get_text('geom_horiz_cyl', persian), "./git/assets/horizontal.jpg"),
+        (get_text('geom_spherical', persian), "./git/assets/sphere.jpg"),
     ]
-
     cols = st.columns(4, gap="small")
 
     def select_geometry_callback(selected_label):
@@ -1413,24 +1509,24 @@ elif st.session_state.step == 3:
 
     col1, col2 = st.columns(2)
     with col1:
-        diameter = st.number_input("Ferris Wheel Diameter (m)", min_value=30, max_value=80, value=int(st.session_state.diameter), step=1, key="diameter_input")
+        diameter = st.number_input(get_text('diameter_label', persian), min_value=30, max_value=80, value=int(st.session_state.diameter), step=1, key="diameter_input")
         st.session_state.diameter = diameter
 
     geometry = st.session_state.cabin_geometry
     base = base_for_geometry(diameter, geometry) if geometry else (np.pi * diameter / 4.0)
     min_c, max_c = calc_min_max_from_base(base)
 
-    num_cabins = st.number_input("Number of Cabins", min_value=min_c, max_value=max_c, 
+    num_cabins = st.number_input(get_text('num_cabins_label', persian), min_value=min_c, max_value=max_c, 
                                   value=min(max(int(st.session_state.num_cabins), min_c), max_c), step=1, key="num_cabins_input")
     st.session_state.num_cabins = num_cabins
 
     c1, c2 = st.columns(2)
     with c1:
-        cabin_capacity = st.number_input("Cabin Capacity (passengers per cabin)", min_value=4, max_value=8, 
+        cabin_capacity = st.number_input(get_text('cabin_cap_label', persian), min_value=4, max_value=8, 
                                          value=st.session_state.cabin_capacity, step=1, key="cabin_capacity_input")
         st.session_state.cabin_capacity = cabin_capacity
     with c2:
-        num_vip = st.number_input("Number of VIP Cabins", min_value=0, max_value=st.session_state.num_cabins, 
+        num_vip = st.number_input(get_text('num_vip_label', persian), min_value=0, max_value=st.session_state.num_cabins, 
                                    value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins), step=1, key="num_vip_input")
         st.session_state.num_vip_cabins = num_vip
 
@@ -1767,12 +1863,12 @@ elif st.session_state.step == 8:
                                     index=directions.index(wind_direction) if wind_direction in directions else 0, 
                                     key="custom_orientation_select")
     
-if st.button("Set Custom Orientation"):
-    st.session_state.carousel_orientation = custom_direction
-    st.session_state.orientation_confirmed = True
-    st.success(f"Custom orientation set: {custom_direction}")
-    fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
-    st.plotly_chart(fig_custom, use_container_width=True)
+    if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
+        st.session_state.carousel_orientation = custom_direction
+        st.session_state.orientation_confirmed = True
+        st.success(f"Custom orientation set: {custom_direction}")
+        fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
+        st.plotly_chart(fig_custom, use_container_width=True)
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
