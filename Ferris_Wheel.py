@@ -14,8 +14,7 @@ st.set_page_config(
 def get_text(key, persian=False):
     """Get text in selected language"""
     texts = {
-        'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراحی چرخ و فلک خوش آمدید"},
-        'app_title': {'en': "🎡 Ferris Wheel Designer", 'fa': "🎡 طراح چرخ و فلک"},
+        'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراح چرخ و فلک خوش آمدید"},
         'step': {'en': "Step", 'fa': "مرحله"},
         'of': {'en': "of", 'fa': "از"},
         'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
@@ -1449,8 +1448,7 @@ def validate_current_step_and_next():
 # --- UI ---
 # Language toggle in sidebar
 with st.sidebar:
-    current_persian = st.session_state.get('persian', False)
-    st.title(get_text('app_title', current_persian))
+    st.title("🎡 Ferris Wheel Designer")
     persian = st.toggle("🇮🇷 فارسی", value=st.session_state.persian, key="persian_toggle")
     st.session_state.persian = persian
     
