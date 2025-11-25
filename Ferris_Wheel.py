@@ -1452,7 +1452,7 @@ with st.sidebar:
     persian = st.toggle("🇮🇷 فارسی", value=st.session_state.persian, key="persian_toggle")
     st.session_state.persian = persian
     
-    if st.button(get_text('reset_design', persian)):
+    if st.button("🔄 Reset Design"):
         reset_design()
         st.rerun()
 
@@ -1796,40 +1796,40 @@ elif st.session_state.step == 6:
     province = env.get('province', 'Tehran')
     city = env.get('city', '')
     
-    st.subheader(get_text('selected_province_city', persian).format(province))
-    st.subheader(get_text('selected_province_city', persian).format(city))
-    st.info(get_text('region_label', persian).format(env.get('region_name', 'N/A')))
+    st.subheader(f"Selected Province: {province}")
+    st.subheader(f"Selected City: {city}")
+    st.info(f"**Region:** {env.get('region_name', 'N/A')}")
     
     if province in TERRAIN_CATEGORIES:
         terrain = TERRAIN_CATEGORIES[province]
         seismic = get_seismic_hazard_from_city(province, city)
         
         st.markdown("---")
-        st.subheader(get_text('terrain_info', persian))
+        st.subheader("Terrain Information")
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(get_text('terrain_category', persian).format(terrain['category']))
-            st.markdown(get_text('desc_label', persian).format(terrain.get('desc', 'N/A')))
+            st.markdown(f"**Terrain Category:** {terrain['category']}")
+            st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
         with col2:
             seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
-            st.markdown(f"{seismic_color.get(seismic, '')} {get_text('seismic_hazard_label', persian).format(seismic)}")
+            st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
         
         st.markdown("---")
         
-        if st.button(get_text('calc_terrain_params', persian), type="primary"):
+        if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric(get_text('terrain_cat_metric', persian), terrain['category'])
+                st.metric("Terrain Category", terrain['category'])
             with col2:
-                st.metric(get_text('roughness_length', persian), f"{terrain['z0']} m")
+                st.metric("Roughness Length (z₀)", f"{terrain['z0']} m")
             with col3:
-                st.metric(get_text('min_height', persian), f"{terrain['zmin']} m")
+                st.metric("Minimum Height (z_min)", f"{terrain['zmin']} m")
             
-            st.success(get_text('terrain_success', persian))
-            st.info(get_text('terrain_info_text', persian).format(terrain['z0']))
+            st.success("✅ Terrain parameters calculated successfully!")
+            st.info(f"**z₀ = {terrain['z0']} m** - This value will be used for wind load calculations per AS 1170.4.")
         
         if st.session_state.terrain_calculated:
             st.markdown("---")
@@ -1848,7 +1848,7 @@ elif st.session_state.step == 7:
     st.markdown("**Soil classification per ISIRI 2800 (4th Edition)**")
     st.markdown("---")
     
-    st.subheader(get_text('soil_type_selection', persian))
+    st.subheader("Soil Type Selection")
     
     soil_types = {
         "Type I": {
@@ -1886,20 +1886,20 @@ elif st.session_state.step == 7:
     st.session_state.importance_group = auto_importance_group
     
     st.markdown("---")
-    st.subheader(get_text('auto_importance_group', persian))
+    st.subheader("Automatically Calculated Importance Group")
     
-    st.success(get_text('importance_group_success', persian).format(auto_importance_group, auto_importance_factor))
-    st.info(get_text('importance_info', persian))
+    st.success(f"**Importance Group:** {auto_importance_group} (Factor: {auto_importance_factor})")
+    st.info("The importance group is automatically determined based on the selected soil type per ISIRI 2800.")
     
     # Display selected factors
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(get_text('soil_type', persian), selected_soil)
+        st.metric("Soil Type", selected_soil)
     with col2:
-        st.metric(get_text('soil_factor', persian), soil_types[selected_soil]['group_factor'])
+        st.metric("Soil Factor", soil_types[selected_soil]['group_factor'])
     with col3:
-        st.metric(get_text('importance_factor', persian), auto_importance_factor)
+        st.metric("Importance Factor", auto_importance_factor)
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
@@ -1919,8 +1919,8 @@ elif st.session_state.step == 8:
     land_width = st.session_state.environment_data.get('land_width', 100)
     diameter = st.session_state.diameter
     
-    st.subheader(get_text('suggested_orientation', persian).format(wind_direction))
-    st.info(get_text('orientation_info', persian).format(wind_direction))
+    st.subheader(f"Suggested Orientation Based on Wind Direction: {wind_direction}")
+    st.info(f"Based on the prevailing wind direction ({wind_direction}), we recommend orienting the carousel in the same direction for optimal wind load distribution.")
     
     fig_orientation = create_orientation_diagram(wind_direction, land_length, land_width, diameter)
     st.plotly_chart(fig_orientation, use_container_width=True)
@@ -1929,13 +1929,13 @@ elif st.session_state.step == 8:
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button(get_text('confirm_orientation_btn', persian), type="primary"):
+        if st.button("✅ Confirm Suggested Orientation", type="primary"):
             st.session_state.carousel_orientation = wind_direction
             st.session_state.orientation_confirmed = True
             st.success(f"Orientation confirmed: {wind_direction}")
     
     with col2:
-        st.markdown(get_text('or_custom', persian))
+        st.markdown("**Or select custom orientation:**")
     
     directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
     custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, 
@@ -1974,15 +1974,15 @@ elif st.session_state.step == 9:
         angular_velocity = 0.0
         rpm = 0.0
     
-    st.subheader(get_text('braking_accel_param', persian))
+    st.subheader("Braking Acceleration Parameter")
     braking_accel = st.number_input("Braking Acceleration (m/s²)", min_value=0.01, max_value=2.0, 
                                     value=st.session_state.braking_acceleration, step=0.01, format="%.2f", 
                                     key="braking_accel_input")
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
-    st.subheader(get_text('design_case', persian))
-    st.markdown(get_text('design_params', persian))
+    st.subheader("Design Case Analysis")
+    st.markdown("**Design parameters:** Speed = 1 rpm, Braking acceleration = 0.7 m/s²")
     
     omega_design = 1.0 * (2.0 * np.pi / 60.0)
     a_brake_design = 0.7
@@ -1992,16 +1992,16 @@ elif st.session_state.step == 9:
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(get_text('max_accel_label', persian), f"{max_accel_design:.3f} m/s²")
+        st.metric("Max Acceleration", f"{max_accel_design:.3f} m/s²")
         st.caption(f"({n_design:.3f}g)")
     with col2:
-        st.metric(get_text('dynamic_product', persian), f"{p_design:.2f}")
+        st.metric("Dynamic Product (p)", f"{p_design:.2f}")
     with col3:
-        st.metric(get_text('device_class', persian), f"Class {class_design}")
+        st.metric("Device Class (Design)", f"Class {class_design}")
     
     st.markdown("---")
-    st.subheader(get_text('actual_operation', persian))
-    st.markdown(get_text('actual_params', persian).format(rpm, braking_accel))
+    st.subheader("Actual Operation Analysis")
+    st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
     
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product(diameter, height, angular_velocity, braking_accel)
     class_actual = classify_device(p_actual)
@@ -2043,7 +2043,7 @@ elif st.session_state.step == 10:
     else:
         angular_velocity = 0.0
     
-    st.subheader(get_text('passenger_accel_analysis', persian))
+    st.subheader("Passenger Acceleration Analysis")
     
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_ax = -float('inf')
@@ -2082,18 +2082,18 @@ elif st.session_state.step == 10:
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric(get_text('max_ax_g', persian), f"{max_ax:.3f}g")
+        st.metric("Max ax", f"{max_ax:.3f}g")
     with col2:
-        st.metric(get_text('min_ax_g', persian), f"{min_ax:.3f}g")
+        st.metric("Min ax", f"{min_ax:.3f}g")
     with col3:
-        st.metric(get_text('max_az_g', persian), f"{max_az:.3f}g")
+        st.metric("Max az", f"{max_az:.3f}g")
     with col4:
-        st.metric(get_text('min_az_g', persian), f"{min_az:.3f}g")
+        st.metric("Min az", f"{min_az:.3f}g")
     
     st.markdown("---")
     
     # ISO Standard Results
-    st.subheader(get_text('iso_analysis', persian))
+    st.subheader("📋 ISO 17842-2023 Analysis")
     
     restraint_descriptions_iso = {
         1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
@@ -2108,7 +2108,7 @@ elif st.session_state.step == 10:
     
     # AS Standard Results
     st.markdown("---")
-    st.subheader(get_text('as_analysis', persian))
+    st.subheader("📋 AS 3533.1-2009+A1-2011 Analysis")
     
     restraint_descriptions_as = {
         1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
@@ -2178,7 +2178,7 @@ elif st.session_state.step == 11:
     st.markdown("---")
 
     # Basic Parameters
-    st.subheader(get_text('as_analysis', persian))
+    st.subheader("🎡 Basic Design Parameters")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.write(f"**Generation:** {st.session_state.generation_type}")
@@ -2199,7 +2199,7 @@ elif st.session_state.step == 11:
     st.markdown("---")
     
     # Environment & Site Conditions
-    st.subheader(get_text('env_site_cond', persian))
+    st.subheader("🌍 Environment & Site Conditions")
     st.caption("Per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800")
     env = st.session_state.environment_data
     col1, col2 = st.columns(2)
@@ -2395,8 +2395,15 @@ elif st.session_state.step == 12:
     st.header(get_text('additional_analysis', persian))
     st.markdown("---")
     
-    st.info(get_text('additional_analysis_title', persian))
-    st.markdown(get_text('analysis_bullets', persian))
+    st.info("This step is reserved for future enhancements such as:")
+    st.markdown("""
+    - Detailed structural load calculations
+    - Finite element analysis integration
+    - Cost estimation
+    - Construction timeline
+    - Maintenance schedule
+    - Safety inspection checklist
+    """)
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
