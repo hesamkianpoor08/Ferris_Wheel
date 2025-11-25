@@ -1452,7 +1452,7 @@ with st.sidebar:
     persian = st.toggle("🇮🇷 فارسی", value=st.session_state.persian, key="persian_toggle")
     st.session_state.persian = persian
     
-    if st.button(get_text('reset_design', persian) if 'reset_design' in st.session_state else "Reset Design"):
+    if st.button("🔄 Reset Design"):
         reset_design()
         st.rerun()
 
@@ -1532,7 +1532,7 @@ elif st.session_state.get('step', 0) == 1:
             except:
                 st.write(f"Image not found: {img_path}")
             st.caption(caption)
-            st.button(get_text('select', persian) if 'select' in st.session_state else "Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
+            st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
     
     st.markdown("---")
     st.write(get_text('click_button', persian))
@@ -1577,13 +1577,13 @@ if st.session_state.get("step", 0) == 2:
                 st.write("Abs path:", os.path.abspath(img_path))
                 st.write("Error:", e)
             st.caption(label)
-            st.button(get_text('select', persian) if 'select' in st.session_state else "Select", key=f"geom_img_btn_{i}", on_click=select_geometry_callback, args=(label,))
+            st.button("Select", key=f"geom_img_btn_{i}", on_click=select_geometry_callback, args=(label,))
 
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
     st.header(get_text('cabin_capacity_vip', persian))
-    st.subheader(f"{get_text('generation_label', persian).format(st.session_state.generation_type)}")
+    st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
 
     col1, col2 = st.columns(2)
@@ -1616,17 +1616,17 @@ elif st.session_state.step == 3:
         regular_total = (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
         per_rotation = vip_total + regular_total
         c1, c2 = st.columns(2)
-        c1.metric(get_text('per_rotation_cap', persian), f"{per_rotation} {get_text('passengers', persian) if 'passengers' in st.session_state else 'passengers'}")
-        c2.metric(get_text('vip_cap_per_rotation', persian), f"{vip_total} {get_text('passengers', persian) if 'passengers' in st.session_state else 'passengers'} ({get_text('each_vip', persian) if 'each_vip' in st.session_state else 'each VIP'}: {vip_cap})")
-        st.success(get_text('calc_success', persian) if 'calc_success' in st.session_state else "Capacities calculated.")
+        c1.metric(get_text('per_rotation_cap', persian), f"{per_rotation} passengers")
+        c2.metric(get_text('vip_cap_per_rotation', persian), f"{vip_total} passengers (each VIP: {vip_cap})")
+        st.success("Capacities calculated.")
         st.session_state.capacities_calculated = True
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 4: Rotation Time ===
 elif st.session_state.step == 4:
@@ -1645,24 +1645,24 @@ elif st.session_state.step == 4:
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
     st.text_input(get_text('rot_speed_rpm', persian), value=f"{rpm:.6f}", disabled=True)
-    st.caption(f"{get_text('angular_speed', persian) if 'angular_speed' in st.session_state else 'Angular speed'} (rad/s): {ang:.6f}")
+    st.caption(f"Angular speed (rad/s): {ang:.6f}")
     st.text_input(get_text('linear_speed', persian), value=f"{linear:.6f}", disabled=True)
 
     cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
                                                           st.session_state.num_vip_cabins, rotation_time_min)
-    st.metric(get_text('est_capacity_hour', persian), f"{cap_per_hour:.0f} {get_text('passengers_hour', persian) if 'passengers_hour' in st.session_state else 'passengers/hour'}")
+    st.metric(get_text('est_capacity_hour', persian), f"{cap_per_hour:.0f} passengers/hour")
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 5: Environment Conditions ===
 elif st.session_state.step == 5:
     st.header(get_text('environment_conditions', persian))
-    st.markdown(f"**{get_text('design_per_standards', persian) if 'design_per_standards' in st.session_state else 'Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800'}**")
+    st.markdown("**Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800**")
     st.markdown("---")
 
     iran_provinces = list(TERRAIN_CATEGORIES.keys())
@@ -1690,7 +1690,7 @@ elif st.session_state.step == 5:
     l1, l2 = st.columns(2)
     with l1:
         land_length = st.number_input(
-            get_text('land_length_m', persian),
+            "Land Length (m)",
             min_value=10,
             max_value=150,
             value=int(st.session_state.environment_data.get('land_length', 100)),
@@ -1699,34 +1699,34 @@ elif st.session_state.step == 5:
         )
     with l2:
         land_width = st.number_input(
-            get_text('land_width_m', persian),
+            "Land Width (m)",
             min_value=10,
             max_value=150,
             value=int(st.session_state.environment_data.get('land_width', 100)),
             step=1,
             key="land_width_input"
         )
-    st.metric(get_text('total_land_area', persian) if 'total_land_area' in st.session_state else "Total Land Area", f"{land_length * land_width} m²")
+    st.metric("Total Land Area", f"{land_length * land_width} m²")
 
     st.markdown("---")
     st.subheader(get_text('altitude_temp', persian))
     a1, a2 = st.columns(2)
     with a1:
         temp_max = st.number_input(
-            get_text('max_temp', persian),
+            "Maximum Temperature (°C)",
             value=int(st.session_state.environment_data.get('temp_max', 40)),
             step=1,
             key="temp_max_input"
         )
     with a2:
         temp_min = st.number_input(
-            get_text('min_temp', persian),
+            "Minimum Temperature (°C)",
             value=int(st.session_state.environment_data.get('temp_min', -10)),
             step=1,
             key="temp_min_input"
         )
     altitude = st.number_input(
-        get_text('altitude', persian) if 'altitude' in st.session_state else "Altitude (m)",
+        "Altitude (m)",
         value=int(st.session_state.environment_data.get('altitude', 0)),
         step=1,
         key="altitude_input"
@@ -1737,20 +1737,20 @@ elif st.session_state.step == 5:
     w1, w2 = st.columns(2)
     with w1:
         wind_dir = st.selectbox(
-            get_text('wind_direction', persian),
+            "Wind Direction",
             options=["North", "South", "East", "West", "Northeast", "Northwest", "Southeast", "Southwest"],
             key="wind_dir_input"
         )
     with w2:
         wind_max = st.number_input(
-            get_text('wind_max_speed', persian),
+            "Maximum Wind Speed (km/h)",
             min_value=0,
             value=int(st.session_state.environment_data.get('wind_max', 108)),
             step=1,
             key="wind_max_input"
         )
         wind_avg = st.number_input(
-            get_text('wind_avg_speed', persian),
+            "Average Wind Speed (km/h)",
             min_value=0,
             value=int(st.session_state.environment_data.get('wind_avg', 54)),
             step=1,
@@ -1758,10 +1758,10 @@ elif st.session_state.step == 5:
         )
 
     st.markdown("---")
-    load_wind = st.checkbox(get_text('load_wind_rose', persian), value=st.session_state.get('wind_rose_loaded', False), key="load_wind_checkbox")
+    load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.get('wind_rose_loaded', False), key="load_wind_checkbox")
     st.session_state.wind_rose_loaded = load_wind
     if load_wind:
-        wind_file = st.file_uploader(get_text('wind_rose_file', persian), type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
+        wind_file = st.file_uploader("Wind rose file (jpg/pdf)", type=['jpg', 'jpeg', 'pdf'], key="wind_rose_uploader")
         st.session_state.wind_rose_file = wind_file
 
     if province in TERRAIN_CATEGORIES:
@@ -1782,21 +1782,22 @@ elif st.session_state.step == 5:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 6: Provincial Characteristics (Terrain Calculation) ===
 elif st.session_state.step == 6:
     st.header(get_text('provincial_characteristics', persian))
-    st.markdown(f"**{get_text('terrain_per_standards', persian) if 'terrain_per_standards' in st.session_state else 'Terrain classification per AS 1170.4-2007(A1), ISIRI 2800'}**")
+    st.markdown("**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**")
     st.markdown("---")
     
     env = st.session_state.environment_data
     province = env.get('province', 'Tehran')
     city = env.get('city', '')
     
-    st.subheader(get_text('selected_location', persian).format(province, city) if 'selected_location' in st.session_state else f"Selected Province: {province}\nSelected City: {city}")
+    st.subheader(get_text('selected_province_city', persian).format(province))
+    st.subheader(get_text('selected_province_city', persian).format(city))
     st.info(get_text('region_label', persian).format(env.get('region_name', 'N/A')))
     
     if province in TERRAIN_CATEGORIES:
@@ -1837,46 +1838,46 @@ elif st.session_state.step == 6:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 7: Soil Type (auto-calculate Importance Group) ===
 elif st.session_state.step == 7:
     st.header(get_text('soil_type', persian))
-    st.markdown(f"**{get_text('soil_per_standards', persian) if 'soil_per_standards' in st.session_state else 'Soil classification per ISIRI 2800 (4th Edition)'}**")
+    st.markdown("**Soil classification per ISIRI 2800 (4th Edition)**")
     st.markdown("---")
     
     st.subheader(get_text('soil_type_selection', persian))
     
     soil_types = {
         "Type I": {
-            "desc": get_text('soil_type_i_desc', persian) if 'soil_type_i_desc' in st.session_state else "a. Coarse- and fine-grained igneous rocks, very hard and strong sedimentary rocks, and other hard conglomerate and silicate sedimentary rocks.\nb. Hard soils (dense sand and very stiff clay) with a total thickness of less than 30 meters above bedrock.",
+            "desc": "a. Coarse- and fine-grained igneous rocks, very hard and strong sedimentary rocks, and other hard conglomerate and silicate sedimentary rocks.\nb. Hard soils (dense sand and very stiff clay) with a total thickness of less than 30 meters above bedrock.",
             "group_factor": 1.4,
             "importance_group": "Group 1"
         },
         "Type II": {
-            "desc": get_text('soil_type_ii_desc', persian) if 'soil_type_ii_desc' in st.session_state else "a. Weak igneous rocks (such as tuff), moderately cemented sedimentary rocks, and rocks that have been partially weathered.\nb. Hard soils (dense sand and very stiff clay) with a total thickness greater than 30 meters.",
+            "desc": "a. Weak igneous rocks (such as tuff), moderately cemented sedimentary rocks, and rocks that have been partially weathered.\nb. Hard soils (dense sand and very stiff clay) with a total thickness greater than 30 meters.",
             "group_factor": 1.2,
             "importance_group": "Group 2"
         },
         "Type III": {
-            "desc": get_text('soil_type_iii_desc', persian) if 'soil_type_iii_desc' in st.session_state else "a. Weathered or decomposed metamorphic rocks.\nb. Medium dense soils, layers of sand and clay with moderate cohesion and medium stiffness.",
+            "desc": "a. Weathered or decomposed metamorphic rocks.\nb. Medium dense soils, layers of sand and clay with moderate cohesion and medium stiffness.",
             "group_factor": 1.0,
             "importance_group": "Group 3"
         },
         "Type IV": {
-            "desc": get_text('soil_type_iv_desc', persian) if 'soil_type_iv_desc' in st.session_state else "a. Soft soils with high moisture content due to a shallow groundwater level.\nb. Any soil profile that includes at least 7 meters of clayey soil with a plasticity index greater than 20 or a moisture content higher than 40 percent.",
+            "desc": "a. Soft soils with high moisture content due to a shallow groundwater level.\nb. Any soil profile that includes at least 7 meters of clayey soil with a plasticity index greater than 20 or a moisture content higher than 40 percent.",
             "group_factor": 0.8,
             "importance_group": "Group 4"
         }
     }
     
     for soil_type, data in soil_types.items():
-        with st.expander(f"{soil_type} ({get_text('factor', persian) if 'factor' in st.session_state else 'Factor'}: {data['group_factor']})"):
+        with st.expander(f"{soil_type} (Factor: {data['group_factor']})"):
             st.write(data['desc'])
     
-    selected_soil = st.selectbox(get_text('select_soil_type', persian) if 'select_soil_type' in st.session_state else "Select Soil Type", options=list(soil_types.keys()), key="soil_type_select")
+    selected_soil = st.selectbox("Select Soil Type", options=list(soil_types.keys()), key="soil_type_select")
     st.session_state.soil_type = selected_soil
     
     # Auto-calculate importance group based on soil type
@@ -1903,14 +1904,14 @@ elif st.session_state.step == 7:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 8: Carousel Orientation ===
 elif st.session_state.step == 8:
     st.header(get_text('carousel_orientation', persian))
-    st.markdown(f"**{get_text('orientation_per_standards', persian) if 'orientation_per_standards' in st.session_state else 'Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005'}**")
+    st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
     
     wind_direction = st.session_state.environment_data.get('wind_direction', 'North')
@@ -1931,7 +1932,7 @@ elif st.session_state.step == 8:
         if st.button(get_text('confirm_orientation_btn', persian), type="primary"):
             st.session_state.carousel_orientation = wind_direction
             st.session_state.orientation_confirmed = True
-            st.success(f"{get_text('orientation_confirmed', persian) if 'orientation_confirmed' in st.session_state else 'Orientation confirmed'}: {wind_direction}")
+            st.success(f"Orientation confirmed: {wind_direction}")
     
     with col2:
         st.markdown(get_text('or_custom', persian))
@@ -1941,24 +1942,24 @@ elif st.session_state.step == 8:
                                     index=directions.index(wind_direction) if wind_direction in directions else 0, 
                                     key="custom_orientation_select")
     
-    if st.button(get_text('set_custom_orientation', persian) if 'set_custom_orientation' in st.session_state else "Set Custom Orientation", key="set_custom_orientation_btn"):
+    if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
         st.session_state.carousel_orientation = custom_direction
         st.session_state.orientation_confirmed = True
-        st.success(get_text('orientation_set_success', persian).format(custom_direction))
+        st.success(f"Custom orientation set: {custom_direction}")
         fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
         st.plotly_chart(fig_custom, use_container_width=True)
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
-    st.markdown(f"**{get_text('classification_per_standard', persian) if 'classification_per_standard' in st.session_state else 'Calculation per INSO 8987-1-2023'}**")
+    st.markdown("**Calculation per INSO 8987-1-2023**")
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -1974,7 +1975,7 @@ elif st.session_state.step == 9:
         rpm = 0.0
     
     st.subheader(get_text('braking_accel_param', persian))
-    braking_accel = st.number_input(get_text('braking_accel_input', persian) if 'braking_accel_input' in st.session_state else "Braking Acceleration (m/s²)", min_value=0.01, max_value=2.0, 
+    braking_accel = st.number_input("Braking Acceleration (m/s²)", min_value=0.01, max_value=2.0, 
                                     value=st.session_state.braking_acceleration, step=0.01, format="%.2f", 
                                     key="braking_accel_input")
     st.session_state.braking_acceleration = braking_accel
@@ -1996,7 +1997,7 @@ elif st.session_state.step == 9:
     with col2:
         st.metric(get_text('dynamic_product', persian), f"{p_design:.2f}")
     with col3:
-        st.metric(get_text('device_class', persian), f"{get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_design}")
+        st.metric(get_text('device_class', persian), f"Class {class_design}")
     
     st.markdown("---")
     st.subheader(get_text('actual_operation', persian))
@@ -2007,12 +2008,12 @@ elif st.session_state.step == 9:
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(get_text('max_accel_label', persian), f"{max_accel_actual:.3f} m/s²")
+        st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²")
         st.caption(f"({n_actual:.3f}g)")
     with col2:
-        st.metric(get_text('dynamic_product', persian), f"{p_actual:.2f}")
+        st.metric("Dynamic Product (p)", f"{p_actual:.2f}")
     with col3:
-        st.metric(get_text('device_class_actual', persian) if 'device_class_actual' in st.session_state else "Device Class (Actual)", f"{get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_actual}")
+        st.metric("Device Class (Actual)", f"Class {class_actual}")
     
     st.session_state.classification_data = {
         'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
@@ -2022,14 +2023,14 @@ elif st.session_state.step == 9:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
     st.header(get_text('restraint_type', persian))
-    st.markdown(f"**{get_text('restraint_per_standards', persian) if 'restraint_per_standards' in st.session_state else 'ISO 17842-2023 & AS 3533.1-2009+A1-2011'}**")
+    st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
     diameter = st.session_state.diameter
@@ -2095,30 +2096,30 @@ elif st.session_state.step == 10:
     st.subheader(get_text('iso_analysis', persian))
     
     restraint_descriptions_iso = {
-        1: get_text('iso_zone1', persian),
-        2: get_text('iso_zone2', persian),
-        3: get_text('iso_zone3', persian),
-        4: get_text('iso_zone4', persian),
-        5: get_text('iso_zone5', persian)
+        1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
+        2: "Zone 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
+        3: "Zone 3 - Central edges: Standard restraint (lap bar or seat belt)",
+        4: "Zone 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
+        5: "Zone 5 - Lower region: Special consideration required (enhanced harness system)"
     }
     
-    st.success(f"**{get_text('predominant_zone', persian) if 'predominant_zone' in st.session_state else 'Predominant Zone'} (ISO):** {predominant_zone_iso}")
-    st.info(f"**{get_text('recommended_restraint', persian) if 'recommended_restraint' in st.session_state else 'Recommended Restraint'} (ISO):** {restraint_descriptions_iso.get(predominant_zone_iso, get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint')}")
+    st.success(f"**Predominant Zone (ISO):** {predominant_zone_iso}")
+    st.info(f"**Recommended Restraint (ISO):** {restraint_descriptions_iso.get(predominant_zone_iso, 'Standard restraint')}")
     
     # AS Standard Results
     st.markdown("---")
     st.subheader(get_text('as_analysis', persian))
     
     restraint_descriptions_as = {
-        1: get_text('as_zone1', persian),
-        2: get_text('as_zone2', persian),
-        3: get_text('as_zone3', persian),
-        4: get_text('as_zone4', persian),
-        5: get_text('as_zone5', persian)
+        1: "Zone 1 - Upper region: Maximum restraint required (full body harness)",
+        2: "Zone 2 - Upper-central: Enhanced restraint (over-shoulder restraint)",
+        3: "Zone 3 - Central region: Standard restraint (lap bar or seat belt)",
+        4: "Zone 4 - Lower-central: Moderate restraint (seat belt with lap bar)",
+        5: "Zone 5 - Lower region: Special consideration required (enhanced harness system)"
     }
     
-    st.success(f"**{get_text('predominant_zone', persian) if 'predominant_zone' in st.session_state else 'Predominant Zone'} (AS):** {predominant_zone_as}")
-    st.info(f"**{get_text('recommended_restraint', persian) if 'recommended_restraint' in st.session_state else 'Recommended Restraint'} (AS):** {restraint_descriptions_as.get(predominant_zone_as, get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint')}")
+    st.success(f"**Predominant Zone (AS):** {predominant_zone_as}")
+    st.info(f"**Recommended Restraint (AS):** {restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')}")
     
     st.markdown("---")
     
@@ -2126,31 +2127,31 @@ elif st.session_state.step == 10:
     col_iso, col_as = st.columns(2)
     
     with col_iso:
-        st.subheader(get_text('iso_accel_envelope', persian) if 'iso_accel_envelope' in st.session_state else "ISO 17842 Acceleration Envelope")
+        st.subheader("ISO 17842 Acceleration Envelope")
         fig_accel_iso = plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel)
         st.plotly_chart(fig_accel_iso, use_container_width=True)
         
-        st.markdown(f"""
-        **{get_text('iso_zone_classifications', persian) if 'iso_zone_classifications' in st.session_state else 'ISO Zone Classifications:'}**
-        - **{get_text('zone1', persian) if 'zone1' in st.session_state else 'Zone 1'}** ({get_text('purple', persian) if 'purple' in st.session_state else 'Purple'}): {get_text('maximum_restraint', persian) if 'maximum_restraint' in st.session_state else 'Maximum restraint'}
-        - **{get_text('zone2', persian) if 'zone2' in st.session_state else 'Zone 2'}** ({get_text('orange', persian) if 'orange' in st.session_state else 'Orange'}): {get_text('enhanced_restraint', persian) if 'enhanced_restraint' in st.session_state else 'Enhanced restraint'}
-        - **{get_text('zone3', persian) if 'zone3' in st.session_state else 'Zone 3'}** ({get_text('yellow', persian) if 'yellow' in st.session_state else 'Yellow'}): {get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint'}
-        - **{get_text('zone4', persian) if 'zone4' in st.session_state else 'Zone 4'}** ({get_text('green', persian) if 'green' in st.session_state else 'Green'}): {get_text('moderate_restraint', persian) if 'moderate_restraint' in st.session_state else 'Moderate restraint'}
-        - **{get_text('zone5', persian) if 'zone5' in st.session_state else 'Zone 5'}** ({get_text('red', persian) if 'red' in st.session_state else 'Red'}): {get_text('special_consideration', persian) if 'special_consideration' in st.session_state else 'Special consideration'}
+        st.markdown("""
+        **ISO Zone Classifications:**
+        - **Zone 1** (Purple): Maximum restraint
+        - **Zone 2** (Orange): Enhanced restraint
+        - **Zone 3** (Yellow): Standard restraint
+        - **Zone 4** (Green): Moderate restraint
+        - **Zone 5** (Red): Special consideration
         """)
     
     with col_as:
-        st.subheader(get_text('as_accel_envelope', persian) if 'as_accel_envelope' in st.session_state else "AS 3533.1 Acceleration Envelope")
+        st.subheader("AS 3533.1 Acceleration Envelope")
         fig_accel_as = plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel)
         st.plotly_chart(fig_accel_as, use_container_width=True)
         
-        st.markdown(f"""
-        **{get_text('as_zone_classifications', persian) if 'as_zone_classifications' in st.session_state else 'AS Zone Classifications:'}**
-        - **{get_text('zone1', persian) if 'zone1' in st.session_state else 'Zone 1'}** ({get_text('purple', persian) if 'purple' in st.session_state else 'Purple'}): {get_text('maximum_restraint', persian) if 'maximum_restraint' in st.session_state else 'Maximum restraint'}
-        - **{get_text('zone2', persian) if 'zone2' in st.session_state else 'Zone 2'}** ({get_text('orange', persian) if 'orange' in st.session_state else 'Orange'}): {get_text('enhanced_restraint', persian) if 'enhanced_restraint' in st.session_state else 'Enhanced restraint'}
-        - **{get_text('zone3', persian) if 'zone3' in st.session_state else 'Zone 3'}** ({get_text('yellow', persian) if 'yellow' in st.session_state else 'Yellow'}): {get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint'}
-        - **{get_text('zone4', persian) if 'zone4' in st.session_state else 'Zone 4'}** ({get_text('green', persian) if 'green' in st.session_state else 'Green'}): {get_text('moderate_restraint', persian) if 'moderate_restraint' in st.session_state else 'Moderate restraint'}
-        - **{get_text('zone5', persian) if 'zone5' in st.session_state else 'Zone 5'}** ({get_text('red', persian) if 'red' in st.session_state else 'Red'}): {get_text('special_consideration', persian) if 'special_consideration' in st.session_state else 'Special consideration'}
+        st.markdown("""
+        **AS Zone Classifications:**
+        - **Zone 1** (Purple): Maximum restraint
+        - **Zone 2** (Orange): Enhanced restraint
+        - **Zone 3** (Yellow): Standard restraint
+        - **Zone 4** (Green): Moderate restraint
+        - **Zone 5** (Red): Special consideration
         """)
     
     st.session_state.classification_data.update({
@@ -2160,16 +2161,16 @@ elif st.session_state.step == 10:
         'max_az_g': max_az,
         'min_ax_g': min_ax,
         'min_az_g': min_az,
-        'restraint_description_iso': restraint_descriptions_iso.get(predominant_zone_iso, get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint'),
-        'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'Standard restraint')
+        'restraint_description_iso': restraint_descriptions_iso.get(predominant_zone_iso, 'Standard restraint'),
+        'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')
     })
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"{get_text('next', persian)} ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 11: Final Design Overview ===
 elif st.session_state.step == 11:
@@ -2177,23 +2178,23 @@ elif st.session_state.step == 11:
     st.markdown("---")
 
     # Basic Parameters
-    st.subheader(get_text('basic_params', persian))
+    st.subheader(get_text('as_analysis', persian))
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.write(f"{get_text('generation_label', persian).format(st.session_state.generation_type)}")
-        st.write(f"{get_text('diameter_label_summary', persian).format(st.session_state.diameter)}")
-        st.write(f"{get_text('height_label', persian).format(st.session_state.diameter * 1.1)}")
+        st.write(f"**Generation:** {st.session_state.generation_type}")
+        st.write(f"**Diameter:** {st.session_state.diameter} m")
+        st.write(f"**Height:** {st.session_state.diameter * 1.1:.1f} m")
     with col2:
-        st.write(f"{get_text('total_cabins', persian).format(st.session_state.num_cabins)}")
-        st.write(f"{get_text('vip_cabins', persian).format(st.session_state.num_vip_cabins)}")
-        st.write(f"{get_text('cabin_capacity_summary', persian).format(st.session_state.cabin_capacity)}")
+        st.write(f"**Total Cabins:** {st.session_state.num_cabins}")
+        st.write(f"**VIP Cabins:** {st.session_state.num_vip_cabins}")
+        st.write(f"**Cabin Capacity:** {st.session_state.cabin_capacity} passengers")
     with col3:
         if st.session_state.cabin_geometry:
-            st.write(f"{get_text('cabin_geometry_summary', persian).format(st.session_state.cabin_geometry)}")
-        st.write(f"{get_text('rotation_time_summary', persian).format(st.session_state.rotation_time_min)}")
+            st.write(f"**Cabin Geometry:** {st.session_state.cabin_geometry}")
+        st.write(f"**Rotation Time:** {st.session_state.rotation_time_min:.2f} min")
         cap_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity,
                                                           st.session_state.num_vip_cabins, st.session_state.rotation_time_min)
-        st.write(f"{get_text('capacity_hour_summary', persian).format(cap_hour)}")
+        st.write(f"**Capacity/Hour:** {cap_hour:.0f} pax/hr")
 
     st.markdown("---")
     
@@ -2203,37 +2204,37 @@ elif st.session_state.step == 11:
     env = st.session_state.environment_data
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"{get_text('province_label', persian).format(env.get('province','N/A'))}")
-        st.write(f"{get_text('city_label', persian).format(env.get('city','N/A'))}")
-        st.write(f"{get_text('region_label', persian).format(env.get('region_name','N/A'))}")
-        st.write(f"{get_text('land_area_summary', persian).format(env.get('land_area',0))}")
-        st.write(f"{get_text('altitude_summary', persian).format(env.get('altitude',0))}")
-        st.write(f"{get_text('temp_range', persian).format(env.get('temp_min',0), env.get('temp_max',0))}")
+        st.write(f"**Province:** {env.get('province','N/A')}")
+        st.write(f"**City:** {env.get('city','N/A')}")
+        st.write(f"**Region:** {env.get('region_name','N/A')}")
+        st.write(f"**Land Area:** {env.get('land_area',0):.2f} m²")
+        st.write(f"**Altitude:** {env.get('altitude',0)} m")
+        st.write(f"**Temperature Range:** {env.get('temp_min',0)}°C to {env.get('temp_max',0)}°C")
     with col2:
-        st.write(f"{get_text('terrain_cat_summary', persian).format(env.get('terrain_category','N/A'))}")
-        st.write(f"{get_text('z0_summary', persian).format(env.get('terrain_z0','N/A'))}")
-        st.write(f"{get_text('z_min_summary', persian).format(env.get('terrain_zmin','N/A'))}")
-        st.write(f"{get_text('seismic_hazard_summary', persian).format(env.get('seismic_hazard','N/A'))}")
-        st.write(f"{get_text('wind_dir_summary', persian).format(env.get('wind_direction','N/A'))}")
-        st.write(f"{get_text('wind_max_summary', persian).format(env.get('wind_max',0))}")
+        st.write(f"**Terrain Category:** {env.get('terrain_category','N/A')}")
+        st.write(f"**z₀:** {env.get('terrain_z0','N/A')} m")
+        st.write(f"**z_min:** {env.get('terrain_zmin','N/A')} m")
+        st.write(f"**Seismic Hazard (ISIRI 2800):** {env.get('seismic_hazard','N/A')}")
+        st.write(f"**Wind Direction:** {env.get('wind_direction','N/A')}")
+        st.write(f"**Max Wind Speed:** {env.get('wind_max',0)} km/h")
 
     st.markdown("---")
     
     # Soil & Importance
-    st.subheader(get_text('soil_importance', persian))
+    st.subheader("🏗️ Soil & Structural Importance")
     st.caption("Per ISIRI 2800 (4th Edition)")
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"{get_text('soil_type_summary', persian).format(st.session_state.soil_type)}")
+        st.write(f"**Soil Type:** {st.session_state.soil_type}")
     with col2:
-        st.write(f"{get_text('importance_group_summary', persian).format(st.session_state.importance_group)}")
+        st.write(f"**Importance Group:** {st.session_state.importance_group}")
 
     st.markdown("---")
     
     # Orientation
-    st.subheader(get_text('orientation_label', persian))
+    st.subheader("🧭 Carousel Orientation")
     st.caption("Per AS 1170.4-2007(A1), EN 1991-1-4:2005")
-    st.write(f"{get_text('selected_orientation', persian).format(st.session_state.carousel_orientation)}")
+    st.write(f"**Selected Orientation:** {st.session_state.carousel_orientation}")
     fig_final_orientation = create_orientation_diagram(
         st.session_state.carousel_orientation,
         env.get('land_length'),
@@ -2245,33 +2246,33 @@ elif st.session_state.step == 11:
     st.markdown("---")
     
     # Safety Classification
-    st.subheader(get_text('safety_class', persian))
+    st.subheader("⚠️ Safety Classification")
     st.caption("Per INSO 8987-1-2023")
     if st.session_state.classification_data:
         class_data = st.session_state.classification_data
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric(get_text('design_class', persian), f"{get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_data.get('class_design','N/A')}")
-            st.caption(f"{get_text('dynamic_product_metric', persian)}: {class_data.get('p_design',0):.2f}")
+            st.metric("Design Class", f"Class {class_data.get('class_design','N/A')}")
+            st.caption(f"Dynamic Product: {class_data.get('p_design',0):.2f}")
         with col2:
-            st.metric(get_text('actual_class', persian), f"{get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_data.get('class_actual','N/A')}")
-            st.caption(f"{get_text('dynamic_product_metric', persian)}: {class_data.get('p_actual',0):.2f}")
+            st.metric("Actual Class", f"Class {class_data.get('class_actual','N/A')}")
+            st.caption(f"Dynamic Product: {class_data.get('p_actual',0):.2f}")
         with col3:
-            st.metric(get_text('max_accel_metric', persian), f"{class_data.get('n_actual',0):.3f}g")
-            st.caption(get_text('actual_operation', persian))
+            st.metric("Max Acceleration", f"{class_data.get('n_actual',0):.3f}g")
+            st.caption("Actual operation")
         
         st.markdown("---")
-        st.subheader(get_text('restraint_system', persian))
+        st.subheader("🔒 Restraint System Requirements")
         col_iso, col_as = st.columns(2)
         with col_iso:
-            st.info(f"{get_text('iso_title', persian)}\n\n{get_text('iso_zone_label', persian).format(class_data.get('restraint_zone_iso','N/A'))}\n\n{class_data.get('restraint_description_iso', get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'N/A')}")
+            st.info(f"**ISO 17842-2023**\n\nZone {class_data.get('restraint_zone_iso','N/A')}\n\n{class_data.get('restraint_description_iso', 'N/A')}")
         with col_as:
-            st.info(f"{get_text('as_title', persian)}\n\n{get_text('as_zone_label', persian).format(class_data.get('restraint_zone_as','N/A'))}\n\n{class_data.get('restraint_description_as', get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'N/A')}")
+            st.info(f"**AS 3533.1-2009+A1-2011**\n\nZone {class_data.get('restraint_zone_as','N/A')}\n\n{class_data.get('restraint_description_as', 'N/A')}")
 
     st.markdown("---")
     
     # Visualization
-    st.subheader(get_text('design_visualization', persian) if 'design_visualization' in st.session_state else "📊 Design Visualization")
+    st.subheader("📊 Design Visualization")
     height = st.session_state.diameter * 1.1
     vip_cap = max(0, st.session_state.cabin_capacity - 2)
     total_capacity_per_rotation = (st.session_state.num_vip_cabins * vip_cap + 
@@ -2289,103 +2290,105 @@ elif st.session_state.step == 11:
     st.markdown("---")
     
     # Design Summary Report
-    st.subheader(get_text('design_report', persian))
+    st.subheader("📄 Design Summary Report")
     
-    with st.expander(get_text('view_complete_report', persian)):
+    with st.expander("📋 View Complete Design Report"):
         st.markdown(f"""
-        ## {get_text('ferris_wheel_design_report', persian) if 'ferris_wheel_design_report' in st.session_state else 'Ferris Wheel Design Report'}
+        ## Ferris Wheel Design Report
         
-        ### {get_text('project_info', persian)}
-        - **{get_text('project_name', persian) if 'project_name' in st.session_state else 'Project Name'}:** {env.get('region_name', 'N/A')} {get_text('ferris_wheel', persian) if 'ferris_wheel' in st.session_state else 'Ferris Wheel'}
-        - **{get_text('location', persian) if 'location' in st.session_state else 'Location'}:** {env.get('province', 'N/A')}, {env.get('city', 'N/A')}, {get_text('iran', persian) if 'iran' in st.session_state else 'Iran'}
-        - **{get_text('generation_type', persian) if 'generation_type' in st.session_state else 'Generation Type'}:** {st.session_state.generation_type}
+        ### Project Information
+        - **Project Name:** {env.get('region_name', 'N/A')} Ferris Wheel
+        - **Location:** {env.get('province', 'N/A')}, {env.get('city', 'N/A')}, Iran
+        - **Generation Type:** {st.session_state.generation_type}
         
-        ### {get_text('structural_params', persian)}
-        - **{get_text('wheel_diameter', persian) if 'wheel_diameter' in st.session_state else 'Wheel Diameter'}:** {st.session_state.diameter} m
-        - **{get_text('total_height', persian) if 'total_height' in st.session_state else 'Total Height'}:** {height:.1f} m
-        - **{get_text('num_cabins', persian) if 'num_cabins' in st.session_state else 'Number of Cabins'}:** {st.session_state.num_cabins}
-        - **{get_text('cabin_geometry', persian) if 'cabin_geometry' in st.session_state else 'Cabin Geometry'}:** {st.session_state.cabin_geometry}
-        - **{get_text('passenger_capacity_per_cabin', persian) if 'passenger_capacity_per_cabin' in st.session_state else 'Passenger Capacity per Cabin'}:** {st.session_state.cabin_capacity}
-        - **{get_text('vip_cabins', persian) if 'vip_cabins' in st.session_state else 'VIP Cabins'}:** {st.session_state.num_vip_cabins}
-        - **{get_text('total_capacity_per_hour', persian) if 'total_capacity_per_hour' in st.session_state else 'Total Capacity per Hour'}:** {cap_hour:.0f} {get_text('passengers', persian) if 'passengers' in st.session_state else 'passengers'}
+        ### Structural Parameters
+        - **Wheel Diameter:** {st.session_state.diameter} m
+        - **Total Height:** {height:.1f} m
+        - **Number of Cabins:** {st.session_state.num_cabins}
+        - **Cabin Geometry:** {st.session_state.cabin_geometry}
+        - **Passenger Capacity per Cabin:** {st.session_state.cabin_capacity}
+        - **VIP Cabins:** {st.session_state.num_vip_cabins}
+        - **Total Capacity per Hour:** {cap_hour:.0f} passengers
         
-        ### {get_text('operating_params', persian)}
-        - **{get_text('rotation_time', persian) if 'rotation_time' in st.session_state else 'Rotation Time'}:** {st.session_state.rotation_time_min:.2f} {get_text('minutes', persian) if 'minutes' in st.session_state else 'minutes'}
-        - **{get_text('rotational_speed', persian) if 'rotational_speed' in st.session_state else 'Rotational Speed'}:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
-        - **{get_text('linear_speed_at_rim', persian) if 'linear_speed_at_rim' in st.session_state else 'Linear Speed at Rim'}:** {ang * (st.session_state.diameter / 2.0):.3f} m/s
-        - **{get_text('estimated_motor_power', persian) if 'estimated_motor_power' in st.session_state else 'Estimated Motor Power'}:** {motor_power:.1f} kW
+        ### Operating Parameters
+        - **Rotation Time:** {st.session_state.rotation_time_min:.2f} minutes
+        - **Rotational Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
+        - **Linear Speed at Rim:** {ang * (st.session_state.diameter / 2.0):.3f} m/s
+        - **Estimated Motor Power:** {motor_power:.1f} kW
         
-        ### {get_text('site_conditions', persian)}
-        - **{get_text('province', persian) if 'province' in st.session_state else 'Province'}:** {env.get('province', 'N/A')}
-        - **{get_text('city', persian) if 'city' in st.session_state else 'City'}:** {env.get('city', 'N/A')}
-        - **{get_text('region', persian) if 'region' in st.session_state else 'Region'}:** {env.get('region_name', 'N/A')}
-        - **{get_text('land_dimensions', persian) if 'land_dimensions' in st.session_state else 'Land Dimensions'}:** {env.get('land_length', 0)} m × {env.get('land_width', 0)} m
-        - **{get_text('total_land_area', persian) if 'total_land_area' in st.session_state else 'Total Land Area'}:** {env.get('land_area', 0)} m²
-        - **{get_text('altitude', persian) if 'altitude' in st.session_state else 'Altitude'}:** {env.get('altitude', 0)} {get_text('meters_above_sea_level', persian) if 'meters_above_sea_level' in st.session_state else 'm above sea level'}
-        - **{get_text('temperature_range', persian) if 'temperature_range' in st.session_state else 'Temperature Range'}:** {env.get('temp_min', 0)}°C {get_text('to', persian)} {env.get('temp_max', 0)}°C
+        ### Site Conditions
+        - **Province:** {env.get('province', 'N/A')}
+        - **City:** {env.get('city', 'N/A')}
+        - **Region:** {env.get('region_name', 'N/A')}
+        - **Land Dimensions:** {env.get('land_length', 0)} m × {env.get('land_width', 0)} m
+        - **Total Land Area:** {env.get('land_area', 0)} m²
+        - **Altitude:** {env.get('altitude', 0)} m above sea level
+        - **Temperature Range:** {env.get('temp_min', 0)}°C to {env.get('temp_max', 0)}°C
         
-        ### {get_text('wind_env_data', persian)}
-        - **{get_text('prevailing_wind_direction', persian) if 'prevailing_wind_direction' in st.session_state else 'Prevailing Wind Direction'}:** {env.get('wind_direction', 'N/A')}
-        - **{get_text('maximum_wind_speed', persian) if 'maximum_wind_speed' in st.session_state else 'Maximum Wind Speed'}:** {env.get('wind_max', 0)} km/h
-        - **{get_text('average_wind_speed', persian) if 'average_wind_speed' in st.session_state else 'Average Wind Speed'}:** {env.get('wind_avg', 0)} km/h
-        - **{get_text('terrain_category', persian) if 'terrain_category' in st.session_state else 'Terrain Category'}:** {env.get('terrain_category', 'N/A')}
-        - **{get_text('roughness_length', persian) if 'roughness_length' in st.session_state else 'Roughness Length'} (z₀):** {env.get('terrain_z0', 'N/A')} m
-        - **{get_text('minimum_height', persian) if 'minimum_height' in st.session_state else 'Minimum Height'} (z_min):** {env.get('terrain_zmin', 'N/A')} m
-        - **{get_text('carousel_orientation', persian) if 'carousel_orientation' in st.session_state else 'Carousel Orientation'}:** {st.session_state.carousel_orientation}
+        ### Wind & Environmental Data (AS 1170.4, EN 1991-1-4, ISIRI 2800)
+        - **Prevailing Wind Direction:** {env.get('wind_direction', 'N/A')}
+        - **Maximum Wind Speed:** {env.get('wind_max', 0)} km/h
+        - **Average Wind Speed:** {env.get('wind_avg', 0)} km/h
+        - **Terrain Category:** {env.get('terrain_category', 'N/A')}
+        - **Roughness Length (z₀):** {env.get('terrain_z0', 'N/A')} m
+        - **Minimum Height (z_min):** {env.get('terrain_zmin', 'N/A')} m
+        - **Carousel Orientation:** {st.session_state.carousel_orientation}
         
-        ### {get_text('geotechnical_data', persian)}
-        - **{get_text('soil_type', persian) if 'soil_type' in st.session_state else 'Soil Type'}:** {st.session_state.soil_type}
-        - **{get_text('importance_group', persian) if 'importance_group' in st.session_state else 'Importance Group'}:** {st.session_state.importance_group}
-        - **{get_text('seismic_hazard_level', persian) if 'seismic_hazard_level' in st.session_state else 'Seismic Hazard Level'} (ISIRI 2800):** {env.get('seismic_hazard', 'N/A')}
+        ### Geotechnical Data (ISIRI 2800)
+        - **Soil Type:** {st.session_state.soil_type}
+        - **Importance Group:** {st.session_state.importance_group}
+        - **Seismic Hazard Level:** {env.get('seismic_hazard', 'N/A')}
         
-        ### {get_text('safety_classification', persian) if 'safety_classification' in st.session_state else 'Safety Classification (INSO 8987-1-2023)'}
-        - **{get_text('design_class', persian) if 'design_class' in st.session_state else 'Design Class'}:** {get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_data.get('class_design', 'N/A')}
-        - **{get_text('design_dynamic_product', persian) if 'design_dynamic_product' in st.session_state else 'Design Dynamic Product'}:** {class_data.get('p_design', 0):.2f}
-        - **{get_text('actual_operating_class', persian) if 'actual_operating_class' in st.session_state else 'Actual Operating Class'}:** {get_text('class', persian) if 'class' in st.session_state else 'Class'} {class_data.get('class_actual', 'N/A')}
-        - **{get_text('actual_dynamic_product', persian) if 'actual_dynamic_product' in st.session_state else 'Actual Dynamic Product'}:** {class_data.get('p_actual', 0):.2f}
-        - **{get_text('maximum_acceleration', persian) if 'maximum_acceleration' in st.session_state else 'Maximum Acceleration'}:** {class_data.get('n_actual', 0):.3f}g
-        - **{get_text('braking_acceleration', persian) if 'braking_acceleration' in st.session_state else 'Braking Acceleration'}:** {st.session_state.braking_acceleration} m/s²
+        ### Safety Classification (INSO 8987-1-2023)
+        - **Design Class:** Class {class_data.get('class_design', 'N/A')}
+        - **Design Dynamic Product:** {class_data.get('p_design', 0):.2f}
+        - **Actual Operating Class:** Class {class_data.get('class_actual', 'N/A')}
+        - **Actual Dynamic Product:** {class_data.get('p_actual', 0):.2f}
+        - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
+        - **Braking Acceleration:** {st.session_state.braking_acceleration} m/s²
         
-        ### {get_text('restraint_req', persian)}
+        ### Restraint System Requirements
         
-        #### ISO 17842-2023 {get_text('classification', persian) if 'classification' in st.session_state else 'Classification'}
-        - **{get_text('zone', persian) if 'zone' in st.session_state else 'Zone'}:** {class_data.get('restraint_zone_iso', 'N/A')}
-        - **{get_text('requirement', persian) if 'requirement' in st.session_state else 'Requirement'}:** {class_data.get('restraint_description_iso', get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'N/A')}
-        - **{get_text('acceleration_range', persian) if 'acceleration_range' in st.session_state else 'Acceleration Range'}:** ax = [{class_data.get('min_ax_g', 0):.3f}g {get_text('to', persian)} {class_data.get('max_ax_g', 0):.3f}g], az = [{class_data.get('min_az_g', 0):.3f}g {get_text('to', persian)} {class_data.get('max_az_g', 0):.3f}g]
+        #### ISO 17842-2023 Classification
+        - **Zone:** {class_data.get('restraint_zone_iso', 'N/A')}
+        - **Requirement:** {class_data.get('restraint_description_iso', 'N/A')}
+        - **Acceleration Range:** ax = [{class_data.get('min_ax_g', 0):.3f}g to {class_data.get('max_ax_g', 0):.3f}g], az = [{class_data.get('min_az_g', 0):.3f}g to {class_data.get('max_az_g', 0):.3f}g]
         
-        #### AS 3533.1-2009+A1-2011 {get_text('classification', persian) if 'classification' in st.session_state else 'Classification'}
-        - **{get_text('zone', persian) if 'zone' in st.session_state else 'Zone'}:** {class_data.get('restraint_zone_as', 'N/A')}
-        - **{get_text('requirement', persian) if 'requirement' in st.session_state else 'Requirement'}:** {class_data.get('restraint_description_as', get_text('standard_restraint', persian) if 'standard_restraint' in st.session_state else 'N/A')}
+        #### AS 3533.1-2009+A1-2011 Classification
+        - **Zone:** {class_data.get('restraint_zone_as', 'N/A')}
+        - **Requirement:** {class_data.get('restraint_description_as', 'N/A')}
         
-        ### {get_text('applicable_standards', persian)}
-        - INSO 8987-1-2023 ({get_text('safety_of_amusement_rides', persian) if 'safety_of_amusement_rides' in st.session_state else 'Safety of amusement rides'} - {get_text('general_requirements', persian) if 'general_requirements' in st.session_state else 'General requirements'})
-        - ISO 17842-2023 ({get_text('safety_of_amusement_rides', persian) if 'safety_of_amusement_rides' in st.session_state else 'Safety of amusement rides and devices'})
-        - AS 3533.1-2009+A1-2011 ({get_text('design_and_construction', persian) if 'design_and_construction' in st.session_state else 'Design and construction'})
-        - AS 1170.4-2007(A1) ({get_text('wind_actions', persian) if 'wind_actions' in st.session_state else 'Wind actions'})
-        - EN 1991-1-4:2005+A1-2010 ({get_text('eurocode_wind_actions', persian) if 'eurocode_wind_actions' in st.session_state else 'Eurocode - Wind actions'})
-        - ISIRI 2800 ({get_text('seismic_resistant_design', persian) if 'seismic_resistant_design' in st.session_state else 'Seismic resistant design'})
-        - ISIRI 519 ({get_text('design_loads_for_buildings', persian) if 'design_loads_for_buildings' in st.session_state else 'Design loads for buildings'})
-        - DIN 18800 ({get_text('structural_steelwork', persian) if 'structural_steelwork' in st.session_state else 'Structural steelwork'})
-        - EN 1993 ({get_text('design_of_steel_structures', persian) if 'design_of_steel_structures' in st.session_state else 'Design of steel structures'})
+        ### Applicable Standards
+        - INSO 8987-1-2023 (Safety of amusement rides - General requirements)
+        - ISO 17842-2023 (Safety of amusement rides and devices)
+        - AS 3533.1-2009+A1-2011 (Design and construction)
+        - AS 1170.4-2007(A1) (Wind actions)
+        - EN 1991-1-4:2005+A1-2010 (Eurocode - Wind actions)
+        - ISIRI 2800 (Seismic resistant design)
+        - ISIRI 519 (Design loads for buildings)
+        - DIN 18800 (Structural steelwork)
+        - EN 1993 (Design of steel structures)
         
         ---
         
-        **{get_text('disclaimer', persian) if 'disclaimer' in st.session_state else 'Note'}:** {get_text('preliminary_design', persian) if 'preliminary_design' in st.session_state else 'This is a preliminary design report. Final engineering calculations, detailed structural analysis, and professional review by licensed engineers are required before construction. All designs must comply with local building codes and regulations.'}
+        **Note:** This is a preliminary design report. Final engineering calculations, detailed 
+        structural analysis, and professional review by licensed engineers are required before 
+        construction. All designs must comply with local building codes and regulations.
         """)
     
-    st.info(f"🚧 {get_text('note_title', persian)} {get_text('note_text', persian)}")
+    st.info("🚧 **Note:** Detailed structural, electrical, and safety analyses require professional engineering consultation.")
     
     st.markdown("---")
     l, m, r = st.columns([1,0.5,1])
     with l:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with m:
-        st.button(f"🔄 {get_text('new_design', persian)}", on_click=reset_design)
+        st.button("🔄 New Design", on_click=reset_design)
     with r:
-        if st.button(f"📥 {get_text('export_report', persian)}"):
-            st.info(get_text('export_soon', persian))
+        if st.button("📥 Export Report"):
+            st.info("Report export functionality - Coming soon!")
     
-    st.success(get_text('design_complete', persian))
+    st.success("✅ Design Complete! All parameters have been configured.")
 
 # === STEP 12: Additional Analysis (Optional Future Step) ===
 elif st.session_state.step == 12:
@@ -2398,6 +2401,6 @@ elif st.session_state.step == 12:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(f"⬅️ {get_text('back', persian)}", on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(f"🔄 {get_text('new_design', persian)}", on_click=reset_design)
+        st.button("🔄 New Design", on_click=reset_design)
