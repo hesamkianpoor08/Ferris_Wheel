@@ -1448,7 +1448,7 @@ def validate_current_step_and_next():
 # --- UI ---
 # Language toggle in sidebar
 with st.sidebar:
-    st.title(get_text('app_title', persian) if 'app_title' in texts else "🎡 Ferris Wheel Designer")
+    st.title("🎡 Ferris Wheel Designer")
     persian = st.toggle("🇮🇷 فارسی", value=st.session_state.persian, key="persian_toggle")
     st.session_state.persian = persian
     
