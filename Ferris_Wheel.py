@@ -16,6 +16,44 @@ def get_text(key, persian=False):
     texts = {
         'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراحی چرخ و فلک خوش آمدید"},
         'app_title': {'en': "🎡 Ferris Wheel Designer", 'fa': "🎡 طراح چرخ و فلک"},
+        'about_app_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراح چرخ و فلک خوش آمدید"},
+            
+        'standards_col1_content': {
+        'en': """**Current Standards for Amusement Devices:**
+        - AS 3533.1-2009+A1-2011 - Design and construction
+        - INSO 8987-1-2023 - General requirements
+        - ISO 17842-2023 - Safety of amusement rides
+
+        **Legacy Standards:**
+        - AS 3533.2-2009+A1-2011 - Operation and maintenance""",
+                'fa': """**استاندارد‌های جاری برای وسایل تفریحی:**
+        - AS 3533.1-2009+A1-2011 - طراحی و ساخت
+        - INSO 8987-1-2023 - الزامات عمومی
+        - ISO 17842-2023 - ایمنی وسایل تفریحی
+
+        **استاندارد‌های قدیمی:**
+        - AS 3533.2-2009+A1-2011 - بهره‌برداری و نگهداری"""
+            },
+            
+         'standards_col2_content': {
+        'en': """**Standards for Load Analysis:**
+        - ISIRI 519 - Design loads for buildings
+        - AS 1170.4-2007(A1) - Wind actions
+        - ISIRI 2800 - Seismic Resistant Design
+
+        **Key Application Areas:**
+        - Wind Load: AS 1170.4, ISIRI 2800
+        - Seismic Analysis: ISIRI 2800""",
+                'fa': """**استاندارد‌های تحلیل بار:**
+        - ISIRI 519 - بار‌های طراحی برای ساختمان‌ها
+        - AS 1170.4-2007(A1) - اقدامات باد
+        - ISIRI 2800 - طراحی مقاوم در برابر زلزله
+
+        **حوزه‌های کاربرد کلیدی:**
+        - بار باد: AS 1170.4, ISIRI 2800
+        - تحلیل لرزه‌ای: ISIRI 2800"""
+            },
+
         'step': {'en': "Step", 'fa': "مرحله"},
         'of': {'en': "of", 'fa': "از"},
         'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
@@ -1448,6 +1486,10 @@ def validate_current_step_and_next():
 
 # --- UI ---
 # Language toggle in sidebar
+if 'persian' not in st.session_state:
+    st.session_state.persian = False
+if 'step' not in st.session_state:
+    st.session_state.step = 0
 with st.sidebar:
     current_persian = st.session_state.get('persian', False)
     st.title(get_text('app_title', current_persian))
@@ -1460,11 +1502,13 @@ with st.sidebar:
 
 total_steps = 13
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
-st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
+st.markdown(f"**{get_text('step', st.session_state.persian)} {st.session_state.get('step', 0) + 1} {get_text('of', st.session_state.persian)} {total_steps}**")
 st.markdown("---")
 
 # === STEP 0: Welcome and Standards ===
 if st.session_state.get('step', 0) == 0:
+    st.header(get_text('about_app_title', st.session_state.persian))
+    st.markdown("---")
     col_lang1, col_lang2 = st.columns([3,1])
     with col_lang1:
         st.header(get_text('welcome_title', persian))
