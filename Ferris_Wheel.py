@@ -27,6 +27,7 @@ def get_text(key, persian=False):
         'geom_vert_cyl': {'en': "Vertical Cylinder", 'fa': "استوانه عمودی"},
         'geom_horiz_cyl': {'en': "Horizontal Cylinder", 'fa': "استوانه افقی"},
         'geom_spherical': {'en': "Spherical", 'fa': "کروی"},
+        "geom_spherical_caption": {"fa": "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد.","en": "This option is more expensive but has a better appearance."},
         'diameter_label': {'en': "Ferris Wheel Diameter (m)", 'fa': "قطر چرخ و فلک (متر)"},
         'num_cabins_label': {'en': "Number of Cabins", 'fa': "تعداد کابین‌ها"},
         'cabin_cap_label': {'en': "Cabin Capacity (passengers per cabin)", 'fa': "ظرفیت کابین (مسافر به ازای هر کابین)"},
@@ -1437,23 +1438,29 @@ elif st.session_state.get('step', 0) == 1:
     st.header(get_text('select_generation', persian))
     st.markdown("---")
     
-    image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
-    captions = [
-        get_text('gen_1_truss', persian),
-        get_text('gen_2_cable', persian),
-        get_text('gen_2_pure_cable', persian),
-        get_text('gen_4_hubless', persian)
-    ]
-    
-    cols = st.columns(4, gap="small")
-    for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
-        with col:
-            try:
-                st.image(img_path, width=240)
-            except:
-                st.write(f"Image not found: {img_path}")
-            st.caption(caption)
-            st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
+image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
+captions = [
+    get_text('gen_1_truss', persian),
+    get_text('gen_2_cable', persian),
+    get_text('gen_2_pure_cable', persian),
+    get_text('gen_4_hubless', persian)
+]
+
+cols = st.columns(4, gap="small")
+for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
+    with col:
+        try:
+            st.image(img_path, width=240)
+        except:
+            st.write(f"Image not found: {img_path}")
+        st.caption(caption)
+        if "sphere" in img_path.lower() or caption == get_text('geom_spherical', persian):
+            st.markdown(
+                f"<p style='font-size:12px; color:gray; text-align:center;'>{get_text('geom_spherical_caption', persian)}</p>",
+                unsafe_allow_html=True
+            )
+        st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
+
     
     st.markdown("---")
     st.write("Click the button under the image to select a generation and proceed.")
