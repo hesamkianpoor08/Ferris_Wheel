@@ -1434,40 +1434,45 @@ if st.session_state.get('step', 0) == 0:
         st.info("Please confirm your understanding of the standards to continue.")
 
 # === STEP 1: Generation selection ===
-elif st.session_state.get('step', 0) == 1:
+if st.session_state.get('step', 0) == 1:
     st.header(get_text('select_generation', persian))
     st.markdown("---")
-    
-image_files = ["./git/assets/1st.jpg", "./git/assets/2nd_1.jpg", "./git/assets/2nd_2.jpg", "./git/assets/4th.jpg"]
-captions = [
-    get_text('gen_1_truss', persian),
-    get_text('gen_2_cable', persian),
-    get_text('gen_2_pure_cable', persian),
-    get_text('gen_4_hubless', persian)
-]
 
-cols = st.columns(4, gap="small")
-for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
-    with col:
-        try:
-            st.image(img_path, width=240)
-        except:
-            st.write(f"Image not found: {img_path}")
-        st.caption(caption)
-        if "sphere" in img_path.lower() or caption == get_text('geom_spherical', persian):
-            st.markdown(
-                f"<p style='font-size:12px; color:gray; text-align:center;'>{get_text('geom_spherical_caption', persian)}</p>",
-                unsafe_allow_html=True
+    image_files = [
+        "./git/assets/1st.jpg",
+        "./git/assets/2nd_1.jpg",
+        "./git/assets/2nd_2.jpg",
+        "./git/assets/4th.jpg",
+    ]
+    captions = [
+        get_text('gen_1_truss', persian),
+        get_text('gen_2_cable', persian),
+        get_text('gen_2_pure_cable', persian),
+        get_text('gen_4_hubless', persian)
+    ]
+
+    cols = st.columns(4, gap="small")
+    for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
+        with col:
+            if os.path.exists(img_path):
+                st.image(img_path, width=240)
+            else:
+                st.error(f"Image not found: {img_path}")
+            st.caption(caption)
+            st.button(
+                get_text("select", persian),
+                key=f"gen_btn_{i}",
+                on_click=select_generation,
+                args=(caption,)
             )
-        st.button("Select", key=f"gen_btn_{i}", on_click=select_generation, args=(caption,))
 
-    
     st.markdown("---")
-    st.write("Click the button under the image to select a generation and proceed.")
+    st.write(get_text("select_generation_hint", persian) or "Click the button under the image to select a generation and proceed.")
     st.markdown("---")
+
     left_col = st.container()
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back", key="back_btn", on_click=go_back)
 
 
 # === STEP 2: Cabin Geometry ===
