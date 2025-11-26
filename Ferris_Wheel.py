@@ -1468,7 +1468,7 @@ if st.session_state.get('step', 0) == 1:
             )
 
     st.markdown("---")
-    st.write(get_text("select_generation_hint", persian) or "Click the button under the image to select a generation and proceed.")
+    st.write(get_text("select the Ferris Wheel generation ", persian) or "Click the button under the image to select a generation and proceed.")
     st.markdown("---")
 
     left_col = st.container()
@@ -1492,18 +1492,15 @@ if st.session_state.get("step", 0) == 2:
 
     def select_geometry_callback(selected_label):
         st.session_state.cabin_geometry = selected_label
-
         if "diameter" not in st.session_state:
             st.session_state.diameter = 0.0
         if "num_cabins" not in st.session_state:
             st.session_state.num_cabins = 1
-
         base = base_for_geometry(st.session_state.diameter, selected_label)
         min_c, max_c = calc_min_max_from_base(base)
         st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
-
         st.session_state.capacities_calculated = False
-        st.session_state.step = 3   
+        st.session_state.step = 3
         st.rerun()
 
     for i, (label, img_path) in enumerate(geom_images):
@@ -1512,15 +1509,26 @@ if st.session_state.get("step", 0) == 2:
                 st.image(img_path, use_column_width=True)
             except Exception as e:
                 import os
-                st.write(f"Could not load image: {img_path}")
+                st.error(f"Could not load image: {img_path}")
                 st.write("Exists:", os.path.exists(img_path))
                 st.write("Abs path:", os.path.abspath(img_path))
                 st.write("Error:", e)
             st.caption(label)
-            st.button("Select", key=f"geom_img_btn_{i}", on_click=select_geometry_callback, args=(label,))
+            if label == get_text('geom_spherical', persian):
+                st.markdown(
+                    f"<p style='font-size:12px; color:gray; text-align:center;'>{get_text('geom_spherical_caption', persian)}</p>",
+                    unsafe_allow_html=True
+                )
+            st.button(
+                get_text("select", persian),
+                key=f"geom_img_btn_{i}",
+                on_click=select_geometry_callback,
+                args=(label,)
+            )
+
     left_col = st.container()
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back", key="geom_back_btn", on_click=go_back)
 
 
 # === STEP 3: Primary parameters ===
