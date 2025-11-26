@@ -1457,6 +1457,11 @@ elif st.session_state.get('step', 0) == 1:
     
     st.markdown("---")
     st.write("Click the button under the image to select a generation and proceed.")
+    st.markdown("---")
+    left_col = st.container()
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
+
 
 # === STEP 2: Cabin Geometry ===
 if st.session_state.get("step", 0) == 2:
@@ -1499,6 +1504,9 @@ if st.session_state.get("step", 0) == 2:
                 st.write("Error:", e)
             st.caption(label)
             st.button("Select", key=f"geom_img_btn_{i}", on_click=select_geometry_callback, args=(label,))
+    left_col = st.container()
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
 
 
 # === STEP 3: Primary parameters ===
