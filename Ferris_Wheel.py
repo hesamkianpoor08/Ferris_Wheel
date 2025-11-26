@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+import os
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -1473,6 +1474,7 @@ if st.session_state.get('step', 0) == 1:
     left_col = st.container()
     with left_col:
         st.button("⬅️ Back", key="back_btn", on_click=go_back)
+
 
 
 # === STEP 2: Cabin Geometry ===
