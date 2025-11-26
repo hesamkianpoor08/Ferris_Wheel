@@ -28,7 +28,7 @@ def get_text(key, persian=False):
         'geom_vert_cyl': {'en': "Vertical Cylinder", 'fa': "استوانه عمودی"},
         'geom_horiz_cyl': {'en': "Horizontal Cylinder", 'fa': "استوانه افقی"},
         'geom_spherical': {'en': "Spherical", 'fa': "کروی"},
-        "geom_spherical_caption": {"fa": "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد.","en": "This option is more expensive but has a better appearance."},
+        "geom_spherical_caption": {"fa": "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد","en": "This option is more expensive but has a better appearance."},
         'diameter_label': {'en': "Ferris Wheel Diameter (m)", 'fa': "قطر چرخ و فلک (متر)"},
         'num_cabins_label': {'en': "Number of Cabins", 'fa': "تعداد کابین‌ها"},
         'cabin_cap_label': {'en': "Cabin Capacity (passengers per cabin)", 'fa': "ظرفیت کابین (مسافر به ازای هر کابین)"},
@@ -1533,7 +1533,7 @@ if st.session_state.get("step", 0) == 2:
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
-    st.header(get_text('cabin_capacity_vip', persian))
+    st.header(get_text('cabin specification', persian))
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
 
