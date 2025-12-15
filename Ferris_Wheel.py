@@ -1683,30 +1683,40 @@ elif st.session_state.step == 5:
         key="altitude_input"
     )
 
+
+
     st.markdown("---")
     st.subheader("Wind Information")
     w1, w2 = st.columns(2)
+
     with w1:
         wind_dir = st.selectbox(
             "Wind Direction",
             options=["North", "South", "East", "West", "Northeast", "Northwest", "Southeast", "Southwest"],
             key="wind_dir_input"
         )
+
     with w2:
         wind_max = st.number_input(
-            "Maximum Wind Speed (km/h)",
+            "second internal wind speed (km/h)",
             min_value=0,
             value=int(st.session_state.environment_data.get('wind_max', 108)),
             step=1,
             key="wind_max_input"
         )
+        wind_max_ms = float(wind_max) / 3.6
+        st.caption(f"speed: {wind_max_ms:.2f} m/s")
+
         wind_avg = st.number_input(
-            "Average Wind Speed (km/h)",
+            "minutes internal wind speed (km/h)",
             min_value=0,
             value=int(st.session_state.environment_data.get('wind_avg', 54)),
             step=1,
             key="wind_avg_input"
         )
+        wind_avg_ms = float(wind_avg) / 3.6
+        st.caption(f"speed: {wind_avg_ms:.2f} m/s")
+
 
     st.markdown("---")
     load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.get('wind_rose_loaded', False), key="load_wind_checkbox")
