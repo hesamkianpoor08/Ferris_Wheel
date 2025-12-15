@@ -1767,11 +1767,9 @@ elif st.session_state.step == 6:
         
         
         st.markdown("---")
-        
+        st.subheader("Terrain Information")
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
-            
-            st.subheader("Terrain Information")
             
             col1, col2 = st.columns(2)
             with col1:
