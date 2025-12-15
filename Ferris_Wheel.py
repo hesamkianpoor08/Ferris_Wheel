@@ -1299,12 +1299,6 @@ def validate_current_step_and_next():
         if not s.orientation_confirmed:
             errors.append("Please confirm the carousel orientation or select a custom direction.")
     
-    if errors:
-        st.session_state.validation_errors = errors
-        for e in errors:
-            st.error(e)
-    else:
-        st.session_state.validation_errors = []
         st.session_state.step = min(12, st.session_state.step + 1)
 
 def map_direction_to_axis_and_vector(dir_str):
