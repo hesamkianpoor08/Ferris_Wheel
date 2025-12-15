@@ -1781,11 +1781,16 @@ elif st.session_state.step == 6:
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
             
-            col1 = st.columns(1)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("Terrain Category", terrain['category'])
+            with col2:
+                st.metric("Roughness Length (z₀)", f"{terrain['z0']} m")
+            with col3:
+                st.metric("Minimum Height (z_min)", f"{terrain['zmin']} m")
             
             st.success("✅ Terrain parameters calculated successfully!")
+            st.info(f"**z₀ = {terrain['z0']} m** - This value will be used for wind load calculations per AS 1170.4.")
         
         if st.session_state.terrain_calculated:
             st.markdown("---")
