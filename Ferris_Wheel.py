@@ -1765,7 +1765,12 @@ elif st.session_state.step == 6:
         terrain = TERRAIN_CATEGORIES[province]
         seismic = get_seismic_hazard_from_city(province, city)
         
+        
         st.markdown("---")
+        
+        if st.button("🔄 Calculate Terrain Parameters", type="primary"):
+            st.session_state.terrain_calculated = True
+            
         st.subheader("Terrain Information")
         
         col1, col2 = st.columns(2)
@@ -1775,15 +1780,6 @@ elif st.session_state.step == 6:
         with col2:
             seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
             st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
-        
-        st.markdown("---")
-        
-        if st.button("🔄 Calculate Terrain Parameters", type="primary"):
-            st.session_state.terrain_calculated = True
-            
-        col1 = st.columns(1)[0]
-        with col1:
-            st.metric("Terrain Category", terrain.get('category', 'N/A'))
 
         
         if st.session_state.terrain_calculated:
