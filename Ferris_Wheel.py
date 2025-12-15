@@ -1771,20 +1771,20 @@ elif st.session_state.step == 6:
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
             
-        st.subheader("Terrain Information")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(f"**Terrain Category:** {terrain['category']}")
-            st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
-        with col2:
-            seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
-            st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
+            st.subheader("Terrain Information")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"**Terrain Category:** {terrain['category']}")
+                st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
+            with col2:
+                seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
+                st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
 
-        
-        if st.session_state.terrain_calculated:
-            st.markdown("---")
-            st.success("✅ Terrain parameters have been calculated. You can proceed to the next step.")
+            
+            if st.session_state.terrain_calculated:
+                st.markdown("---")
+                st.success("✅ Terrain parameters have been calculated. You can proceed to the next step.")
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
