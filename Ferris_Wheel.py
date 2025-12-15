@@ -1853,7 +1853,25 @@ elif st.session_state.step == 5:
 
 # === STEP 6: Provincial Characteristics (Terrain Calculation) ===
 elif st.session_state.step == 6:
+    
+    if st.session_state.get('scroll_to_top'):
+        components.html(
+            """
+            <script>
+                window.parent.document.querySelector('section.main').scrollTo(0, 0);
+            </script>
+            """,
+            height=0,
+        )
+        st.session_state.scroll_to_top = False
+    
     st.header(get_text('provincial_characteristics', persian))
+    
+    if st.session_state.get('validation_errors'):
+        for e in st.session_state.validation_errors:
+            st.error(e)
+        st.session_state.validation_errors = []
+    
     st.markdown("**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**")
     st.markdown("---")
     
@@ -1869,7 +1887,6 @@ elif st.session_state.step == 6:
         terrain = TERRAIN_CATEGORIES[province]
         seismic = get_seismic_hazard_from_city(province, city)
         
-        
         st.markdown("---")
         st.subheader("Terrain Information")
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
@@ -1883,7 +1900,6 @@ elif st.session_state.step == 6:
                 seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
                 st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
 
-            
             if st.session_state.terrain_calculated:
                 st.markdown("---")
                 st.success("✅ Terrain parameters have been calculated. You can proceed to the next step.")
