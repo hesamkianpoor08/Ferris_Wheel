@@ -1300,8 +1300,7 @@ def validate_current_step_and_next():
     
     if errors:
         st.session_state.validation_errors = errors
-        for e in errors:
-            st.error(e)
+        st.session_state.scroll_to_top = True
     else:
         st.session_state.validation_errors = []
         st.session_state.step = min(12, st.session_state.step + 1)
@@ -1603,6 +1602,23 @@ if st.session_state.get("step", 0) == 2:
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
+
+    if st.session_state.get('validation_errors'):
+        for e in st.session_state.validation_errors:
+            st.error(e)
+        st.session_state.validation_errors = []
+        
+    if st.session_state.get('scroll_to_top'):
+        st.markdown(
+            """
+            <script>
+                window.scrollTo(0, 0);
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+        st.session_state.scroll_to_top = False
+
     st.header(get_text('cabin specification', persian))
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
