@@ -1770,7 +1770,7 @@ elif st.session_state.step == 6:
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"**Terrain Category:** {terrain['category']}")
+            st.markdown(f"**Terrain Category:** {terrain.get('category', 'N/A')}")
             st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
         with col2:
             seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
@@ -1781,9 +1781,9 @@ elif st.session_state.step == 6:
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
             
-            col1 = st.columns(1)
+            col1= st.columns(1)
             with col1:
-                st.metric("Terrain Category", terrain['category'])
+                st.metric("Terrain Category", terrain.get('category', 'N/A'))
             
             st.success("✅ Terrain parameters calculated successfully!")
         
@@ -2168,6 +2168,8 @@ elif st.session_state.step == 11:
         st.write(f"**Temperature Range:** {env.get('temp_min',0)}°C to {env.get('temp_max',0)}°C")
     with col2:
         st.write(f"**Terrain Category:** {env.get('terrain_category','N/A')}")
+        st.write(f"**z₀:** {env.get('terrain_z0','N/A')} m")
+        st.write(f"**z_min:** {env.get('terrain_zmin','N/A')} m")
         st.write(f"**Seismic Hazard (ISIRI 2800):** {env.get('seismic_hazard','N/A')}")
         st.write(f"**Wind Direction:** {env.get('wind_direction','N/A')}")
         st.write(f"**Max Wind Speed:** {env.get('wind_max',0)} km/h")
