@@ -3,6 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 import os
 import math
+import streamlit.components.v1 as components
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -1602,25 +1603,26 @@ if st.session_state.get("step", 0) == 2:
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
-
+    
+    if st.session_state.get('scroll_to_top'):
+        components.html(
+            """
+            <script>
+                window.parent.document.querySelector('section.main').scrollTo(0, 0);
+            </script>
+            """,
+            height=0,
+        )
+        st.session_state.scroll_to_top = False
+    
+    st.header(get_text('cabin specification', persian))
+    st.subheader(f"Generation: {st.session_state.generation_type}")
+    
     if st.session_state.get('validation_errors'):
         for e in st.session_state.validation_errors:
             st.error(e)
         st.session_state.validation_errors = []
-        
-    if st.session_state.get('scroll_to_top'):
-        st.markdown(
-            """
-            <script>
-                window.scrollTo(0, 0);
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
-        st.session_state.scroll_to_top = False
-
-    st.header(get_text('cabin specification', persian))
-    st.subheader(f"Generation: {st.session_state.generation_type}")
+    
     st.markdown("---")
 
     col1, col2 = st.columns(2)
