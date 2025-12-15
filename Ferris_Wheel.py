@@ -1858,46 +1858,158 @@ elif st.session_state.step == 7:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 8: Carousel Orientation ===
-elif st.session_state.step == 8:
+import math
+import plotly.graph_objects as go
+
+def map_wind_to_orientation_key(wind_dir: str):
+
+    wd = wind_dir.lower() if wind_dir else ""
+    if wd in ('north', 'n'):
+        return 'NS'
+    if wd in ('south', 's'):
+        return 'NS'
+    if wd in ('east', 'e'):
+        return 'EW'
+    if wd in ('west', 'w'):
+        return 'EW'
+    if wd in ('northeast', 'ne'):
+        return 'NE_SW'
+    if wd in ('southwest', 'sw'):
+        return 'NE_SW'
+    if wd in ('southeast', 'se'):
+        return 'SE_NW'
+    if wd in ('northwest', 'nw'):
+        return 'SE_NW'
+    
+    return 'NS'
+
+def human_label_for_key(key: str):
+    return {
+        'NS': 'North–South',
+        'EW': 'East–West',
+        'NE_SW': 'Northeast–Southwest',
+        'SE_NW': 'Southeast–Northwest'
+    }.get(key, 'North–South')
+
+def create_orientation_diagram_key(orientation_key, land_length, land_width, diameter):
+    
+    fig = go.Figure()
+
+    pad = max(10, max(land_length, land_width) * 0.05)
+    x_min, x_max = -land_length/2 - pad, land_length/2 + pad
+    y_min, y_max = -land_width/2 - pad, land_width/2 + pad
+
+    diam = diameter if (diameter is not None and diameter > 0) else min(land_length, land_width) * 0.4
+    rect_w = diam
+    rect_h = diam * 0.6  
+
+
+    angle_deg = {
+        'NS': 0,     
+        'EW': 90,
+        'NE_SW': 45,
+        'SE_NW': -45
+    }.get(orientation_key, 0)
+
+    if orientation_key == 'NS':
+        w, h = rect_h, rect_w
+    elif orientation_key == 'EW':
+        w, h = rect_h, rect_w
+    else:
+        w, h = rect_w, rect_h
+
+    corners = [
+        (-w/2, -h/2),
+        ( w/2, -h/2),
+        ( w/2,  h/2),
+        (-w/2,  h/2),
+        (-w/2, -h/2)
+    ]
+
+    theta = math.radians(angle_deg)
+    cos_t, sin_t = math.cos(theta), math.sin(theta)
+    rotated = [(x * cos_t - y * sin_t, x * sin_t + y * cos_t) for x, y in corners]
+    xs, ys = zip(*rotated)
+
+    fig.add_trace(go.Scatter(x=[x_min, x_max, x_max, x_min, x_min],
+                             y=[y_min, y_min, y_max, y_max, y_min],
+                             mode='lines',
+                             fill='toself',
+                             fillcolor='rgba(240,240,240,0.3)',
+                             line=dict(color='lightgrey'),
+                             showlegend=False,
+                             hoverinfo='skip'
+                            ))
+
+    fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', fill='toself',
+                             fillcolor='rgba(50,130,200,0.6)', line=dict(color='rgb(30,90,160)'),
+                             name='Carousel'))
+
+    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers+text',
+                             marker=dict(size=4, color='black'),
+                             text=[human_label_for_key(orientation_key)],
+                             textposition='top center',
+                             showlegend=False))
+
+    fig.update_layout(
+        xaxis=dict(range=[x_min, x_max], zeroline=False, showgrid=False, visible=False),
+        yaxis=dict(range=[y_min, y_max], zeroline=False, showgrid=False, visible=False),
+        width=700, height=500,
+        margin=dict(l=20, r=20, t=30, b=20),
+        title=f"Carousel orientation: {human_label_for_key(orientation_key)}",
+        showlegend=False
+    )
+    fig.update_yaxes(scaleanchor = "x", scaleratio = 1)  
+    return fig
+
+if st.session_state.step == 8:
     st.header(get_text('carousel_orientation', persian))
     st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
-    
-    wind_direction = st.session_state.environment_data.get('wind_direction', 'North')
-    land_length = st.session_state.environment_data.get('land_length', 100)
-    land_width = st.session_state.environment_data.get('land_width', 100)
-    diameter = st.session_state.diameter
-    
-    st.subheader(f"Suggested Orientation Based on Wind Direction: {wind_direction}")
-    st.info(f"Based on the prevailing wind direction ({wind_direction}), we recommend orienting the carousel in the same direction for optimal wind load distribution.")
-    
-    fig_orientation = create_orientation_diagram(wind_direction, land_length, land_width, diameter)
+
+    env = st.session_state.get('environment_data', {})
+    wind_direction = env.get('wind_direction', 'North')
+    land_length = env.get('land_length', 100)
+    land_width = env.get('land_width', 100)
+    diameter = st.session_state.get('diameter', None)
+
+    suggested_key = map_wind_to_orientation_key(wind_direction)
+    suggested_label = human_label_for_key(suggested_key)
+
+    st.subheader(f"Suggested Orientation Based on Wind Direction: {suggested_label}")
+    st.info(f"Based on the prevailing wind direction ({wind_direction}), we recommend orienting the carousel along {suggested_label} axis.")
+
+    fig_orientation = create_orientation_diagram_key(suggested_key, land_length, land_width, diameter)
     st.plotly_chart(fig_orientation, use_container_width=True)
-    
+
     st.markdown("---")
-    
+
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("✅ Confirm Suggested Orientation", type="primary"):
-            st.session_state.carousel_orientation = wind_direction
+        if st.button("✅ Confirm Suggested Orientation"):
+            st.session_state.carousel_orientation = suggested_key
             st.session_state.orientation_confirmed = True
-            st.success(f"Orientation confirmed: {wind_direction}")
-    
+            st.success(f"Orientation confirmed: {suggested_label}")
+
     with col2:
         st.markdown("**Or select custom orientation:**")
-    
-    directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
-    custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, 
-                                    index=directions.index(wind_direction) if wind_direction in directions else 0, 
-                                    key="custom_orientation_select")
-    
+
+    orientation_keys = ['NS', 'EW', 'NE_SW', 'SE_NW']
+    orientation_labels = [human_label_for_key(k) for k in orientation_keys]
+
+    init_index = orientation_keys.index(suggested_key) if suggested_key in orientation_keys else 0
+
+    custom_sel = st.selectbox(get_text('custom_direction', persian), options=orientation_labels, index=init_index, key="custom_orientation_select")
+
+    selected_key = orientation_keys[orientation_labels.index(custom_sel)]
+
     if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
-        st.session_state.carousel_orientation = custom_direction
+        st.session_state.carousel_orientation = selected_key
         st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set: {custom_direction}")
-        fig_custom = create_orientation_diagram(custom_direction, land_length, land_width, diameter)
+        st.success(f"Custom orientation set: {custom_sel}")
+        fig_custom = create_orientation_diagram_key(selected_key, land_length, land_width, diameter)
         st.plotly_chart(fig_custom, use_container_width=True)
-    
+
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
