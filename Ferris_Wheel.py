@@ -1349,13 +1349,7 @@ def axis_label(axis):
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
     w = float(land_length)
     h = float(land_width)
-    angle = {
-        'NS': 90,
-        'EW': 0,
-        'NE_SW': 45,
-        'SE_NW': 135
-    }[axis_key]
-
+    angle = math.degrees(math.atan2(arrow_vec[1], arrow_vec[0]))
     corners = [(-w/2, -h/2), (w/2, -h/2), (w/2, h/2), (-w/2, h/2), (-w/2, -h/2)]
     t = math.radians(angle)
     cos_t, sin_t = math.cos(t), math.sin(t)
@@ -1377,6 +1371,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
                       width=700, height=500, margin=dict(l=20, r=20, t=30, b=20), showlegend=False)
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     return fig
+
 
 
 
