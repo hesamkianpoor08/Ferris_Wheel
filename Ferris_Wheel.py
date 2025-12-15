@@ -2256,14 +2256,30 @@ elif st.session_state.step == 11:
     # Orientation
     st.subheader("🧭 Carousel Orientation")
     st.caption("Per AS 1170.4-2007(A1), EN 1991-1-4:2005")
-    st.write(f"**Selected Orientation:** {st.session_state.carousel_orientation}")
-    fig_final_orientation = create_orientation_diagram(
-        st.session_state.carousel_orientation,
-        env.get('land_length'),
-        env.get('land_width'),
-        st.session_state.diameter
-    )
-    st.plotly_chart(fig_final_orientation, use_container_width=True)
+
+    axis_key = st.session_state.get('carousel_orientation', None)
+
+    if axis_key:
+        st.write(f"**Selected Orientation:** {axis_label(axis_key)}")
+        arrow_map = {
+            'NS': (0, 1, axis_label('NS')),
+            'EW': (1, 0, axis_label('EW')),
+            'NE_SW': (1/math.sqrt(2), 1/math.sqrt(2), axis_label('NE_SW')),
+            'SE_NW': (-1/math.sqrt(2), 1/math.sqrt(2), axis_label('SE_NW'))
+        }
+        arrow_vec_x, arrow_vec_y, arrow_text = arrow_map.get(axis_key, (0,1,axis_label('NS')))
+        arrow_vec = (arrow_vec_x, arrow_vec_y)
+        fig_final_orientation = create_orientation_diagram(
+            axis_key,
+            env.get('land_length'),
+            env.get('land_width'),
+            arrow_vec,
+            arrow_text
+        )
+        st.plotly_chart(fig_final_orientation, use_container_width=True)
+    else:
+        st.write("**Selected Orientation:** N/A")
+
 
     st.markdown("---")
     
