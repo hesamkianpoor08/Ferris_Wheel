@@ -1380,9 +1380,10 @@ def create_orientation_diagram_key(key, land_length, land_width, diameter):
     dx, dy = {
         'NS': (0, arrow_len),
         'EW': (arrow_len, 0),
-        'NE_SW': (arrow_len/math.sqrt(2), arrow_len/math.sqrt(2)),
-        'SE_NW': (arrow_len/math.sqrt(2), -arrow_len/math.sqrt(2))
+        'NE_SW': (arrow_len / math.sqrt(2), -arrow_len / math.sqrt(2)),
+        'SE_NW': (arrow_len / math.sqrt(2), arrow_len / math.sqrt(2))
     }[key]
+
 
     fig.add_annotation(
         x=dx, y=dy,
