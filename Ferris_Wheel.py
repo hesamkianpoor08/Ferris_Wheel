@@ -4,6 +4,17 @@ import plotly.graph_objects as go
 import os
 import math
 
+st.markdown(
+    """
+    <style>
+    div[data-testid="stAlert"][role="alert"] {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- Page Configuration ---
 st.set_page_config(
     page_title="Ferris Wheel Designer",
