@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 import os
 import math
 
-
 # --- Page Configuration ---
 st.set_page_config(
     page_title="Ferris Wheel Designer",
@@ -1299,6 +1298,13 @@ def validate_current_step_and_next():
         if not s.orientation_confirmed:
             errors.append("Please confirm the carousel orientation or select a custom direction.")
     
+    if errors:
+        st.session_state.validation_errors = errors
+        for e in errors:
+            st.error(e)
+    else:
+        st.session_state.validation_errors = []
+        st.session_state.step = min(12, st.session_state.step + 1)
 
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
@@ -1597,10 +1603,6 @@ if st.session_state.get("step", 0) == 2:
 
 # === STEP 3: Primary parameters ===
 elif st.session_state.step == 3:
-    if st.session_state.get('validation_errors'):
-        for e in st.session_state.validation_errors:
-            st.error(e)
-
     st.header(get_text('cabin specification', persian))
     st.subheader(f"Generation: {st.session_state.generation_type}")
     st.markdown("---")
