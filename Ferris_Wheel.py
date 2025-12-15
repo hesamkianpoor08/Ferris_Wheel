@@ -1341,11 +1341,12 @@ def create_orientation_diagram_key(key, land_length, land_width, diameter):
         w, h = h, w
 
     angle = {
-        'NS': 0,
+        'NS': 90,
         'EW': 0,
-        'NE_SW': 45,
-        'SE_NW': -45
+        'NE_SW': -45,
+        'SE_NW': 45
     }[key]
+
 
     if key in ('NE_SW', 'SE_NW'):
         pass
