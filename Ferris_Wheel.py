@@ -1736,7 +1736,7 @@ elif st.session_state.step == 5:
         'province': province, 'city': city, 'region_name': region_name, 'land_length': land_length, 'land_width': land_width,
         'land_area': land_length * land_width, 'altitude': altitude, 'temp_min': temp_min, 'temp_max': temp_max,
         'wind_direction': wind_dir, 'wind_max': wind_max, 'wind_avg': wind_avg,
-        'terrain_category': terrain['category'],
+        'terrain_category': terrain['category'], 'terrain_z0': terrain['z0'], 'terrain_zmin': terrain['zmin'],
         'terrain_desc': terrain.get('desc', ''), 'seismic_hazard': seismic
     }
 
@@ -1770,7 +1770,7 @@ elif st.session_state.step == 6:
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"**Terrain Category:** {terrain.get('category', 'N/A')}")
+            st.markdown(f"**Terrain Category:** {terrain['category']}")
             st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
         with col2:
             seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
@@ -1781,9 +1781,9 @@ elif st.session_state.step == 6:
         if st.button("🔄 Calculate Terrain Parameters", type="primary"):
             st.session_state.terrain_calculated = True
             
-            col1= st.columns(1)
+            col1 = st.columns(1)
             with col1:
-                st.metric("Terrain Category", terrain.get('category', 'N/A'))
+                st.metric("Terrain Category", terrain['category'])
             
             st.success("✅ Terrain parameters calculated successfully!")
         
