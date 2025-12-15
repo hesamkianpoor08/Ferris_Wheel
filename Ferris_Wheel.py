@@ -1700,7 +1700,26 @@ elif st.session_state.step == 4:
 
 # === STEP 5: Environment Conditions ===
 elif st.session_state.step == 5:
+    
+    if st.session_state.get('scroll_to_top'):
+        components.html(
+            """
+            <script>
+                window.parent.document.querySelector('section.main').scrollTo(0, 0);
+            </script>
+            """,
+            height=0,
+        )
+        st.session_state.scroll_to_top = False
+    
     st.header(get_text('environment_conditions', persian))
+    
+    
+    if st.session_state.get('validation_errors'):
+        for e in st.session_state.validation_errors:
+            st.error(e)
+        st.session_state.validation_errors = []
+    
     st.markdown("**Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800**")
     st.markdown("---")
 
@@ -1771,8 +1790,6 @@ elif st.session_state.step == 5:
         key="altitude_input"
     )
 
-
-
     st.markdown("---")
     st.subheader("Wind Information")
     w1, w2 = st.columns(2)
@@ -1804,7 +1821,6 @@ elif st.session_state.step == 5:
         )
         wind_avg_ms = float(wind_avg) / 3.6
         st.caption(f"speed: {wind_avg_ms:.2f} m/s")
-
 
     st.markdown("---")
     load_wind = st.checkbox("Load wind rose (upload jpg/pdf)", value=st.session_state.get('wind_rose_loaded', False), key="load_wind_checkbox")
