@@ -1353,8 +1353,9 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         'NS': 90,
         'EW': 0,
         'NE_SW': 45,
-        'SE_NW': -45
+        'SE_NW': 135
     }[axis_key]
+
     corners = [(-w/2, -h/2), (w/2, -h/2), (w/2, h/2), (-w/2, h/2), (-w/2, -h/2)]
     t = math.radians(angle)
     cos_t, sin_t = math.cos(t), math.sin(t)
