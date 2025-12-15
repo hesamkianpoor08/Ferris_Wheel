@@ -1298,14 +1298,14 @@ def validate_current_step_and_next():
     elif s.step == 8:
         if not s.orientation_confirmed:
             errors.append("Please confirm the carousel orientation or select a custom direction.")
-    
+
     if errors:
-        st.session_state.validation_errors = errors
-        for e in errors:
-            st.error(e)
-    else:
-        st.session_state.validation_errors = []
-        st.session_state.step = min(12, st.session_state.step + 1)
+        s.validation_errors = errors
+        return
+
+    s.validation_errors = []
+    s.step = min(12, s.step + 1)
+
 
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
@@ -1649,6 +1649,11 @@ elif st.session_state.step == 3:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
+    
+    if st.session_state.get("validation_errors"):
+        for err in st.session_state.validation_errors:
+            st.error(err)
+
 
 # === STEP 4: Rotation Time ===
 elif st.session_state.step == 4:
