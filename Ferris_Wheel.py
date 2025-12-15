@@ -1309,23 +1309,15 @@ def validate_current_step_and_next():
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
     s = 1 / math.sqrt(2)
-    if d in ('north', 'n'):
-        return 'NS', 'North', (0, 1)
-    if d in ('south', 's'):
-        return 'NS', 'South', (0, -1)
-    if d in ('east', 'e'):
-        return 'EW', 'East', (1, 0)
-    if d in ('west', 'w'):
-        return 'EW', 'West', (-1, 0)
-    if d in ('northeast', 'ne'):
-        return 'NE_SW', 'Northeast', (s, s)
-    if d in ('southwest', 'sw'):
-        return 'NE_SW', 'Southwest', (-s, -s)
-    if d in ('southeast', 'se'):
-        return 'SE_NW', 'Southeast', (s, -s)
-    if d in ('northwest', 'nw'):
-        return 'SE_NW', 'Northwest', (-s, s)
-    return 'NS', 'North', (0, 1)
+    if d in ('North-South', 'n'):
+        return 'NS', 'North-South', (0, 1)
+    if d in ('East-West', 'e'):
+        return 'EW', 'East-West', (1, 0)
+    if d in ('Northeast-Southwest', 'ne'):
+        return 'NE_SW', 'Northeast-Southwest', (s, s)
+    if d in ('Northwest-Southeast', 'se'):
+        return 'SE_NW', 'Northwest-Southeast', (s, -s)
+    return 'NS', 'North-South', (0, 1)
 
 def axis_label(axis):
     return {
@@ -1954,7 +1946,7 @@ if st.session_state.step == 8:
     with col2:
         st.markdown("**Or select custom orientation:**")
 
-    directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
+    directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
     init_index = directions.index(wind_direction) if wind_direction in directions else 0
     custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
 
