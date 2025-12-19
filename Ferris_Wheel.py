@@ -2033,6 +2033,11 @@ if st.session_state.step == 8:
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
+    
+    st.image("images/Axis_Guide.jpg", 
+             caption="Axis Guide" if not persian else "راهنمای محورها",
+             use_column_width=True)
+    
     st.markdown("**Calculation per INSO 8987-1-2023**")
     st.markdown("---")
 
@@ -2077,10 +2082,10 @@ elif st.session_state.step == 9:
     st.subheader("Actual Operation Analysis")
     st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
     
-    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(diameter, height, angular_velocity, braking_accel)
-    class_actual = classify_device(p_actual)
+    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(diameter, height, angular_velocity, braking_accel) 
+    class_actual = classify_device(p_actual) 
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3) 
     with col1:
         st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²")
         st.caption(f"({n_actual:.3f}g)")
