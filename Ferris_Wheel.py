@@ -2034,11 +2034,6 @@ if st.session_state.step == 8:
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
     
-   
-    st.image("assets/Axis_Guide.jpg", 
-             caption="Axis Guide" if not persian else "راهنمای محورها",
-             use_column_width=True)
-    
     st.markdown("**Calculation per INSO 8987-1-2023**")
     st.markdown("---")
 
@@ -2110,6 +2105,9 @@ elif st.session_state.step == 9:
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
     st.header(get_text('restraint_type', persian))
+    st.image("assets/Axis_Guide.jpg", 
+            caption="Axis Guide" if not persian else "راهنمای محورها",
+            use_column_width=True)
     st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
