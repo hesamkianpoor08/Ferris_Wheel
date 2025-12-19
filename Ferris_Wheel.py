@@ -2217,6 +2217,14 @@ elif st.session_state.step == 10:
         - **Zone 4** (Green): Moderate restraint
         - **Zone 5** (Red): Special consideration
         """)
+        
+        
+        st.markdown("**📊 Points Distribution in Zones (ISO):**")
+        total_points = len(restraint_zones_iso)
+        for zone in sorted(zone_counts_iso.keys()):
+            count = zone_counts_iso[zone]
+            percentage = (count / total_points) * 100
+            st.write(f"- Zone {zone}: {count} points ({percentage:.1f}%)")
     
     with col_as:
         st.subheader("AS 3533.1 Acceleration Envelope")
@@ -2231,6 +2239,14 @@ elif st.session_state.step == 10:
         - **Zone 4** (Green): Moderate restraint
         - **Zone 5** (Red): Special consideration
         """)
+        
+       
+        st.markdown("**📊 Points Distribution in Zones (AS):**")
+        total_points = len(restraint_zones_as)
+        for zone in sorted(zone_counts_as.keys()):
+            count = zone_counts_as[zone]
+            percentage = (count / total_points) * 100
+            st.write(f"- Zone {zone}: {count} points ({percentage:.1f}%)")
     
     st.session_state.classification_data.update({
         'restraint_zone_iso': predominant_zone_iso,
@@ -2240,7 +2256,9 @@ elif st.session_state.step == 10:
         'min_ax_g': min_ax,
         'min_az_g': min_az,
         'restraint_description_iso': restraint_descriptions_iso.get(predominant_zone_iso, 'Standard restraint'),
-        'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint')
+        'restraint_description_as': restraint_descriptions_as.get(predominant_zone_as, 'Standard restraint'),
+        'zone_distribution_iso': dict(zone_counts_iso),
+        'zone_distribution_as': dict(zone_counts_as)
     })
     
     st.markdown("---")
