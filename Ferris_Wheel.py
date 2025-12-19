@@ -2034,7 +2034,8 @@ if st.session_state.step == 8:
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
     
-    st.image("images/Axis_Guide.jpg", 
+   
+    st.image("asset/Axis_Guide.jpg", 
              caption="Axis Guide" if not persian else "راهنمای محورها",
              use_column_width=True)
     
