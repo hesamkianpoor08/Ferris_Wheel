@@ -2176,6 +2176,8 @@ elif st.session_state.step == 9:
         st.session_state.enable_wind = False
     if 'enable_earthquake' not in st.session_state:
         st.session_state.enable_earthquake = False
+    if 'cabin_area' not in st.session_state:
+        st.session_state.cabin_area = min(diameter * 1.5, 20.0)
     if 'terror_factor' not in st.session_state:
         st.session_state.terror_factor = 1.0
     if 'height_factor' not in st.session_state:
@@ -2193,9 +2195,11 @@ elif st.session_state.step == 9:
         if enable_snow:
             st.caption("Snow load: 0.2 kN/m²" if not persian else "بار برف: ۰.۲ کیلونیوتن بر متر مربع")
             # Approximate cabin surface area based on diameter
+            # Make sure default value doesn't exceed max_value
+            default_cabin_area = min(diameter * 1.5, 20.0)
             cabin_area = st.number_input("Cabin Surface Area (m²)" if not persian else "مساحت سطح کابین (متر مربع)", 
                                         min_value=1.0, max_value=20.0, 
-                                        value=diameter * 1.5, step=0.5, format="%.2f",
+                                        value=default_cabin_area, step=0.5, format="%.2f",
                                         key="cabin_area_input")
             st.session_state.cabin_area = cabin_area
     
@@ -2208,13 +2212,20 @@ elif st.session_state.step == 9:
         
         if enable_wind:
             # Based on Table 1 from the image
+            # Initialize default index if not set
+            if 'height_category_index' not in st.session_state:
+                st.session_state.height_category_index = 0
+            
             height_category = st.selectbox(
                 "Height Category (m)" if not persian else "دسته‌بندی ارتفاع (متر)",
                 options=["0 < H ≤ 8", "8 < H ≤ 20", "20 < H ≤ 35", "35 < H ≤ 50"],
-                index=0,
+                index=st.session_state.height_category_index,
                 key="height_category"
             )
-            st.session_state.height_category = height_category
+            
+            # Store the category value separately (not directly to session_state of the widget)
+            if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
+                st.session_state.height_category_value = height_category
             
             # Map height category to wind pressure
             wind_pressure_map = {
@@ -2230,12 +2241,12 @@ elif st.session_state.step == 9:
             # Terror and Height factors (فاکتور وحشت و ارتفاع)
             st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
             terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
-                                     min_value=1.0, max_value=5.0, value=1.0, step=0.5,
+                                     min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
                                      key="terror_factor_slider")
             st.session_state.terror_factor = terror_factor
             
             height_factor = st.slider("Height Factor" if not persian else "فاکتور ارتفاع", 
-                                     min_value=1.0, max_value=5.0, value=1.0, step=0.5,
+                                     min_value=1.0, max_value=5.0, value=st.session_state.height_factor, step=0.5,
                                      key="height_factor_slider")
             st.session_state.height_factor = height_factor
     
@@ -2249,10 +2260,14 @@ elif st.session_state.step == 9:
         if enable_earthquake:
             st.caption("Seismic loads" if not persian else "بارهای لرزه‌ای")
             
+            # Initialize default seismic coefficient if not set
+            if 'seismic_coefficient' not in st.session_state:
+                st.session_state.seismic_coefficient = 0.15
+            
             # Seismic coefficient (approximate)
             seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
                                           min_value=0.0, max_value=0.5, 
-                                          value=0.15, step=0.01, format="%.3f",
+                                          value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
                                           key="seismic_coef_input")
             st.session_state.seismic_coefficient = seismic_coef
             
