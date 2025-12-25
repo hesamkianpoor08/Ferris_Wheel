@@ -21,20 +21,22 @@ def get_text(key, persian=False):
         'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراح چرخ و فلک خوش آمدید"},
         'step': {'en': "Step", 'fa': "مرحله"},
         'of': {'en': "of", 'fa': "از"},
-        'back': {'en': "⬅️ Back", 'fa': "⬅️ بازگشت"},
-        'next': {'en': "Next ➡️", 'fa': "بعدی ➡️"},
+        'back': {'en': "Back", 'fa': "بازگشت"},
+        'next': {'en': "Next", 'fa': "بعدی"},
         'calculate': {'en': "Calculate", 'fa': "محاسبه"},
         'confirm': {'en': "Confirm", 'fa': "تایید"},
         'select': {'en': "Select", 'fa': "انتخاب"},
         
-        # Step 0
+        # Step 0 - Welcome Page
+        'welcome_header': {'en': "Welcome to Ferris Wheel Designer", 'fa': "خوش آمدید به طراح چرخ و فلک"},
         'about_title': {'en': "🎯 About This Application", 'fa': "🎯 درباره این نرم‌افزار"},
         'about_intro': {'en': "This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, and compliant ferris wheel installations. The application guides you through:", 
-                       'fa': "این ابزار جامع طراحی چرخ و فلک به مهندسان و طراحان در ایجاد نصب‌های ایمن، کارآمد و مطابق با استانداردهای چرخ و فلک کمک می‌کند - این برنامه شما را در موارد زیر راهنمایی می‌کند:"},
+                       'fa': "این ابزار جامع طراحی چرخ و فلک به مهندسان و طراحان در ایجاد نصب‌های ایمن، کارآمد و مطابق با استانداردهای چرخ و فلک کمک می‌کند. این برنامه شما را در موارد زیر راهنمایی می‌کند"},
+        
         'feature_generation': {'en': "**Generation Selection**: Choose from various ferris wheel generations and structural types",
                               'fa': "**انتخاب نسل**: انتخاب از نسل‌ها و انواع سازه‌ای مختلف چرخ و فلک"},
         'feature_cabin': {'en': "**Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements",
-                         'fa': "**پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین‌های ویژه"},
+                         'fa': "** پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین های وی آی پی "},
         'feature_performance': {'en': "**Performance Analysis**: Calculate rotation times, speeds, and passenger capacity",
                                'fa': "**تحلیل عملکرد**: محاسبه زمان چرخش، سرعت‌ها و ظرفیت مسافری"},
         'feature_environment': {'en': "**Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters",
@@ -43,18 +45,28 @@ def get_text(key, persian=False):
                           'fa': "**طبقه‌بندی ایمنی**: تعیین کلاس دستگاه و الزامات مهاربند"},
         'feature_structural': {'en': "**Structural Design**: Generate comprehensive design specifications",
                               'fa': "**طراحی سازه**: تولید مشخصات کامل طراحی"},
+        
         'standards_title': {'en': "📋 Design Standards & References", 'fa': "📋 استانداردها و مراجع طراحی"},
         'standards_intro': {'en': "This application implements calculations and requirements based on the following international and national standards:",
-                           'fa': "این نرم‌افزار محاسبات و الزامات را بر اساس استانداردهای بین‌المللی و ملی زیر پیاده‌سازی می‌کند:"},
+                           'fa': "این نرم‌افزار محاسبات و الزامات را بر اساس استانداردهای بین‌المللی و ملی زیر پیاده‌سازی می‌کند"},
+        
+        # Standards Headers
         'standards_current': {'en': "#### Current Standards for Amusement Devices:", 'fa': "#### استانداردهای فعلی برای وسایل تفریحی:"},
         'standards_legacy': {'en': "#### Legacy Standards (Reference):", 'fa': "#### استانداردهای قدیمی (مرجع):"},
         'standards_loads': {'en': "#### Standards for Load Analysis:", 'fa': "#### استانداردهای تحلیل بار:"},
         'standards_applications': {'en': "#### Key Application Areas:", 'fa': "#### حوزه‌های کاربردی کلیدی:"},
+        
+        # Application Areas
         'app_wind': {'en': "**Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800",
                     'fa': "**تحلیل بار باد**: AS 1170.4، EN 1991-1-4، ISIRI 2800"},
-        'app_seismic': {'en': "**Seismic Analysis**: ISIRI 2800", 'fa': "**تحلیل لرزه‌ای**: ISIRI 2800"},
-        'app_structural': {'en': "**Structural Design**: DIN 18800, EN 1993", 'fa': "**طراحی سازه**: DIN 18800، EN 1993"},
-        'app_safety': {'en': "**Safety Classification**: INSO 8987, ISO 17842", 'fa': "**طبقه‌بندی ایمنی**: INSO 8987، ISO 17842"},
+        'app_seismic': {'en': "**Seismic Analysis**: ISIRI 2800",
+                       'fa': "**تحلیل لرزه‌ای**: ISIRI 2800"},
+        'app_structural': {'en': "**Structural Design**: DIN 18800, EN 1993",
+                          'fa': "**طراحی سازه**: DIN 18800، EN 1993"},
+        'app_safety': {'en': "**Safety Classification**: INSO 8987, ISO 17842",
+                      'fa': "**طبقه‌بندی ایمنی**: INSO 8987، ISO 17842"},
+        
+        # Warning
         'warning_title': {'en': "⚠️ **Important Notice:**", 'fa': "⚠️ **اطلاعیه مهم:**"},
         'warning_intro': {'en': "By proceeding, you acknowledge that:", 'fa': "با ادامه، شما تأیید می‌کنید که:"},
         'warning_1': {'en': "This tool provides preliminary design calculations based on the referenced standards",
@@ -67,122 +79,154 @@ def get_text(key, persian=False):
                      'fa': "شرایط خاص سایت ممکن است نیاز به تحلیل اضافی فراتر از محدوده این ابزار داشته باشد"},
         'warning_5': {'en': "The designer assumes responsibility for verifying all calculations and compliance",
                      'fa': "طراح مسئولیت تأیید تمام محاسبات و انطباق را بر عهده دارد"},
-        'confirm_checkbox': {'en': "✅ I understand and accept that all calculations are based on the standards listed above, and I will ensure compliance with local regulations and professional engineering review",
-                            'fa': "✅ من درک می‌کنم و می‌پذیرم که تمام محاسبات بر اساس استانداردهای فهرست شده در بالا هستند و من انطباق با مقررات محلی و بررسی مهندسی حرفه‌ای را تضمین خواهم کرد"},
-        'confirm_success': {'en': "✅ Standards confirmed. You may proceed to the design process",
-                           'fa': "✅ استانداردها تأیید شدند - می‌توانید به فرآیند طراحی ادامه دهید"},
-        'confirm_info': {'en': "Please confirm your understanding of the standards to continue",
-                        'fa': "لطفاً درک خود از استانداردها را برای ادامه تأیید کنید"},
+        
+        # Confirmation
+        'confirm_checkbox': {'en': "✅ I understand and accept that all calculations are based on the standards listed above, and I will ensure compliance with local regulations and professional engineering review.",
+                            'fa': "✅ من درک می‌کنم و می‌پذیرم که تمام محاسبات بر اساس استانداردهای فهرست شده در بالا هستند و من انطباق با مقررات محلی و بررسی مهندسی حرفه‌ای را تضمین خواهم کرد."},
+        'confirm_success': {'en': "✅ Standards confirmed. You may proceed to the design process.",
+                           'fa': "✅ استانداردها تأیید شدند. می‌توانید به فرآیند طراحی ادامه دهید."},
+        'confirm_info': {'en': "Please confirm your understanding of the standards to continue.",
+                        'fa': "لطفاً درک خود از استانداردها را برای ادامه تأیید کنید."},
         'start_button': {'en': "🚀 Start Design Process", 'fa': "🚀 شروع فرآیند طراحی"},
         
-        # Step 1
+        # Step 1 - Generation Selection
         'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
-        'gen_instruction': {'en': "Choose the structural generation type for your ferris wheel", 
-                           'fa': "نوع نسل سازه‌ای را برای چرخ و فلک خود انتخاب کنید"},
         'gen_1_truss': {'en': "1st Generation (Truss type)", 'fa': "نسل اول (نوع خرپایی)"},
-        'gen_2_cable': {'en': "2nd Generation - 1st type (Cable type)", 'fa': "نسل دوم - نوع اول (کابلی)"},
-        'gen_2_pure_cable': {'en': "2nd Generation - 2nd type (Pure cable type)", 'fa': "نسل دوم - نوع دوم (کاملاً کابلی)"},
+        'gen_2_cable': {'en': "2nd Generation_1st type (Cable type)", 'fa': "نسل دوم - نوع اول (کابلی)"},
+        'gen_2_pure_cable': {'en': "2nd Generation_2nd type (Pure cable type)", 'fa': "نسل دوم - نوع دوم (کاملاً کابلی)"},
         'gen_4_hubless': {'en': "4th Generation (Hubless centerless)", 'fa': "نسل چهارم (بدون مرکز)"},
         
-        # Step 2
+        # Step 2 - Cabin Geometry
         'select_cabin_geometry': {'en': "Select Cabin Geometry", 'fa': "انتخاب هندسه کابین"},
-        'cabin_geometry_instruction': {'en': "Choose a cabin shape", 'fa': "یک شکل کابین انتخاب کنید"},
+        'cabin_geometry_instruction': {'en': "Choose a cabin shape.", 'fa': "یک شکل کابین انتخاب کنید."},
         'geom_square': {'en': "Square", 'fa': "مربعی"},
         'geom_vert_cyl': {'en': "Vertical Cylinder", 'fa': "استوانه عمودی"},
         'geom_horiz_cyl': {'en': "Horizontal Cylinder", 'fa': "استوانه افقی"},
         'geom_spherical': {'en': "Spherical", 'fa': "کروی"},
-        'geom_spherical_caption': {'en': "This option is more expensive but has a better appearance", 
+        'geom_spherical_caption': {'en': "This option is more expensive but has a better appearance.", 
                                   'fa': "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد"},
         
-        # Step 3
+        # Step 3 - Primary Parameters
         'cabin_specification': {'en': "Cabin Specification", 'fa': "مشخصات کابین"},
-        'generation_display': {'en': "Generation:", 'fa': "نسل:"},
         'diameter_label': {'en': "Ferris Wheel Diameter (m)", 'fa': "قطر چرخ و فلک (متر)"},
         'num_cabins_label': {'en': "Number of Cabins", 'fa': "تعداد کابین‌ها"},
         'cabin_cap_label': {'en': "Cabin Capacity (passengers per cabin)", 'fa': "ظرفیت کابین (مسافر به ازای هر کابین)"},
-        'num_vip_label': {'en': "Number of VIP Cabins", 'fa': "تعداد کابین‌های ویژه"},
-        'calc_capacities_btn': {'en': "🔄 Calculate Capacities", 'fa': "🔄 محاسبه ظرفیت‌ها"},
+        'num_vip_label': {'en': "Number of VIP Cabins", 'fa': "تعداد کابین‌های VIP"},
+        'calc_capacities': {'en': "🔄 Calculate Capacities", 'fa': "🔄 محاسبه ظرفیت‌ها"},
         'per_rotation_capacity': {'en': "Per-rotation capacity", 'fa': "ظرفیت به ازای هر دور"},
-        'vip_capacity_label': {'en': "VIP capacity (per rotation)", 'fa': "ظرفیت ویژه (به ازای هر دور)"},
+        'vip_capacity': {'en': "VIP capacity (per rotation)", 'fa': "ظرفیت VIP (به ازای هر دور)"},
         'passengers': {'en': "passengers", 'fa': "مسافر"},
-        'each_vip': {'en': "each VIP:", 'fa': "هر ویژه:"},
-        'capacities_calculated': {'en': "Capacities calculated", 'fa': "ظرفیت‌ها محاسبه شدند"},
+        'each_vip': {'en': "each VIP:", 'fa': "هر VIP:"},
+        'capacities_calculated': {'en': "Capacities calculated.", 'fa': "ظرفیت‌ها محاسبه شدند."},
         
-        # Step 4
+        # Step 4 - Rotation Time
         'rotation_time': {'en': "Rotation Time & Derived Speeds", 'fa': "زمان چرخش و سرعت‌های مشتق شده"},
-        'rotation_time_label': {'en': "Rotation time (minutes per full rotation)", 'fa': "زمان چرخش (دقیقه به ازای هر دور کامل)"},
-        'rotational_speed': {'en': "Rotational speed (rpm)", 'fa': "سرعت چرخش (دور در دقیقه)"},
-        'angular_speed': {'en': "Angular speed (rad/s):", 'fa': "سرعت زاویه‌ای (رادیان بر ثانیه):"},
-        'linear_speed': {'en': "Linear speed at rim (m/s)", 'fa': "سرعت خطی در لبه (متر بر ثانیه)"},
-        'estimated_capacity': {'en': "Estimated Capacity per Hour", 'fa': "ظرفیت تخمینی در ساعت"},
-        'pax_per_hour': {'en': "passengers/hour", 'fa': "مسافر در ساعت"},
+        'rotation_time_instruction': {'en': "Enter the rotation time or select target capacity per hour",
+                                     'fa': "زمان چرخش را وارد کنید یا ظرفیت هدف در ساعت را انتخاب کنید"},
+        'rotation_time_label': {'en': "Rotation Time (minutes)", 'fa': "زمان چرخش (دقیقه)"},
+        'capacity_per_hour': {'en': "Capacity per Hour (pax/hr)", 'fa': "ظرفیت در ساعت (مسافر/ساعت)"},
+        'angular_velocity': {'en': "Angular Velocity", 'fa': "سرعت زاویه‌ای"},
+        'linear_velocity': {'en': "Linear Velocity at Rim", 'fa': "سرعت خطی در لبه"},
+        'rotation_speed': {'en': "Rotation Speed", 'fa': "سرعت چرخش"},
         
-        # Step 5
+        # Step 5 - Environment
         'environment_conditions': {'en': "Environment Conditions", 'fa': "شرایط محیطی"},
-        'design_per_standards': {'en': "**Design per AS 1170.4-2007(A1), EN 1991-1-4:2005, ISIRI 2800**",
-                                'fa': "**طراحی طبق AS 1170.4-2007(A1)، EN 1991-1-4:2005، ISIRI 2800**"},
         'select_province': {'en': "Select Province", 'fa': "انتخاب استان"},
         'select_city': {'en': "Select City", 'fa': "انتخاب شهر"},
-        'region_name': {'en': "Region / Area name", 'fa': "نام منطقه یا ناحیه"},
-        'land_surface_area': {'en': "Land Surface Area (meters)", 'fa': "مساحت سطح زمین (متر)"},
+        'region_name': {'en': "Region / Area name", 'fa': "نام منطقه / ناحیه"},
+        'land_dimensions': {'en': "Land Dimensions", 'fa': "ابعاد زمین"},
         'land_length': {'en': "Land Length (m)", 'fa': "طول زمین (متر)"},
         'land_width': {'en': "Land Width (m)", 'fa': "عرض زمین (متر)"},
-        'total_land_area': {'en': "Total Land Area", 'fa': "مساحت کل زمین"},
-        'altitude_temp': {'en': "Altitude and Temperature", 'fa': "ارتفاع و دما"},
-        'max_temp': {'en': "Maximum Temperature (°C)", 'fa': "حداکثر دما (درجه سانتیگراد)"},
-        'min_temp': {'en': "Minimum Temperature (°C)", 'fa': "حداقل دما (درجه سانتیگراد)"},
-        'altitude': {'en': "Altitude (m)", 'fa': "ارتفاع (متر)"},
-        'wind_info': {'en': "Wind Information", 'fa': "اطلاعات باد"},
-        'wind_direction': {'en': "Wind Direction", 'fa': "جهت باد"},
-        'second_internal_wind': {'en': "second internal wind speed (km/h)", 'fa': "سرعت باد داخلی ثانیه (کیلومتر در ساعت)"},
-        'minutes_internal_wind': {'en': "minutes internal wind speed (km/h)", 'fa': "سرعت باد داخلی دقیقه (کیلومتر در ساعت)"},
-        'speed_ms': {'en': "speed:", 'fa': "سرعت:"},
-        'load_wind_rose': {'en': "Load wind rose (upload jpg/pdf)", 'fa': "بارگذاری رز باد (آپلود فایل)"},
-        'wind_rose_file': {'en': "Wind rose file (jpg/pdf)", 'fa': "فایل رز باد"},
+        'altitude': {'en': "Altitude (m above sea level)", 'fa': "ارتفاع (متر از سطح دریا)"},
+        'temp_range': {'en': "Temperature Range", 'fa': "محدوده دما"},
+        'min_temp': {'en': "Minimum Temperature (°C)", 'fa': "حداقل دما (°C)"},
+        'max_temp': {'en': "Maximum Temperature (°C)", 'fa': "حداکثر دما (°C)"},
         
-        # Step 6
+        # Step 6 - Provincial
         'provincial_characteristics': {'en': "Provincial Characteristics & Terrain Parameters", 'fa': "ویژگی‌های استانی و پارامترهای زمین"},
-        'terrain_classification': {'en': "**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**",
-                                  'fa': "**طبقه‌بندی زمین طبق AS 1170.4-2007(A1)، ISIRI 2800**"},
-        'selected_province': {'en': "Selected Province:", 'fa': "استان انتخاب شده:"},
-        'selected_city': {'en': "Selected City:", 'fa': "شهر انتخاب شده:"},
-        'region': {'en': "**Region:**", 'fa': "**منطقه:**"},
-        'terrain_info': {'en': "Terrain Information", 'fa': "اطلاعات زمین"},
-        'calc_terrain_btn': {'en': "🔄 Calculate Terrain Parameters", 'fa': "🔄 محاسبه پارامترهای زمین"},
-        'terrain_category': {'en': "**Terrain Category:**", 'fa': "**دسته‌بندی زمین:**"},
-        'description': {'en': "**Description:**", 'fa': "**توضیحات:**"},
-        'seismic_hazard': {'en': "**Seismic Hazard (ISIRI 2800):**", 'fa': "**خطر لرزه‌ای (ISIRI 2800):**"},
-        'terrain_calculated': {'en': "✅ Terrain parameters have been calculated. You can proceed to the next step",
-                              'fa': "✅ پارامترهای زمین محاسبه شده‌اند - می‌توانید به مرحله بعد بروید"},
+        'zone': {'en': "Zone", 'fa': "منطقه"},
+        'terrain_category': {'en': "Terrain Category", 'fa': "دسته‌بندی زمین"},
+        'wind_direction': {'en': "Prevailing Wind Direction", 'fa': "جهت غالب باد"},
+        'avg_wind_speed': {'en': "Average Wind Speed (km/h)", 'fa': "سرعت متوسط باد (کیلومتر در ساعت)"},
+        'max_wind_speed': {'en': "Maximum Wind Speed (km/h)", 'fa': "حداکثر سرعت باد (کیلومتر در ساعت)"},
+        'seismic_hazard': {'en': "Seismic Hazard Level", 'fa': "سطح خطر لرزه‌ای"},
         
-        # Step 7
+        # Step 7 - Soil Type
         'soil_type': {'en': "Soil Type & Importance Classification", 'fa': "نوع خاک و طبقه‌بندی اهمیت"},
-        'soil_classification': {'en': "**Soil classification per ISIRI 2800 (4th Edition)**",
-                               'fa': "**طبقه‌بندی خاک طبق ISIRI 2800 (ویرایش چهارم)**"},
-        'soil_type_selection': {'en': "Soil Type Selection", 'fa': "انتخاب نوع خاک"},
-        'select_soil_type': {'en': "Select Soil Type", 'fa': "انتخاب نوع خاک"},
-        'auto_importance': {'en': "Automatically Calculated Importance Group", 'fa': "گروه اهمیت محاسبه شده خودکار"},
-        'importance_group': {'en': "**Importance Group:**", 'fa': "**گروه اهمیت:**"},
-        'soil_factor': {'en': "Soil Factor", 'fa': "ضریب خاک"},
-        'importance_factor': {'en': "Importance Factor", 'fa': "ضریب اهمیت"},
+        'select_soil': {'en': "Select Soil Type", 'fa': "انتخاب نوع خاک"},
+        'select_importance': {'en': "Select Importance Group", 'fa': "انتخاب گروه اهمیت"},
         
-        # Step 8
+        # Step 8 - Orientation
         'carousel_orientation': {'en': "Carousel Orientation Selection", 'fa': "انتخاب جهت‌گیری چرخ و فلک"},
-        'wind_analysis': {'en': "**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**",
-                         'fa': "**تحلیل جهت باد طبق AS 1170.4-2007(A1)، EN 1991-1-4:2005**"},
-        'suggested_orientation': {'en': "Suggested Orientation:", 'fa': "جهت‌گیری پیشنهادی:"},
-        'land_dimensions': {'en': "**Land dimensions:**", 'fa': "**ابعاد زمین:**"},
-        'based_on_wind': {'en': "Based on prevailing wind direction", 'fa': "بر اساس جهت غالب باد"},
-        'confirm_suggested': {'en': "✅ Confirm Suggested Orientation", 'fa': "✅ تایید جهت‌گیری پیشنهادی"},
-        'orientation_confirmed': {'en': "Orientation confirmed:", 'fa': "جهت‌گیری تایید شد:"},
-        'or_custom': {'en': "**Or select custom orientation:**", 'fa': "**یا جهت‌گیری سفارشی انتخاب کنید:**"},
+        'suggested_orientation': {'en': "Suggested Orientation (perpendicular to wind)", 'fa': "جهت پیشنهادی (عمود بر باد)"},
+        'confirm_orientation': {'en': "Confirm Suggested Orientation", 'fa': "تایید جهت پیشنهادی"},
         'custom_direction': {'en': "Custom Direction", 'fa': "جهت سفارشی"},
-        'set_custom_btn': {'en': "Set Custom Orientation", 'fa': "تنظیم جهت‌گیری سفارشی"},
-        'custom_set': {'en': "Custom orientation set:", 'fa': "جهت‌گیری سفارشی تنظیم شد:"},
+        'north_south': {'en': "North-South", 'fa': "شمال-جنوب"},
+        'east_west': {'en': "East-West", 'fa': "شرق-غرب"},
+        'northeast_southwest': {'en': "Northeast-Southwest", 'fa': "شمال شرقی-جنوب غربی"},
+        'southeast_northwest': {'en': "Southeast-Northwest", 'fa': "جنوب شرقی-شمال غربی"},
         
-        # Additional common
-        'minutes': {'en': "minutes", 'fa': "دقیقه"},
-        'meter': {'en': "m", 'fa': "متر"},
+        # Step 9 - Classification
+        'device_classification': {'en': "Device Classification", 'fa': "طبقه‌بندی دستگاه"},
+        'calc_per_standard': {'en': "**Calculation per INSO 8987-1-2023**", 'fa': "**محاسبه طبق INSO 8987-1-2023**"},
+        'braking_accel_param': {'en': "Braking Acceleration Parameter", 'fa': "پارامتر شتاب ترمز"},
+        'braking_accel': {'en': "Braking Acceleration (m/s²)", 'fa': "شتاب ترمز (m/s²)"},
+        'braking_accel_actual': {'en': "Braking Acceleration (m/s²) - Actual Operation", 'fa': "شتاب ترمز (m/s²) - عملیات واقعی"},
+        'additional_loads': {'en': "Additional Load Factors", 'fa': "بارهای اضافی"},
+        'snow_load': {'en': "Snow Load", 'fa': "بار برف"},
+        'wind_load': {'en': "Wind Load", 'fa': "بار باد"},
+        'earthquake_load': {'en': "Earthquake Load", 'fa': "بار زلزله"},
+        'design_case': {'en': "Design Case Analysis", 'fa': "تحلیل حالت طراحی"},
+        'actual_operation': {'en': "Actual Operation Analysis", 'fa': "تحلیل عملیات واقعی"},
+        'max_acceleration': {'en': "Max Acceleration", 'fa': "حداکثر شتاب"},
+        'dynamic_product': {'en': "Dynamic Product (p)", 'fa': "حاصل‌ضرب دینامیکی (p)"},
+        'device_class': {'en': "Device Class", 'fa': "کلاس دستگاه"},
+        'load_contributions': {'en': "Additional Load Contributions", 'fa': "مشارکت بارهای اضافی"},
+        
+        # Step 10 - Restraint
+        'restraint_type': {'en': "Restraint Type Determination", 'fa': "تعیین نوع مهاربند"},
+        
+        # Step 11 - Summary
+        'design_summary': {'en': "Complete Design Summary", 'fa': "خلاصه کامل طراحی"},
+        'basic_params': {'en': "🎡 Basic Design Parameters", 'fa': "🎡 پارامترهای پایه طراحی"},
+        'generation': {'en': "Generation", 'fa': "نسل"},
+        'diameter': {'en': "Diameter", 'fa': "قطر"},
+        'height': {'en': "Height", 'fa': "ارتفاع"},
+        'total_cabins': {'en': "Total Cabins", 'fa': "کل کابین‌ها"},
+        'vip_cabins': {'en': "VIP Cabins", 'fa': "کابین‌های VIP"},
+        'cabin_capacity': {'en': "Cabin Capacity", 'fa': "ظرفیت کابین"},
+        'cabin_geometry': {'en': "Cabin Geometry", 'fa': "هندسه کابین"},
+        'rotation_time_min': {'en': "Rotation Time", 'fa': "زمان چرخش"},
+        'capacity_hour': {'en': "Capacity/Hour", 'fa': "ظرفیت/ساعت"},
+        'env_site_conditions': {'en': "🌍 Environment & Site Conditions", 'fa': "🌍 شرایط محیطی و سایت"},
+        'province': {'en': "Province", 'fa': "استان"},
+        'city': {'en': "City", 'fa': "شهر"},
+        'region': {'en': "Region", 'fa': "منطقه"},
+        'land_area': {'en': "Land Area", 'fa': "مساحت زمین"},
+        'temp_range_display': {'en': "Temperature Range", 'fa': "محدوده دما"},
+        'soil_importance': {'en': "🏗️ Soil & Structural Importance", 'fa': "🏗️ خاک و اهمیت سازه"},
+        'orientation_title': {'en': "🧭 Carousel Orientation", 'fa': "🧭 جهت‌گیری چرخ و فلک"},
+        'selected_orientation': {'en': "Selected Orientation", 'fa': "جهت‌گیری انتخاب شده"},
+        'safety_classification': {'en': "⚠️ Safety Classification", 'fa': "⚠️ طبقه‌بندی ایمنی"},
+        'design_class': {'en': "Design Class", 'fa': "کلاس طراحی"},
+        'actual_class': {'en': "Actual Class", 'fa': "کلاس واقعی"},
+        'restraint_requirements': {'en': "🔒 Restraint System Requirements", 'fa': "🔒 الزامات سیستم مهاربند"},
+        'motor_drive': {'en': "⚙️ Motor & Drive System", 'fa': "⚙️ سیستم موتور و درایو"},
+        'rated_power': {'en': "Rated Power", 'fa': "توان نامی"},
+        'peak_power': {'en': "Peak Power", 'fa': "توان پیک"},
+        'operational_power': {'en': "Operational", 'fa': "توان عملیاتی"},
+        'total_mass': {'en': "Total Mass", 'fa': "جرم کل"},
+        'design_viz': {'en': "📊 Design Visualization", 'fa': "📊 تصویرسازی طراحی"},
+        'design_report': {'en': "📄 Design Summary Report", 'fa': "📄 گزارش خلاصه طراحی"},
+        'view_report': {'en': "📋 View Complete Design Report", 'fa': "📋 مشاهده گزارش کامل طراحی"},
+        'new_design': {'en': "🔄 New Design", 'fa': "🔄 طراحی جدید"},
+        'export_report': {'en': "📥 Export Report", 'fa': "📥 خروجی گزارش"},
+        'design_complete': {'en': "✅ Design Complete! All parameters have been configured.", 
+                           'fa': "✅ طراحی کامل شد! تمام پارامترها تنظیم شده‌اند."},
+        'export_coming_soon': {'en': "Report export functionality - Coming soon!", 
+                              'fa': "قابلیت خروجی گزارش - به زودی!"},
+        'professional_note': {'en': "🚧 **Note:** Detailed structural, electrical, and safety analyses require professional engineering consultation.",
+                             'fa': "🚧 **توجه:** تحلیل‌های دقیق سازه‌ای، الکتریکی و ایمنی نیازمند مشاوره مهندسی حرفه‌ای هستند."},
     }
     return texts.get(key, {}).get('fa' if persian else 'en', key)
 
@@ -1895,7 +1939,7 @@ if st.session_state.get('step', 0) == 0:
     
     st.markdown("---")
     
-    # About Section
+    # About Section (بدون عنوان تکراری)
     st.markdown(f"### {get_text('about_title', persian)}")
     st.markdown(get_text('about_intro', persian))
     
@@ -1991,32 +2035,52 @@ if st.session_state.get('step', 0) == 0:
         st.info(get_text('confirm_info', persian))
 
 # === STEP 1: Generation selection ===
-elif st.session_state.step == 1:
+if st.session_state.get('step', 0) == 1:
     st.header(get_text('select_generation', persian))
-    st.markdown(get_text('gen_instruction', persian))
     st.markdown("---")
-    
-    generation_options = [
-        (get_text('gen_1_truss', persian), "1st Generation (Truss type)"),
-        (get_text('gen_2_cable', persian), "2nd Generation_1st type (Cable type)"),
-        (get_text('gen_2_pure_cable', persian), "2nd Generation_2nd type (Pure cable type)"),
-        (get_text('gen_4_hubless', persian), "4th Generation (Hubless centerless)")
+
+    image_files = [
+        "./git/assets/1st.jpg",
+        "./git/assets/2nd_1.jpg",
+        "./git/assets/2nd_2.jpg",
+        "./git/assets/4th.jpg",
     ]
-    
-    for label, internal_value in generation_options:
-        if st.button(label, key=f"gen_{internal_value}", use_container_width=True):
-            st.session_state.generation_type = internal_value
-            st.session_state.step = 2
-            st.rerun()
-    
+    captions = [
+        get_text('gen_1_truss', persian),
+        get_text('gen_2_cable', persian),
+        get_text('gen_2_pure_cable', persian),
+        get_text('gen_4_hubless', persian)
+    ]
+
+    cols = st.columns(4, gap="small")
+    for i, (col, img_path, caption) in enumerate(zip(cols, image_files, captions)):
+        with col:
+            if os.path.exists(img_path):
+                st.image(img_path, width=240)
+            else:
+                st.error(f"Image not found: {img_path}")
+            st.caption(caption)
+            st.button(
+                get_text("select", persian),
+                key=f"gen_btn_{i}",
+                on_click=select_generation,
+                args=(caption,)
+            )
+
     st.markdown("---")
-    st.button(get_text('back', persian), on_click=go_back)
+    st.write(get_text("select the Ferris Wheel generation ", persian) or "Click the button under the image to select a generation and proceed.")
+    st.markdown("---")
+
+    left_col = st.container()
+    with left_col:
+        st.button("⬅️ Back", key="back_btn", on_click=go_back)
 
 
-# === STEP 2: Cabin Geometry Selection (دوزبانه) ===
-elif st.session_state.get("step", 0) == 2:
+
+# === STEP 2: Cabin Geometry ===
+if st.session_state.get("step", 0) == 2:
     st.header(get_text('select_cabin_geometry', persian))
-    st.markdown(get_text('cabin_geometry_instruction', persian))
+    st.markdown("Choose a cabin shape.")
     
     geom_images = [
         (get_text('geom_square', persian), "./git/assets/square.jpg"),
@@ -2064,7 +2128,7 @@ elif st.session_state.get("step", 0) == 2:
 
     left_col = st.container()
     with left_col:
-        st.button(get_text('back', persian), key="geom_back_btn", on_click=go_back)
+        st.button("⬅️ Back", key="geom_back_btn", on_click=go_back)
 
 
 # === STEP 3: Primary parameters ===
@@ -2081,8 +2145,8 @@ elif st.session_state.step == 3:
         )
         st.session_state.scroll_to_top = False
     
-    st.header(get_text('cabin_specification', persian))
-    st.subheader(f"{get_text('generation_display', persian)} {st.session_state.generation_type}")
+    st.header(get_text('cabin specification', persian))
+    st.subheader(f"Generation: {st.session_state.generation_type}")
     
     if st.session_state.get('validation_errors'):
         for e in st.session_state.validation_errors:
@@ -2093,71 +2157,47 @@ elif st.session_state.step == 3:
 
     col1, col2 = st.columns(2)
     with col1:
-        diameter = st.number_input(
-            get_text('diameter_label', persian), 
-            min_value=30, max_value=80, 
-            value=int(st.session_state.diameter), 
-            step=1, key="diameter_input"
-        )
+        diameter = st.number_input(get_text('diameter_label', persian), min_value=30, max_value=80, value=int(st.session_state.diameter), step=1, key="diameter_input")
         st.session_state.diameter = diameter
 
     geometry = st.session_state.cabin_geometry
     base = base_for_geometry(diameter, geometry) if geometry else (np.pi * diameter / 4.0)
     min_c, max_c = calc_min_max_from_base(base)
 
-    num_cabins = st.number_input(
-        get_text('num_cabins_label', persian), 
-        min_value=min_c, max_value=max_c, 
-        value=min(max(int(st.session_state.num_cabins), min_c), max_c), 
-        step=1, key="num_cabins_input"
-    )
+    num_cabins = st.number_input(get_text('num_cabins_label', persian), min_value=min_c, max_value=max_c, 
+                                  value=min(max(int(st.session_state.num_cabins), min_c), max_c), step=1, key="num_cabins_input")
     st.session_state.num_cabins = num_cabins
 
     c1, c2 = st.columns(2)
     with c1:
-        cabin_capacity = st.number_input(
-            get_text('cabin_cap_label', persian), 
-            min_value=4, max_value=8, 
-            value=st.session_state.cabin_capacity, 
-            step=1, key="cabin_capacity_input"
-        )
+        cabin_capacity = st.number_input(get_text('cabin_cap_label', persian), min_value=4, max_value=8, 
+                                         value=st.session_state.cabin_capacity, step=1, key="cabin_capacity_input")
         st.session_state.cabin_capacity = cabin_capacity
     with c2:
-        num_vip = st.number_input(
-            get_text('num_vip_label', persian), 
-            min_value=0, max_value=st.session_state.num_cabins, 
-            value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins), 
-            step=1, key="num_vip_input"
-        )
+        num_vip = st.number_input(get_text('num_vip_label', persian), min_value=0, max_value=st.session_state.num_cabins, 
+                                   value=min(st.session_state.num_vip_cabins, st.session_state.num_cabins), step=1, key="num_vip_input")
         st.session_state.num_vip_cabins = num_vip
 
     st.markdown("---")
-    if st.button(get_text('calc_capacities_btn', persian)):
+    if st.button("🔄 Calculate Capacities"):
         vip_cap = max(0, st.session_state.cabin_capacity - 2)
         vip_total = st.session_state.num_vip_cabins * vip_cap
         regular_total = (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity
         per_rotation = vip_total + regular_total
         c1, c2 = st.columns(2)
-        c1.metric(
-            get_text('per_rotation_capacity', persian), 
-            f"{per_rotation} {get_text('passengers', persian)}"
-        )
-        c2.metric(
-            get_text('vip_capacity_label', persian), 
-            f"{vip_total} {get_text('passengers', persian)} ({get_text('each_vip', persian)} {vip_cap})"
-        )
-        st.success(get_text('capacities_calculated', persian))
+        c1.metric("Per-rotation capacity", f"{per_rotation} passengers")
+        c2.metric("VIP capacity (per rotation)", f"{vip_total} passengers (each VIP: {vip_cap})")
+        st.success("Capacities calculated.")
         st.session_state.capacities_calculated = True
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(get_text('back', persian), on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(get_text('next', persian), on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
-
-# === STEP 4: Rotation Time (دوزبانه) ===
+# === STEP 4: Rotation Time ===
 elif st.session_state.step == 4:
     st.header(get_text('rotation_time', persian))
     st.markdown("---")
@@ -2166,35 +2206,27 @@ elif st.session_state.step == 4:
     circumference = np.pi * diameter
     default_rotation_time_min = (circumference / 0.2) / 60.0 if diameter > 0 else 1.0
 
-    rotation_time_min = st.number_input(
-        get_text('rotation_time_label', persian), 
-        min_value=0.01, max_value=60.0, 
-        value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min), 
-        step=0.01, format="%.2f", key="rotation_time_input"
-    )
+    rotation_time_min = st.number_input("Rotation time (minutes per full rotation)", min_value=0.01, max_value=60.0, 
+                                         value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min), 
+                                         step=0.01, format="%.2f", key="rotation_time_input")
     st.session_state.rotation_time_min = rotation_time_min
 
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
-    st.text_input(get_text('rotational_speed', persian), value=f"{rpm:.6f}", disabled=True)
-    st.caption(f"{get_text('angular_speed', persian)} {ang:.6f}")
-    st.text_input(get_text('linear_speed', persian), value=f"{linear:.6f}", disabled=True)
+    st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
+    st.caption(f"Angular speed (rad/s): {ang:.6f}")
+    st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
 
-    cap_per_hour = calculate_capacity_per_hour_from_time(
-        st.session_state.num_cabins, st.session_state.cabin_capacity, 
-        st.session_state.num_vip_cabins, rotation_time_min
-    )
-    st.metric(
-        get_text('estimated_capacity', persian), 
-        f"{cap_per_hour:.0f} {get_text('pax_per_hour', persian)}"
-    )
+    cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
+                                                          st.session_state.num_vip_cabins, rotation_time_min)
+    st.metric("Estimated Capacity per Hour", f"{cap_per_hour:.0f} passengers/hour")
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(get_text('back', persian), on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(get_text('next', persian), on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 5: Environment Conditions ===
 elif st.session_state.step == 5:
