@@ -823,32 +823,135 @@ def create_component_diagram(diameter, height, capacity, motor_power, num_cabins
     )
     return fig
 
-def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g=9.81):
+def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, 
+                                    snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
+    """
+    Calculate accelerations at a given angle with additional loads
+    
+    Parameters:
+    -----------
+    theta : float
+        Angle in radians
+    diameter : float
+        Wheel diameter in meters
+    angular_velocity : float
+        Angular velocity in rad/s
+    braking_accel : float
+        Braking acceleration in m/s²
+    snow_load : float
+        Snow load in kN (default 0.0)
+    wind_load : float
+        Wind load in kN (default 0.0)
+    earthquake_load : float
+        Earthquake load in kN (default 0.0)
+    g : float
+        Gravitational acceleration (default 9.81 m/s²)
+    
+    Returns:
+    --------
+    a_x_total : float
+        Total horizontal acceleration in m/s²
+    a_z_total : float
+        Total vertical acceleration in m/s²
+    a_total : float
+        Total magnitude of acceleration in m/s²
+    """
     radius = diameter / 2.0
     a_centripetal = radius * (angular_velocity ** 2)
     
+    # Gravity components
     a_z_gravity = -g
     a_x_gravity = 0
     
+    # Centripetal acceleration components
     a_x_centripetal = a_centripetal * np.cos(theta)
     a_z_centripetal = a_centripetal * np.sin(theta)
     
+    # Braking acceleration components
     a_x_braking = braking_accel * np.sin(theta)
     a_z_braking = -braking_accel * np.cos(theta)
     
-    a_x_total = a_x_gravity + a_x_centripetal + a_x_braking
-    a_z_total = a_z_gravity + a_z_centripetal + a_z_braking
+    # Additional loads converted to accelerations
+    # Assuming approximate cabin mass of 500 kg per meter of diameter
+    approx_mass = diameter * 500  # kg
+    
+    # Snow load effect (vertical, downward)
+    a_snow = 0.0
+    if snow_load > 0:
+        # Convert kN to N and divide by mass to get acceleration
+        a_snow = (snow_load * 1000) / approx_mass  # m/s²
+    
+    # Wind load effect (horizontal, varies with position)
+    a_wind_x = 0.0
+    a_wind_z = 0.0
+    if wind_load > 0:
+        # Wind acts horizontally, but its effect varies with cabin position
+        # Maximum effect when cabin is at the side (theta = π/2 or 3π/2)
+        wind_accel = (wind_load * 1000) / approx_mass  # m/s²
+        # Horizontal component (more effect when cabin is on the side)
+        a_wind_x = wind_accel * np.abs(np.sin(theta))
+        # Small vertical component due to drag
+        a_wind_z = wind_accel * 0.1 * np.cos(theta)
+    
+    # Earthquake load effect (horizontal and vertical)
+    a_eq_x = 0.0
+    a_eq_z = 0.0
+    if earthquake_load > 0:
+        eq_accel = (earthquake_load * 1000) / approx_mass  # m/s²
+        # Horizontal component (primary)
+        a_eq_x = eq_accel
+        # Vertical component (typically 50% of horizontal)
+        a_eq_z = eq_accel * 0.5
+    
+    # Total accelerations
+    a_x_total = a_x_gravity + a_x_centripetal + a_x_braking + a_wind_x + a_eq_x
+    a_z_total = a_z_gravity + a_z_centripetal + a_z_braking - a_snow + a_wind_z + a_eq_z
     
     a_total = np.sqrt(a_x_total**2 + a_z_total**2)
     
     return a_x_total, a_z_total, a_total
 
-def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel, g=9.81):
+def calculate_dynamic_product(diameter, height, angular_velocity, braking_accel, 
+                              snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
+    """
+    Calculate dynamic product with additional loads
+    
+    Parameters:
+    -----------
+    diameter : float
+        Wheel diameter in meters
+    height : float
+        Height in meters
+    angular_velocity : float
+        Angular velocity in rad/s
+    braking_accel : float
+        Braking acceleration in m/s²
+    snow_load : float
+        Snow load in kN (default 0.0)
+    wind_load : float
+        Wind load in kN (default 0.0)
+    earthquake_load : float
+        Earthquake load in kN (default 0.0)
+    g : float
+        Gravitational acceleration (default 9.81 m/s²)
+    
+    Returns:
+    --------
+    p : float
+        Dynamic product
+    n : float
+        Maximum acceleration in g units
+    max_accel : float
+        Maximum acceleration in m/s²
+    """
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_accel = 0
     
     for theta in theta_vals:
-        _, _, a_total = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
+        _, _, a_total = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel, 
+            snow_load, wind_load, earthquake_load, g
+        )
         if a_total > max_accel:
             max_accel = a_total
     
@@ -959,14 +1062,18 @@ def determine_restraint_area_as(ax, az):
     
     return 2  # Default
 
-def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=9.81):
+def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, 
+                                  snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
     """Plot the ax vs az acceleration envelope with ISO 17842 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
     
     for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load, g
+        )
         ax_vals.append(a_x / g)
         az_vals.append(a_z / g)
     
@@ -1046,14 +1153,18 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, g=
                       yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
     return fig
 
-def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, g=9.81):
+def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, 
+                                 snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
     """Plot the ax vs az acceleration envelope with AS 3533.1 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
     
     for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, g)
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load, g
+        )
         ax_vals.append(a_x / g)
         az_vals.append(a_z / g)
     
@@ -2056,13 +2167,128 @@ elif st.session_state.step == 9:
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
+    st.subheader("Additional Load Factors" if not persian else "بارهای اضافی")
+    
+    # Initialize session state variables if not present
+    if 'enable_snow' not in st.session_state:
+        st.session_state.enable_snow = False
+    if 'enable_wind' not in st.session_state:
+        st.session_state.enable_wind = False
+    if 'enable_earthquake' not in st.session_state:
+        st.session_state.enable_earthquake = False
+    if 'terror_factor' not in st.session_state:
+        st.session_state.terror_factor = 1.0
+    if 'height_factor' not in st.session_state:
+        st.session_state.height_factor = 1.0
+    
+    col1, col2, col3 = st.columns(3)
+    
+    # Snow Load
+    with col1:
+        enable_snow = st.checkbox("🌨️ Snow Load" if not persian else "🌨️ بار برف", 
+                                  value=st.session_state.enable_snow,
+                                  key="snow_checkbox")
+        st.session_state.enable_snow = enable_snow
+        
+        if enable_snow:
+            st.caption("Snow load: 0.2 kN/m²" if not persian else "بار برف: ۰.۲ کیلونیوتن بر متر مربع")
+            # Approximate cabin surface area based on diameter
+            cabin_area = st.number_input("Cabin Surface Area (m²)" if not persian else "مساحت سطح کابین (متر مربع)", 
+                                        min_value=1.0, max_value=20.0, 
+                                        value=diameter * 1.5, step=0.5, format="%.2f",
+                                        key="cabin_area_input")
+            st.session_state.cabin_area = cabin_area
+    
+    # Wind Load
+    with col2:
+        enable_wind = st.checkbox("💨 Wind Load" if not persian else "💨 بار باد", 
+                                  value=st.session_state.enable_wind,
+                                  key="wind_checkbox")
+        st.session_state.enable_wind = enable_wind
+        
+        if enable_wind:
+            # Based on Table 1 from the image
+            height_category = st.selectbox(
+                "Height Category (m)" if not persian else "دسته‌بندی ارتفاع (متر)",
+                options=["0 < H ≤ 8", "8 < H ≤ 20", "20 < H ≤ 35", "35 < H ≤ 50"],
+                index=0,
+                key="height_category"
+            )
+            st.session_state.height_category = height_category
+            
+            # Map height category to wind pressure
+            wind_pressure_map = {
+                "0 < H ≤ 8": 0.20,
+                "8 < H ≤ 20": 0.30,
+                "20 < H ≤ 35": 0.35,
+                "35 < H ≤ 50": 0.40
+            }
+            wind_pressure = wind_pressure_map[height_category]
+            st.session_state.wind_pressure = wind_pressure
+            st.caption(f"Wind pressure q: {wind_pressure} kN/m²")
+            
+            # Terror and Height factors (فاکتور وحشت و ارتفاع)
+            st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
+            terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
+                                     min_value=1.0, max_value=5.0, value=1.0, step=0.5,
+                                     key="terror_factor_slider")
+            st.session_state.terror_factor = terror_factor
+            
+            height_factor = st.slider("Height Factor" if not persian else "فاکتور ارتفاع", 
+                                     min_value=1.0, max_value=5.0, value=1.0, step=0.5,
+                                     key="height_factor_slider")
+            st.session_state.height_factor = height_factor
+    
+    # Earthquake Load
+    with col3:
+        enable_earthquake = st.checkbox("🌍 Earthquake Load" if not persian else "🌍 بار زلزله", 
+                                       value=st.session_state.enable_earthquake,
+                                       key="earthquake_checkbox")
+        st.session_state.enable_earthquake = enable_earthquake
+        
+        if enable_earthquake:
+            st.caption("Seismic loads" if not persian else "بارهای لرزه‌ای")
+            
+            # Seismic coefficient (approximate)
+            seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
+                                          min_value=0.0, max_value=0.5, 
+                                          value=0.15, step=0.01, format="%.3f",
+                                          key="seismic_coef_input")
+            st.session_state.seismic_coefficient = seismic_coef
+            
+            st.caption(f"Approx. horizontal force: {seismic_coef}×Weight")
+            st.caption(f"Approx. vertical force: {seismic_coef*0.5}×Weight")
+    
+    st.markdown("---")
     st.subheader("Design Case Analysis")
     st.markdown("**Design parameters:** Speed = 1 rpm, Braking acceleration = 0.7 m/s²")
     
     omega_design = 1.0 * (2.0 * np.pi / 60.0)
     a_brake_design = 0.7
     
-    p_design, n_design, max_accel_design = calculate_dynamic_product(diameter, height, omega_design, a_brake_design)
+    # Calculate additional loads for design case
+    snow_load = 0.0
+    wind_load = 0.0
+    earthquake_load = 0.0
+    
+    if st.session_state.enable_snow:
+        snow_load = 0.2 * st.session_state.cabin_area  # kN
+    
+    if st.session_state.enable_wind:
+        # Wind load calculation with terror and height factors
+        wind_load = (st.session_state.wind_pressure * st.session_state.cabin_area * 
+                    st.session_state.terror_factor * st.session_state.height_factor)  # kN
+    
+    if st.session_state.enable_earthquake:
+        # Approximate earthquake horizontal load
+        # Assuming cabin mass ~ 500 kg per meter of diameter
+        approx_mass = diameter * 500  # kg
+        earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)  # kN
+    
+    p_design, n_design, max_accel_design = calculate_dynamic_product(
+        diameter, height, omega_design, a_brake_design, 
+        snow_load, wind_load, earthquake_load
+    )
     class_design = classify_device(p_design)
     
     col1, col2, col3 = st.columns(3)
@@ -2074,11 +2300,31 @@ elif st.session_state.step == 9:
     with col3:
         st.metric("Device Class (Design)", f"Class {class_design}")
     
+    # Display load contributions if any are enabled
+    if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
+        st.markdown("**Additional Load Contributions:**" if not persian else "**مشارکت بارهای اضافی:**")
+        load_col1, load_col2, load_col3 = st.columns(3)
+        
+        with load_col1:
+            if st.session_state.enable_snow:
+                st.metric("Snow Load", f"{snow_load:.3f} kN")
+        
+        with load_col2:
+            if st.session_state.enable_wind:
+                st.metric("Wind Load", f"{wind_load:.3f} kN")
+        
+        with load_col3:
+            if st.session_state.enable_earthquake:
+                st.metric("Earthquake Load", f"{earthquake_load:.3f} kN")
+    
     st.markdown("---")
     st.subheader("Actual Operation Analysis")
     st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
     
-    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(diameter, height, angular_velocity, braking_accel) 
+    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
+        diameter, height, angular_velocity, braking_accel,
+        snow_load, wind_load, earthquake_load
+    ) 
     class_actual = classify_device(p_actual) 
     
     col1, col2, col3 = st.columns(3) 
@@ -2092,7 +2338,8 @@ elif st.session_state.step == 9:
     
     st.session_state.classification_data = {
         'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
-        'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual
+        'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual,
+        'snow_load': snow_load, 'wind_load': wind_load, 'earthquake_load': earthquake_load
     }
     
     st.markdown("---")
@@ -2115,6 +2362,11 @@ elif st.session_state.step == 10:
     rotation_time_min = st.session_state.rotation_time_min
     braking_accel = st.session_state.braking_acceleration
     
+    # Get additional loads from session state
+    snow_load = st.session_state.get('classification_data', {}).get('snow_load', 0.0)
+    wind_load = st.session_state.get('classification_data', {}).get('wind_load', 0.0)
+    earthquake_load = st.session_state.get('classification_data', {}).get('earthquake_load', 0.0)
+    
     if rotation_time_min and rotation_time_min > 0:
         rotation_time_sec = rotation_time_min * 60.0
         angular_velocity = 2.0 * np.pi / rotation_time_sec
@@ -2122,6 +2374,19 @@ elif st.session_state.step == 10:
         angular_velocity = 0.0
     
     st.subheader("Passenger Acceleration Analysis")
+    
+    # Display active loads
+    if any([snow_load > 0, wind_load > 0, earthquake_load > 0]):
+        st.info("**Active Additional Loads:**" if not persian else "**بارهای اضافی فعال:**")
+        load_info = []
+        if snow_load > 0:
+            load_info.append(f"🌨️ Snow: {snow_load:.2f} kN")
+        if wind_load > 0:
+            load_info.append(f"💨 Wind: {wind_load:.2f} kN")
+        if earthquake_load > 0:
+            load_info.append(f"🌍 Earthquake: {earthquake_load:.2f} kN")
+        st.write(" | ".join(load_info))
+        st.markdown("---")
     
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_ax = -float('inf')
@@ -2132,7 +2397,10 @@ elif st.session_state.step == 10:
     restraint_zones_as = []
     
     for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel)
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load
+        )
         a_x_g = a_x / 9.81
         a_z_g = a_z / 9.81
         
@@ -2206,7 +2474,10 @@ elif st.session_state.step == 10:
     
     with col_iso:
         st.subheader("ISO 17842 Acceleration Envelope")
-        fig_accel_iso = plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel)
+        fig_accel_iso = plot_acceleration_envelope_iso(
+            diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load
+        )
         st.plotly_chart(fig_accel_iso, use_container_width=True)
         
         st.markdown("""
@@ -2228,7 +2499,10 @@ elif st.session_state.step == 10:
     
     with col_as:
         st.subheader("AS 3533.1 Acceleration Envelope")
-        fig_accel_as = plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel)
+        fig_accel_as = plot_acceleration_envelope_as(
+            diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load
+        )
         st.plotly_chart(fig_accel_as, use_container_width=True)
         
         st.markdown("""
@@ -2352,7 +2626,6 @@ elif st.session_state.step == 11:
     else:
         st.write("**Selected Orientation:** N/A")
 
-
     st.markdown("---")
     
     # Safety Classification
@@ -2370,6 +2643,42 @@ elif st.session_state.step == 11:
         with col3:
             st.metric("Max Acceleration", f"{class_data.get('n_actual',0):.3f}g")
             st.caption("Actual operation")
+        
+        # Display additional loads if any are active
+        snow_load = class_data.get('snow_load', 0.0)
+        wind_load = class_data.get('wind_load', 0.0)
+        earthquake_load = class_data.get('earthquake_load', 0.0)
+        
+        if any([snow_load > 0, wind_load > 0, earthquake_load > 0]):
+            st.markdown("---")
+            st.subheader("🌦️ Additional Load Factors")
+            st.caption("Environmental and seismic loads included in analysis")
+            
+            load_col1, load_col2, load_col3 = st.columns(3)
+            
+            with load_col1:
+                if snow_load > 0:
+                    st.metric("🌨️ Snow Load", f"{snow_load:.2f} kN")
+                    st.caption("0.2 kN/m² standard")
+                else:
+                    st.write("🌨️ Snow Load: Not applied")
+            
+            with load_col2:
+                if wind_load > 0:
+                    st.metric("💨 Wind Load", f"{wind_load:.2f} kN")
+                    if st.session_state.get('enable_wind', False):
+                        st.caption(f"Terror Factor: {st.session_state.get('terror_factor', 1.0):.1f}")
+                        st.caption(f"Height Factor: {st.session_state.get('height_factor', 1.0):.1f}")
+                else:
+                    st.write("💨 Wind Load: Not applied")
+            
+            with load_col3:
+                if earthquake_load > 0:
+                    st.metric("🌍 Earthquake Load", f"{earthquake_load:.2f} kN")
+                    if st.session_state.get('enable_earthquake', False):
+                        st.caption(f"Seismic Coef: {st.session_state.get('seismic_coefficient', 0.15):.3f}")
+                else:
+                    st.write("🌍 Earthquake Load: Not applied")
         
         st.markdown("---")
         st.subheader("🔒 Restraint System Requirements")
@@ -2401,6 +2710,52 @@ elif st.session_state.step == 11:
     
     # Design Summary Report
     st.subheader("📄 Design Summary Report")
+    
+    # Get additional load information for report
+    snow_load = class_data.get('snow_load', 0.0) if st.session_state.classification_data else 0.0
+    wind_load = class_data.get('wind_load', 0.0) if st.session_state.classification_data else 0.0
+    earthquake_load = class_data.get('earthquake_load', 0.0) if st.session_state.classification_data else 0.0
+    
+    # Build additional loads section for report
+    additional_loads_report = ""
+    if any([snow_load > 0, wind_load > 0, earthquake_load > 0]):
+        additional_loads_report = "\n### Additional Load Factors\n"
+        
+        if snow_load > 0:
+            cabin_area = st.session_state.get('cabin_area', 0)
+            additional_loads_report += f"""
+#### Snow Load
+- **Applied Load:** {snow_load:.2f} kN
+- **Snow Pressure:** 0.2 kN/m²
+- **Cabin Surface Area:** {cabin_area:.2f} m²
+"""
+        
+        if wind_load > 0:
+            wind_pressure = st.session_state.get('wind_pressure', 0)
+            height_category = st.session_state.get('height_category', 'N/A')
+            terror_factor = st.session_state.get('terror_factor', 1.0)
+            height_factor = st.session_state.get('height_factor', 1.0)
+            cabin_area = st.session_state.get('cabin_area', 0)
+            additional_loads_report += f"""
+#### Wind Load
+- **Applied Load:** {wind_load:.2f} kN
+- **Wind Pressure:** {wind_pressure:.2f} kN/m²
+- **Height Category:** {height_category}
+- **Terror Factor:** {terror_factor:.1f}
+- **Height Factor:** {height_factor:.1f}
+- **Cabin Surface Area:** {cabin_area:.2f} m²
+"""
+        
+        if earthquake_load > 0:
+            seismic_coef = st.session_state.get('seismic_coefficient', 0.15)
+            approx_mass = st.session_state.diameter * 500
+            additional_loads_report += f"""
+#### Earthquake Load
+- **Applied Horizontal Load:** {earthquake_load:.2f} kN
+- **Seismic Coefficient:** {seismic_coef:.3f}
+- **Approximate Cabin Mass:** {approx_mass:.0f} kg
+- **Vertical Component:** {earthquake_load * 0.5:.2f} kN (50% of horizontal)
+"""
     
     with st.expander("📋 View Complete Design Report"):
         st.markdown(f"""
@@ -2456,7 +2811,7 @@ elif st.session_state.step == 11:
         - **Actual Dynamic Product:** {class_data.get('p_actual', 0):.2f}
         - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
         - **Braking Acceleration:** {st.session_state.braking_acceleration} m/s²
-        
+        {additional_loads_report}
         ### Restraint System Requirements
         
         #### ISO 17842-2023 Classification
