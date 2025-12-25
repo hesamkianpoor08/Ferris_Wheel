@@ -823,6 +823,176 @@ def create_component_diagram(diameter, height, capacity, motor_power, num_cabins
     )
     return fig
 
+def calculate_motor_power(diameter, num_cabins, cabin_capacity, num_vip_cabins, 
+                         rotation_time_min, cabin_geometry):
+    """
+    محاسبه واقع‌بینانه توان موتور برای چرخ و فلک
+    
+    Parameters:
+    -----------
+    diameter : float
+        قطر چرخ (متر)
+    num_cabins : int
+        تعداد کابین‌ها
+    cabin_capacity : int
+        ظرفیت هر کابین
+    num_vip_cabins : int
+        تعداد کابین‌های VIP
+    rotation_time_min : float
+        زمان یک دور چرخش (دقیقه)
+    cabin_geometry : str
+        شکل کابین
+    
+    Returns:
+    --------
+    dict : {
+        'rated_power': توان نامی موتور (kW),
+        'peak_power': توان پیک (startup) (kW),
+        'operational_power': توان عملیاتی (kW),
+        'breakdown': توضیحات محاسبات
+    }
+    """
+    
+    # محاسبه جرم‌ها
+    # 1. جرم مسافران (80 kg هر نفر)
+    vip_capacity = max(0, cabin_capacity - 2)
+    total_passengers = (num_vip_cabins * vip_capacity + 
+                       (num_cabins - num_vip_cabins) * cabin_capacity)
+    mass_passengers = total_passengers * 80.0  # kg
+    
+    # 2. جرم کابین‌ها (بر اساس شکل و ظرفیت)
+    cabin_mass_per_unit = {
+        'Square': 450,      # kg per cabin
+        'Vertical': 400,    # Cylinder vertical
+        'Horizontal': 500,  # Cylinder horizontal
+        'Spherical': 350    # Sphere (lighter)
+    }
+    
+    # تشخیص شکل کابین
+    cabin_type = 'Square'  # default
+    for key in cabin_mass_per_unit.keys():
+        if key in cabin_geometry or key.lower() in cabin_geometry.lower():
+            cabin_type = key
+            break
+    
+    mass_per_cabin = cabin_mass_per_unit[cabin_type] + (cabin_capacity * 20)  # 20 kg per seat
+    mass_cabins = num_cabins * mass_per_cabin  # kg
+    
+    # 3. جرم سازه فلزی (تخمین بر اساس قطر)
+    # فرمول تجربی: mass_structure = diameter^1.5 × factor
+    structure_factor = 800  # kg/m^1.5
+    mass_structure = diameter ** 1.5 * structure_factor  # kg
+    
+    # 4. جرم محور و تجهیزات
+    mass_axis = diameter * 150  # kg
+    
+    # جرم کل
+    total_mass = mass_passengers + mass_cabins + mass_structure + mass_axis  # kg
+    
+    # محاسبه پارامترهای حرکتی
+    radius = diameter / 2.0  # m
+    rotation_time_sec = rotation_time_min * 60.0  # s
+    angular_velocity = 2.0 * np.pi / rotation_time_sec  # rad/s
+    linear_velocity = angular_velocity * radius  # m/s at rim
+    
+    # محاسبه گشتاور لازم برای غلبه بر اصطکاک
+    # اصطکاک در یاتاقان‌ها و مقاومت هوا
+    friction_coefficient = 0.03  # ضریب اصطکاک معادل
+    torque_friction = friction_coefficient * total_mass * 9.81 * radius  # N⋅m
+    
+    # توان عملیاتی (steady state)
+    power_operational = torque_friction * angular_velocity / 1000.0  # kW
+    
+    # توان برای شتاب (startup)
+    # فرض: رسیدن به سرعت کامل در 60 ثانیه
+    startup_time = 60.0  # seconds
+    angular_acceleration = angular_velocity / startup_time  # rad/s²
+    
+    # moment of inertia
+    # ساده‌سازی: تمام جرم در فاصله r
+    moment_of_inertia = total_mass * radius ** 2  # kg⋅m²
+    
+    # گشتاور برای شتاب
+    torque_acceleration = moment_of_inertia * angular_acceleration  # N⋅m
+    
+    # توان پیک (شامل شتاب + اصطکاک)
+    power_peak = (torque_acceleration + torque_friction) * angular_velocity / 1000.0  # kW
+    
+    # توان نامی موتور (با ضریب اطمینان)
+    safety_factor = 1.5  # ضریب اطمینان
+    power_rated = power_peak * safety_factor  # kW
+    
+    # حداقل توان موتور (معمولاً چرخ‌های فلک بزرگ از موتورهای قوی‌تر استفاده می‌کنند)
+    # فرمول تجربی: حداقل 0.5 kW به ازای هر متر قطر
+    power_minimum = diameter * 0.5  # kW
+    power_rated = max(power_rated, power_minimum)
+    
+    # محدود کردن به محدوده واقعی
+    # چرخ‌های فلک کوچک: 15-50 kW
+    # چرخ‌های فلک متوسط: 50-150 kW
+    # چرخ‌های فلک بزرگ: 150-500+ kW
+    if diameter < 40:
+        power_rated = max(15, min(power_rated, 50))
+    elif diameter < 60:
+        power_rated = max(50, min(power_rated, 150))
+    else:
+        power_rated = max(150, min(power_rated, 500))
+    
+    breakdown = {
+        'total_mass': total_mass,
+        'mass_passengers': mass_passengers,
+        'mass_cabins': mass_cabins,
+        'mass_structure': mass_structure,
+        'mass_axis': mass_axis,
+        'angular_velocity': angular_velocity,
+        'linear_velocity': linear_velocity,
+        'moment_of_inertia': moment_of_inertia,
+        'torque_friction': torque_friction,
+        'torque_acceleration': torque_acceleration,
+        'startup_time': startup_time
+    }
+    
+    return {
+        'rated_power': round(power_rated, 1),
+        'peak_power': round(power_peak, 1),
+        'operational_power': round(power_operational, 1),
+        'breakdown': breakdown
+    }
+
+
+def format_power_breakdown(power_data):
+    """
+    فرمت کردن جزئیات محاسبه توان برای نمایش
+    """
+    breakdown = power_data['breakdown']
+    
+    text = f"""
+**Power Calculation Details:**
+
+**Masses:**
+- Passengers: {breakdown['mass_passengers']:.0f} kg
+- Cabins: {breakdown['mass_cabins']:.0f} kg
+- Structure: {breakdown['mass_structure']:.0f} kg
+- Axis & Equipment: {breakdown['mass_axis']:.0f} kg
+- **Total Mass: {breakdown['total_mass']:.0f} kg**
+
+**Kinematics:**
+- Angular Velocity: {breakdown['angular_velocity']:.6f} rad/s
+- Linear Velocity (rim): {breakdown['linear_velocity']:.3f} m/s
+- Moment of Inertia: {breakdown['moment_of_inertia']:.0f} kg⋅m²
+
+**Torques:**
+- Friction Torque: {breakdown['torque_friction']:.0f} N⋅m
+- Acceleration Torque: {breakdown['torque_acceleration']:.0f} N⋅m
+- Startup Time: {breakdown['startup_time']:.0f} seconds
+
+**Power Requirements:**
+- Operational Power: {power_data['operational_power']:.1f} kW (steady state)
+- Peak Power: {power_data['peak_power']:.1f} kW (startup)
+- **Rated Motor Power: {power_data['rated_power']:.1f} kW** (with safety factor 1.5)
+"""
+    return text
+
 def calculate_accelerations_at_angle(theta, diameter, angular_velocity, braking_accel, 
                                     snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
     """
@@ -2811,8 +2981,11 @@ elif st.session_state.step == 11:
             
             with load_col1:
                 if snow_load > 0:
+                    cabin_area = class_data.get('cabin_surface_area', 0)
+                    snow_coef = class_data.get('snow_coefficient', 0.2)
                     st.metric("🌨️ Snow Load", f"{snow_load:.2f} kN")
-                    st.caption("0.2 kN/m² standard")
+                    st.caption(f"Pressure: {snow_coef:.2f} kN/m²")
+                    st.caption(f"Area: {cabin_area:.2f} m²")
                 else:
                     st.write("🌨️ Snow Load: Not applied")
             
@@ -2843,6 +3016,41 @@ elif st.session_state.step == 11:
 
     st.markdown("---")
     
+    # محاسبه صحیح توان موتور
+    power_data = calculate_motor_power(
+        st.session_state.diameter,
+        st.session_state.num_cabins,
+        st.session_state.cabin_capacity,
+        st.session_state.num_vip_cabins,
+        st.session_state.rotation_time_min,
+        st.session_state.cabin_geometry
+    )
+    
+    # Motor & Drive System
+    st.subheader("⚙️ Motor & Drive System")
+    st.caption("Calculated based on total system mass and operational requirements")
+    
+    motor_col1, motor_col2, motor_col3, motor_col4 = st.columns(4)
+    with motor_col1:
+        st.metric("Rated Power", f"{power_data['rated_power']:.1f} kW", 
+                 help="Rated motor power with safety factor 1.5")
+    with motor_col2:
+        st.metric("Peak Power", f"{power_data['peak_power']:.1f} kW",
+                 help="Peak power required during startup")
+    with motor_col3:
+        st.metric("Operational", f"{power_data['operational_power']:.1f} kW",
+                 help="Steady-state operational power")
+    with motor_col4:
+        breakdown = power_data['breakdown']
+        st.metric("Total Mass", f"{breakdown['total_mass']/1000:.1f} ton",
+                 help="Total system mass including structure")
+    
+    # نمایش جزئیات محاسبات
+    with st.expander("🔍 View Motor Power Calculation Details"):
+        st.markdown(format_power_breakdown(power_data))
+    
+    st.markdown("---")
+    
     # Visualization
     st.subheader("📊 Design Visualization")
     height = st.session_state.diameter * 1.1
@@ -2851,12 +3059,13 @@ elif st.session_state.step == 11:
                                    (st.session_state.num_cabins - st.session_state.num_vip_cabins) * st.session_state.cabin_capacity)
 
     ang = (2.0 * np.pi) / (st.session_state.rotation_time_min * 60.0) if st.session_state.rotation_time_min else 0.0
-    total_mass = st.session_state.num_cabins * st.session_state.cabin_capacity * 80.0
-    moment_of_inertia = total_mass * (st.session_state.diameter/2.0)**2
-    motor_power = moment_of_inertia * ang**2 / 1000.0 if ang else 0.0
     num_cabins = st.session_state.num_cabins
     cabin_geometry = st.session_state.cabin_geometry
-    fig = create_component_diagram(st.session_state.diameter, height , total_capacity_per_rotation, motor_power , num_cabins ,cabin_geometry)
+    
+    fig = create_component_diagram(st.session_state.diameter, height, 
+                                   total_capacity_per_rotation, 
+                                   power_data['rated_power'],
+                                   num_cabins, cabin_geometry)
     st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
 
     st.markdown("---")
@@ -2875,20 +3084,23 @@ elif st.session_state.step == 11:
         additional_loads_report = "\n### Additional Load Factors\n"
         
         if snow_load > 0:
-            cabin_area = st.session_state.get('cabin_area', 0)
+            cabin_area = class_data.get('cabin_surface_area', 0)
+            snow_coef = class_data.get('snow_coefficient', 0.2)
             additional_loads_report += f"""
 #### Snow Load
 - **Applied Load:** {snow_load:.2f} kN
-- **Snow Pressure:** 0.2 kN/m²
-- **Cabin Surface Area:** {cabin_area:.2f} m²
+- **Snow Pressure:** {snow_coef:.2f} kN/m²
+- **Cabin Surface Area (estimated):** {cabin_area:.2f} m²
+- **Cabin Geometry:** {st.session_state.get('cabin_geometry', 'N/A')}
+- **Calculation:** {snow_coef} × {cabin_area} = {snow_load:.2f} kN
 """
         
         if wind_load > 0:
             wind_pressure = st.session_state.get('wind_pressure', 0)
-            height_category = st.session_state.get('height_category', 'N/A')
+            height_category = st.session_state.get('height_category_value', 'N/A')
             terror_factor = st.session_state.get('terror_factor', 1.0)
             height_factor = st.session_state.get('height_factor', 1.0)
-            cabin_area = st.session_state.get('cabin_area', 0)
+            cabin_area = class_data.get('cabin_surface_area', 0)
             additional_loads_report += f"""
 #### Wind Load
 - **Applied Load:** {wind_load:.2f} kN
@@ -2897,6 +3109,7 @@ elif st.session_state.step == 11:
 - **Terror Factor:** {terror_factor:.1f}
 - **Height Factor:** {height_factor:.1f}
 - **Cabin Surface Area:** {cabin_area:.2f} m²
+- **Calculation:** {wind_pressure} × {cabin_area} × {terror_factor} × {height_factor} = {wind_load:.2f} kN
 """
         
         if earthquake_load > 0:
@@ -2908,6 +3121,7 @@ elif st.session_state.step == 11:
 - **Seismic Coefficient:** {seismic_coef:.3f}
 - **Approximate Cabin Mass:** {approx_mass:.0f} kg
 - **Vertical Component:** {earthquake_load * 0.5:.2f} kN (50% of horizontal)
+- **Calculation:** {seismic_coef} × ({approx_mass} × 9.81 / 1000) = {earthquake_load:.2f} kN
 """
     
     with st.expander("📋 View Complete Design Report"):
@@ -2932,7 +3146,19 @@ elif st.session_state.step == 11:
         - **Rotation Time:** {st.session_state.rotation_time_min:.2f} minutes
         - **Rotational Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
         - **Linear Speed at Rim:** {ang * (st.session_state.diameter / 2.0):.3f} m/s
-        - **Estimated Motor Power:** {motor_power:.1f} kW
+        
+        ### Motor & Drive System
+        - **Rated Motor Power:** {power_data['rated_power']:.1f} kW (with safety factor 1.5)
+        - **Peak Power (Startup):** {power_data['peak_power']:.1f} kW
+        - **Operational Power (Steady-State):** {power_data['operational_power']:.1f} kW
+        - **Total System Mass:** {breakdown['total_mass']/1000:.1f} tons
+          - Passengers: {breakdown['mass_passengers']/1000:.1f} tons
+          - Cabins: {breakdown['mass_cabins']/1000:.1f} tons
+          - Structure: {breakdown['mass_structure']/1000:.1f} tons
+          - Axis & Equipment: {breakdown['mass_axis']/1000:.1f} tons
+        - **Moment of Inertia:** {breakdown['moment_of_inertia']:.0f} kg⋅m²
+        - **Angular Velocity:** {breakdown['angular_velocity']:.6f} rad/s
+        - **Startup Time:** {breakdown['startup_time']:.0f} seconds
         
         ### Site Conditions
         - **Province:** {env.get('province', 'N/A')}
@@ -2960,10 +3186,13 @@ elif st.session_state.step == 11:
         ### Safety Classification (INSO 8987-1-2023)
         - **Design Class:** Class {class_data.get('class_design', 'N/A')}
         - **Design Dynamic Product:** {class_data.get('p_design', 0):.2f}
+        - **Design Speed:** 1.0 rpm
+        - **Design Braking Acceleration:** {class_data.get('braking_accel_design', 0.7):.2f} m/s²
         - **Actual Operating Class:** Class {class_data.get('class_actual', 'N/A')}
         - **Actual Dynamic Product:** {class_data.get('p_actual', 0):.2f}
+        - **Actual Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
+        - **Actual Braking Acceleration:** {class_data.get('braking_accel_actual', st.session_state.braking_acceleration):.2f} m/s²
         - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
-        - **Braking Acceleration:** {st.session_state.braking_acceleration} m/s²
         {additional_loads_report}
         ### Restraint System Requirements
         
