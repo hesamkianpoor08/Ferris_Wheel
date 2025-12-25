@@ -36,7 +36,7 @@ def get_text(key, persian=False):
         'feature_generation': {'en': "**Generation Selection**: Choose from various ferris wheel generations and structural types",
                               'fa': "**انتخاب نسل**: انتخاب از نسل‌ها و انواع سازه‌ای مختلف چرخ و فلک"},
         'feature_cabin': {'en': "**Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements",
-                         'fa': "** پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین های وی آی پی"},
+                         'fa': "**پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین های وی آی پی"},
         'feature_performance': {'en': "**Performance Analysis**: Calculate rotation times, speeds, and passenger capacity",
                                'fa': "**تحلیل عملکرد**: محاسبه زمان چرخش، سرعت‌ها و ظرفیت مسافری"},
         'feature_environment': {'en': "**Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters",
