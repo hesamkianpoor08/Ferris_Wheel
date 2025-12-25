@@ -17,43 +17,216 @@ st.set_page_config(
 def get_text(key, persian=False):
     """Get text in selected language"""
     texts = {
+        # Navigation
         'welcome_title': {'en': "Welcome to Ferris Wheel Designer", 'fa': "به طراح چرخ و فلک خوش آمدید"},
         'step': {'en': "Step", 'fa': "مرحله"},
         'of': {'en': "of", 'fa': "از"},
+        'back': {'en': "Back", 'fa': "بازگشت"},
+        'next': {'en': "Next", 'fa': "بعدی"},
+        'calculate': {'en': "Calculate", 'fa': "محاسبه"},
+        'confirm': {'en': "Confirm", 'fa': "تایید"},
+        'select': {'en': "Select", 'fa': "انتخاب"},
+        
+        # Step 0 - Welcome Page
+        'welcome_header': {'en': "Welcome to Ferris Wheel Designer", 'fa': "خوش آمدید به طراح چرخ و فلک"},
+        'about_title': {'en': "🎯 About This Application", 'fa': "🎯 درباره این نرم‌افزار"},
+        'about_intro': {'en': "This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, and compliant ferris wheel installations. The application guides you through:", 
+                       'fa': "این ابزار جامع طراحی چرخ و فلک به مهندسان و طراحان در ایجاد نصب‌های ایمن، کارآمد و مطابق با استانداردهای چرخ و فلک کمک می‌کند. این برنامه شما را در موارد زیر راهنمایی می‌کند:"},
+        
+        'feature_generation': {'en': "**Generation Selection**: Choose from various ferris wheel generations and structural types",
+                              'fa': "**انتخاب نسل**: انتخاب از نسل‌ها و انواع سازه‌ای مختلف چرخ و فلک"},
+        'feature_cabin': {'en': "**Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements",
+                         'fa': "**پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین‌های VIP"},
+        'feature_performance': {'en': "**Performance Analysis**: Calculate rotation times, speeds, and passenger capacity",
+                               'fa': "**تحلیل عملکرد**: محاسبه زمان چرخش، سرعت‌ها و ظرفیت مسافری"},
+        'feature_environment': {'en': "**Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters",
+                               'fa': "**ارزیابی محیطی**: تحلیل شرایط سایت، بارهای باد و پارامترهای زمین"},
+        'feature_safety': {'en': "**Safety Classification**: Determine device class and restraint requirements",
+                          'fa': "**طبقه‌بندی ایمنی**: تعیین کلاس دستگاه و الزامات مهاربند"},
+        'feature_structural': {'en': "**Structural Design**: Generate comprehensive design specifications",
+                              'fa': "**طراحی سازه**: تولید مشخصات کامل طراحی"},
+        
+        'standards_title': {'en': "📋 Design Standards & References", 'fa': "📋 استانداردها و مراجع طراحی"},
+        'standards_intro': {'en': "This application implements calculations and requirements based on the following international and national standards:",
+                           'fa': "این نرم‌افزار محاسبات و الزامات را بر اساس استانداردهای بین‌المللی و ملی زیر پیاده‌سازی می‌کند:"},
+        
+        # Standards Headers
+        'standards_current': {'en': "#### Current Standards for Amusement Devices:", 'fa': "#### استانداردهای فعلی برای وسایل تفریحی:"},
+        'standards_legacy': {'en': "#### Legacy Standards (Reference):", 'fa': "#### استانداردهای قدیمی (مرجع):"},
+        'standards_loads': {'en': "#### Standards for Load Analysis:", 'fa': "#### استانداردهای تحلیل بار:"},
+        'standards_applications': {'en': "#### Key Application Areas:", 'fa': "#### حوزه‌های کاربردی کلیدی:"},
+        
+        # Application Areas
+        'app_wind': {'en': "**Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800",
+                    'fa': "**تحلیل بار باد**: AS 1170.4، EN 1991-1-4، ISIRI 2800"},
+        'app_seismic': {'en': "**Seismic Analysis**: ISIRI 2800",
+                       'fa': "**تحلیل لرزه‌ای**: ISIRI 2800"},
+        'app_structural': {'en': "**Structural Design**: DIN 18800, EN 1993",
+                          'fa': "**طراحی سازه**: DIN 18800، EN 1993"},
+        'app_safety': {'en': "**Safety Classification**: INSO 8987, ISO 17842",
+                      'fa': "**طبقه‌بندی ایمنی**: INSO 8987، ISO 17842"},
+        
+        # Warning
+        'warning_title': {'en': "⚠️ **Important Notice:**", 'fa': "⚠️ **اطلاعیه مهم:**"},
+        'warning_intro': {'en': "By proceeding, you acknowledge that:", 'fa': "با ادامه، شما تأیید می‌کنید که:"},
+        'warning_1': {'en': "This tool provides preliminary design calculations based on the referenced standards",
+                     'fa': "این ابزار محاسبات طراحی اولیه را بر اساس استانداردهای ذکر شده ارائه می‌دهد"},
+        'warning_2': {'en': "Final designs must be reviewed and approved by licensed professional engineers",
+                     'fa': "طرح‌های نهایی باید توسط مهندسان حرفه‌ای دارای مجوز بررسی و تأیید شوند"},
+        'warning_3': {'en': "Local building codes and regulations must be consulted and followed",
+                     'fa': "آیین‌نامه‌ها و مقررات ساختمانی محلی باید مشورت و رعایت شوند"},
+        'warning_4': {'en': "Site-specific conditions may require additional analysis beyond this tool's scope",
+                     'fa': "شرایط خاص سایت ممکن است نیاز به تحلیل اضافی فراتر از محدوده این ابزار داشته باشد"},
+        'warning_5': {'en': "The designer assumes responsibility for verifying all calculations and compliance",
+                     'fa': "طراح مسئولیت تأیید تمام محاسبات و انطباق را بر عهده دارد"},
+        
+        # Confirmation
+        'confirm_checkbox': {'en': "✅ I understand and accept that all calculations are based on the standards listed above, and I will ensure compliance with local regulations and professional engineering review.",
+                            'fa': "✅ من درک می‌کنم و می‌پذیرم که تمام محاسبات بر اساس استانداردهای فهرست شده در بالا هستند و من انطباق با مقررات محلی و بررسی مهندسی حرفه‌ای را تضمین خواهم کرد."},
+        'confirm_success': {'en': "✅ Standards confirmed. You may proceed to the design process.",
+                           'fa': "✅ استانداردها تأیید شدند. می‌توانید به فرآیند طراحی ادامه دهید."},
+        'confirm_info': {'en': "Please confirm your understanding of the standards to continue.",
+                        'fa': "لطفاً درک خود از استانداردها را برای ادامه تأیید کنید."},
+        'start_button': {'en': "🚀 Start Design Process", 'fa': "🚀 شروع فرآیند طراحی"},
+        
+        # Step 1 - Generation Selection
         'select_generation': {'en': "Select Ferris Wheel Generation", 'fa': "انتخاب نسل چرخ و فلک"},
-        'gen_1_truss': {'en': "1st Generation (Truss type)", 'fa': "نسل اول "},
+        'gen_1_truss': {'en': "1st Generation (Truss type)", 'fa': "نسل اول (نوع خرپایی)"},
         'gen_2_cable': {'en': "2nd Generation_1st type (Cable type)", 'fa': "نسل دوم - نوع اول (کابلی)"},
         'gen_2_pure_cable': {'en': "2nd Generation_2nd type (Pure cable type)", 'fa': "نسل دوم - نوع دوم (کاملاً کابلی)"},
         'gen_4_hubless': {'en': "4th Generation (Hubless centerless)", 'fa': "نسل چهارم (بدون مرکز)"},
+        
+        # Step 2 - Cabin Geometry
         'select_cabin_geometry': {'en': "Select Cabin Geometry", 'fa': "انتخاب هندسه کابین"},
+        'cabin_geometry_instruction': {'en': "Choose a cabin shape.", 'fa': "یک شکل کابین انتخاب کنید."},
         'geom_square': {'en': "Square", 'fa': "مربعی"},
         'geom_vert_cyl': {'en': "Vertical Cylinder", 'fa': "استوانه عمودی"},
         'geom_horiz_cyl': {'en': "Horizontal Cylinder", 'fa': "استوانه افقی"},
         'geom_spherical': {'en': "Spherical", 'fa': "کروی"},
-        "geom_spherical_caption": {"fa": "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد","en": "This option is more expensive but has a better appearance."},
+        'geom_spherical_caption': {'en': "This option is more expensive but has a better appearance.", 
+                                  'fa': "این گزینه گران‌تر است اما جلوه‌ی ظاهری بهتری دارد"},
+        
+        # Step 3 - Primary Parameters
+        'cabin_specification': {'en': "Cabin Specification", 'fa': "مشخصات کابین"},
         'diameter_label': {'en': "Ferris Wheel Diameter (m)", 'fa': "قطر چرخ و فلک (متر)"},
         'num_cabins_label': {'en': "Number of Cabins", 'fa': "تعداد کابین‌ها"},
         'cabin_cap_label': {'en': "Cabin Capacity (passengers per cabin)", 'fa': "ظرفیت کابین (مسافر به ازای هر کابین)"},
         'num_vip_label': {'en': "Number of VIP Cabins", 'fa': "تعداد کابین‌های VIP"},
-        'rotation_time': {'en': "Rotation Time & Derived Speeds", 'fa': "زمان چرخش و سرعت های مشتق شده"},
+        'calc_capacities': {'en': "🔄 Calculate Capacities", 'fa': "🔄 محاسبه ظرفیت‌ها"},
+        'per_rotation_capacity': {'en': "Per-rotation capacity", 'fa': "ظرفیت به ازای هر دور"},
+        'vip_capacity': {'en': "VIP capacity (per rotation)", 'fa': "ظرفیت VIP (به ازای هر دور)"},
+        'passengers': {'en': "passengers", 'fa': "مسافر"},
+        'each_vip': {'en': "each VIP:", 'fa': "هر VIP:"},
+        'capacities_calculated': {'en': "Capacities calculated.", 'fa': "ظرفیت‌ها محاسبه شدند."},
+        
+        # Step 4 - Rotation Time
+        'rotation_time': {'en': "Rotation Time & Derived Speeds", 'fa': "زمان چرخش و سرعت‌های مشتق شده"},
+        'rotation_time_instruction': {'en': "Enter the rotation time or select target capacity per hour",
+                                     'fa': "زمان چرخش را وارد کنید یا ظرفیت هدف در ساعت را انتخاب کنید"},
+        'rotation_time_label': {'en': "Rotation Time (minutes)", 'fa': "زمان چرخش (دقیقه)"},
+        'capacity_per_hour': {'en': "Capacity per Hour (pax/hr)", 'fa': "ظرفیت در ساعت (مسافر/ساعت)"},
+        'angular_velocity': {'en': "Angular Velocity", 'fa': "سرعت زاویه‌ای"},
+        'linear_velocity': {'en': "Linear Velocity at Rim", 'fa': "سرعت خطی در لبه"},
+        'rotation_speed': {'en': "Rotation Speed", 'fa': "سرعت چرخش"},
+        
+        # Step 5 - Environment
         'environment_conditions': {'en': "Environment Conditions", 'fa': "شرایط محیطی"},
-        'provincial_characteristics': {'en': "Provincial Characteristics & Terrain Parameters", 'fa': "ویژگی های استانی و پارامترهای زمین"},
-        'soil_type': {'en': "Soil Type & Importance Classification", 'fa': "نوع خاک و طبقه بندی اهمیت"},
-        'carousel_orientation': {'en': "Carousel Orientation Selection", 'fa': "انتخاب جهت چرخش چرخ و فلک"},
-        'device_classification': {'en': "Device Classification", 'fa': "طبقه بندی دستگاه"},
-        'restraint_type': {'en': "Restraint Type Determination", 'fa': "تعیین نوع مهار"},
-        'design_summary': {'en': "Complete Design Summary", 'fa': "خلاصه کامل طراحی"},
-        'additional_analysis': {'en': "Additional Analysis", 'fa': "تحلیل های اضافی"},
         'select_province': {'en': "Select Province", 'fa': "انتخاب استان"},
         'select_city': {'en': "Select City", 'fa': "انتخاب شهر"},
         'region_name': {'en': "Region / Area name", 'fa': "نام منطقه / ناحیه"},
+        'land_dimensions': {'en': "Land Dimensions", 'fa': "ابعاد زمین"},
+        'land_length': {'en': "Land Length (m)", 'fa': "طول زمین (متر)"},
+        'land_width': {'en': "Land Width (m)", 'fa': "عرض زمین (متر)"},
+        'altitude': {'en': "Altitude (m above sea level)", 'fa': "ارتفاع (متر از سطح دریا)"},
+        'temp_range': {'en': "Temperature Range", 'fa': "محدوده دما"},
+        'min_temp': {'en': "Minimum Temperature (°C)", 'fa': "حداقل دما (°C)"},
+        'max_temp': {'en': "Maximum Temperature (°C)", 'fa': "حداکثر دما (°C)"},
+        
+        # Step 6 - Provincial
+        'provincial_characteristics': {'en': "Provincial Characteristics & Terrain Parameters", 'fa': "ویژگی‌های استانی و پارامترهای زمین"},
         'zone': {'en': "Zone", 'fa': "منطقه"},
+        'terrain_category': {'en': "Terrain Category", 'fa': "دسته‌بندی زمین"},
+        'wind_direction': {'en': "Prevailing Wind Direction", 'fa': "جهت غالب باد"},
+        'avg_wind_speed': {'en': "Average Wind Speed (km/h)", 'fa': "سرعت متوسط باد (کیلومتر در ساعت)"},
+        'max_wind_speed': {'en': "Maximum Wind Speed (km/h)", 'fa': "حداکثر سرعت باد (کیلومتر در ساعت)"},
+        'seismic_hazard': {'en': "Seismic Hazard Level", 'fa': "سطح خطر لرزه‌ای"},
+        
+        # Step 7 - Soil Type
+        'soil_type': {'en': "Soil Type & Importance Classification", 'fa': "نوع خاک و طبقه‌بندی اهمیت"},
+        'select_soil': {'en': "Select Soil Type", 'fa': "انتخاب نوع خاک"},
+        'select_importance': {'en': "Select Importance Group", 'fa': "انتخاب گروه اهمیت"},
+        
+        # Step 8 - Orientation
+        'carousel_orientation': {'en': "Carousel Orientation Selection", 'fa': "انتخاب جهت‌گیری چرخ و فلک"},
+        'suggested_orientation': {'en': "Suggested Orientation (perpendicular to wind)", 'fa': "جهت پیشنهادی (عمود بر باد)"},
         'confirm_orientation': {'en': "Confirm Suggested Orientation", 'fa': "تایید جهت پیشنهادی"},
         'custom_direction': {'en': "Custom Direction", 'fa': "جهت سفارشی"},
-        'back': {'en': "Back", 'fa': "بازگشت"},
-        'next': {'en': "Next", 'fa': "بعدی"},
-        'calculate': {'en': "Calculate", 'fa': "محاسبه"},
-        'confirm': {'en': "Confirm", 'fa': "تایید"}
+        'north_south': {'en': "North-South", 'fa': "شمال-جنوب"},
+        'east_west': {'en': "East-West", 'fa': "شرق-غرب"},
+        'northeast_southwest': {'en': "Northeast-Southwest", 'fa': "شمال شرقی-جنوب غربی"},
+        'southeast_northwest': {'en': "Southeast-Northwest", 'fa': "جنوب شرقی-شمال غربی"},
+        
+        # Step 9 - Classification
+        'device_classification': {'en': "Device Classification", 'fa': "طبقه‌بندی دستگاه"},
+        'calc_per_standard': {'en': "**Calculation per INSO 8987-1-2023**", 'fa': "**محاسبه طبق INSO 8987-1-2023**"},
+        'braking_accel_param': {'en': "Braking Acceleration Parameter", 'fa': "پارامتر شتاب ترمز"},
+        'braking_accel': {'en': "Braking Acceleration (m/s²)", 'fa': "شتاب ترمز (m/s²)"},
+        'braking_accel_actual': {'en': "Braking Acceleration (m/s²) - Actual Operation", 'fa': "شتاب ترمز (m/s²) - عملیات واقعی"},
+        'additional_loads': {'en': "Additional Load Factors", 'fa': "بارهای اضافی"},
+        'snow_load': {'en': "Snow Load", 'fa': "بار برف"},
+        'wind_load': {'en': "Wind Load", 'fa': "بار باد"},
+        'earthquake_load': {'en': "Earthquake Load", 'fa': "بار زلزله"},
+        'design_case': {'en': "Design Case Analysis", 'fa': "تحلیل حالت طراحی"},
+        'actual_operation': {'en': "Actual Operation Analysis", 'fa': "تحلیل عملیات واقعی"},
+        'max_acceleration': {'en': "Max Acceleration", 'fa': "حداکثر شتاب"},
+        'dynamic_product': {'en': "Dynamic Product (p)", 'fa': "حاصل‌ضرب دینامیکی (p)"},
+        'device_class': {'en': "Device Class", 'fa': "کلاس دستگاه"},
+        'load_contributions': {'en': "Additional Load Contributions", 'fa': "مشارکت بارهای اضافی"},
+        
+        # Step 10 - Restraint
+        'restraint_type': {'en': "Restraint Type Determination", 'fa': "تعیین نوع مهاربند"},
+        
+        # Step 11 - Summary
+        'design_summary': {'en': "Complete Design Summary", 'fa': "خلاصه کامل طراحی"},
+        'basic_params': {'en': "🎡 Basic Design Parameters", 'fa': "🎡 پارامترهای پایه طراحی"},
+        'generation': {'en': "Generation", 'fa': "نسل"},
+        'diameter': {'en': "Diameter", 'fa': "قطر"},
+        'height': {'en': "Height", 'fa': "ارتفاع"},
+        'total_cabins': {'en': "Total Cabins", 'fa': "کل کابین‌ها"},
+        'vip_cabins': {'en': "VIP Cabins", 'fa': "کابین‌های VIP"},
+        'cabin_capacity': {'en': "Cabin Capacity", 'fa': "ظرفیت کابین"},
+        'cabin_geometry': {'en': "Cabin Geometry", 'fa': "هندسه کابین"},
+        'rotation_time_min': {'en': "Rotation Time", 'fa': "زمان چرخش"},
+        'capacity_hour': {'en': "Capacity/Hour", 'fa': "ظرفیت/ساعت"},
+        'env_site_conditions': {'en': "🌍 Environment & Site Conditions", 'fa': "🌍 شرایط محیطی و سایت"},
+        'province': {'en': "Province", 'fa': "استان"},
+        'city': {'en': "City", 'fa': "شهر"},
+        'region': {'en': "Region", 'fa': "منطقه"},
+        'land_area': {'en': "Land Area", 'fa': "مساحت زمین"},
+        'temp_range_display': {'en': "Temperature Range", 'fa': "محدوده دما"},
+        'soil_importance': {'en': "🏗️ Soil & Structural Importance", 'fa': "🏗️ خاک و اهمیت سازه"},
+        'orientation_title': {'en': "🧭 Carousel Orientation", 'fa': "🧭 جهت‌گیری چرخ و فلک"},
+        'selected_orientation': {'en': "Selected Orientation", 'fa': "جهت‌گیری انتخاب شده"},
+        'safety_classification': {'en': "⚠️ Safety Classification", 'fa': "⚠️ طبقه‌بندی ایمنی"},
+        'design_class': {'en': "Design Class", 'fa': "کلاس طراحی"},
+        'actual_class': {'en': "Actual Class", 'fa': "کلاس واقعی"},
+        'restraint_requirements': {'en': "🔒 Restraint System Requirements", 'fa': "🔒 الزامات سیستم مهاربند"},
+        'motor_drive': {'en': "⚙️ Motor & Drive System", 'fa': "⚙️ سیستم موتور و درایو"},
+        'rated_power': {'en': "Rated Power", 'fa': "توان نامی"},
+        'peak_power': {'en': "Peak Power", 'fa': "توان پیک"},
+        'operational_power': {'en': "Operational", 'fa': "توان عملیاتی"},
+        'total_mass': {'en': "Total Mass", 'fa': "جرم کل"},
+        'design_viz': {'en': "📊 Design Visualization", 'fa': "📊 تصویرسازی طراحی"},
+        'design_report': {'en': "📄 Design Summary Report", 'fa': "📄 گزارش خلاصه طراحی"},
+        'view_report': {'en': "📋 View Complete Design Report", 'fa': "📋 مشاهده گزارش کامل طراحی"},
+        'new_design': {'en': "🔄 New Design", 'fa': "🔄 طراحی جدید"},
+        'export_report': {'en': "📥 Export Report", 'fa': "📥 خروجی گزارش"},
+        'design_complete': {'en': "✅ Design Complete! All parameters have been configured.", 
+                           'fa': "✅ طراحی کامل شد! تمام پارامترها تنظیم شده‌اند."},
+        'export_coming_soon': {'en': "Report export functionality - Coming soon!", 
+                              'fa': "قابلیت خروجی گزارش - به زودی!"},
+        'professional_note': {'en': "🚧 **Note:** Detailed structural, electrical, and safety analyses require professional engineering consultation.",
+                             'fa': "🚧 **توجه:** تحلیل‌های دقیق سازه‌ای، الکتریکی و ایمنی نیازمند مشاوره مهندسی حرفه‌ای هستند."},
     }
     return texts.get(key, {}).get('fa' if persian else 'en', key)
 
@@ -1765,98 +1938,103 @@ if st.session_state.get('step', 0) == 0:
     
     st.markdown("---")
 
-    st.header("Welcome to Ferris Wheel Designer")
+    st.header(get_text('welcome_header', persian))
     st.markdown("---")
     
-    st.markdown("""
-    ### 🎯 About This Application
+    # About Section
+    st.markdown(f"### {get_text('about_title', persian)}")
+    st.markdown(get_text('about_intro', persian))
     
-    This comprehensive Ferris Wheel Design Tool assists engineers and designers in creating safe, efficient, 
-    and compliant ferris wheel installations. The application guides you through:
+    # Features list
+    st.markdown(f"""
+- {get_text('feature_generation', persian)}
+- {get_text('feature_cabin', persian)}
+- {get_text('feature_performance', persian)}
+- {get_text('feature_environment', persian)}
+- {get_text('feature_safety', persian)}
+- {get_text('feature_structural', persian)}
+""")
     
-    - **Generation Selection**: Choose from various ferris wheel generations and structural types
-    - **Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements
-    - **Performance Analysis**: Calculate rotation times, speeds, and passenger capacity
-    - **Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters
-    - **Safety Classification**: Determine device class and restraint requirements
-    - **Structural Design**: Generate comprehensive design specifications
-    
-    ### 📋 Design Standards & References
-    
-    This application implements calculations and requirements based on the following international and national standards:
-    """)
+    # Standards Section
+    st.markdown(f"### {get_text('standards_title', persian)}")
+    st.markdown(get_text('standards_intro', persian))
     
     col1, col2 = st.columns(2)
     
     with col1:
+        st.markdown(get_text('standards_current', persian))
         st.markdown("""
-        #### Current Standards for Amusement Devices:
-        - **AS 3533.1-2009+A1-2011** - Amusement rides and devices - Design and construction
-        - **INSO 8987-1-2023** - Safety of amusement rides and amusement devices - Part 1: General requirements
-        - **INSO 8987-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
-        - **INSO 8987-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
-        - **ISO 17842-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
-        - **ISO 17842-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
-        - **ISO 17842-2023** - Safety of amusement rides and amusement devices
+- **AS 3533.1-2009+A1-2011** - Amusement rides and devices - Design and construction
+- **INSO 8987-1-2023** - Safety of amusement rides and amusement devices - Part 1: General requirements
+- **INSO 8987-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+- **INSO 8987-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+- **ISO 17842-2-2022** - Safety of amusement rides and amusement devices - Part 2: Operation and maintenance
+- **ISO 17842-3-2022** - Safety of amusement rides and amusement devices - Part 3: Requirements for inspection
+- **ISO 17842-2023** - Safety of amusement rides and amusement devices
+""")
         
-        #### Legacy Standards (Reference):
-        - **AS 3533.2-2009+A1-2011** - Amusement rides and devices - Operation and maintenance
-        - **AS 3533.3-2003 R2013** - Amusement rides and devices - Qualification of inspection personnel
-        - **INSO 8987-2-2009** - Safety of amusement rides (Previous edition)
-        - **INSO 8987-3-2003** - Safety of amusement rides (Previous edition)
-        - **INSO 8987-2009** - Safety of amusement rides (Previous edition)
-        """)
+        st.markdown(get_text('standards_legacy', persian))
+        st.markdown("""
+- **AS 3533.2-2009+A1-2011** - Amusement rides and devices - Operation and maintenance
+- **AS 3533.3-2003 R2013** - Amusement rides and devices - Qualification of inspection personnel
+- **INSO 8987-2-2009** - Safety of amusement rides (Previous edition)
+- **INSO 8987-3-2003** - Safety of amusement rides (Previous edition)
+- **INSO 8987-2009** - Safety of amusement rides (Previous edition)
+""")
     
     with col2:
+        st.markdown(get_text('standards_loads', persian))
         st.markdown("""
-        #### Standards for Load Analysis:
-        - **ISIRI 519** - Iranian National Standard - Design loads for buildings
-        - **AS 1170.4-2007(A1)** - Structural design actions - Wind actions
-        - **BS EN 1991-1-4:2005+A1-2010** - Eurocode 1: Actions on structures - Wind actions
-        - **DIN 18800-1-1990** - Structural steelwork - Design and construction
-        - **DIN 18800-2-1990** - Structural steelwork - Stability, buckling of shells
-        - **EN 1991-1-3:2003** - Eurocode 1: Actions on structures - Snow loads
-        - **EN 1993-1-9:2005** - Eurocode 3: Design of steel structures - Fatigue
-        - **EN1993-1-9-AC 2009** - Eurocode 3: Design of steel structures - Fatigue (Amendment)
-        - **ISIRI 2800** - Iranian Code of Practice for Seismic Resistant Design of Buildings (4th Edition)
+- **ISIRI 519** - Iranian National Standard - Design loads for buildings
+- **AS 1170.4-2007(A1)** - Structural design actions - Wind actions
+- **BS EN 1991-1-4:2005+A1-2010** - Eurocode 1: Actions on structures - Wind actions
+- **DIN 18800-1-1990** - Structural steelwork - Design and construction
+- **DIN 18800-2-1990** - Structural steelwork - Stability, buckling of shells
+- **EN 1991-1-3:2003** - Eurocode 1: Actions on structures - Snow loads
+- **EN 1993-1-9:2005** - Eurocode 3: Design of steel structures - Fatigue
+- **EN1993-1-9-AC 2009** - Eurocode 3: Design of steel structures - Fatigue (Amendment)
+- **ISIRI 2800** - Iranian Code of Practice for Seismic Resistant Design of Buildings (4th Edition)
+""")
         
-        #### Key Application Areas:
-        - **Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800
-        - **Seismic Analysis**: ISIRI 2800
-        - **Structural Design**: DIN 18800, EN 1993
-        - **Safety Classification**: INSO 8987, ISO 17842
-        """)
+        st.markdown(get_text('standards_applications', persian))
+        st.markdown(f"""
+- {get_text('app_wind', persian)}
+- {get_text('app_seismic', persian)}
+- {get_text('app_structural', persian)}
+- {get_text('app_safety', persian)}
+""")
     
     st.markdown("---")
-    st.warning("""
-    ⚠️ **Important Notice:**
     
-    By proceeding, you acknowledge that:
-    - This tool provides preliminary design calculations based on the referenced standards
-    - Final designs must be reviewed and approved by licensed professional engineers
-    - Local building codes and regulations must be consulted and followed
-    - Site-specific conditions may require additional analysis beyond this tool's scope
-    - The designer assumes responsibility for verifying all calculations and compliance
-    """)
+    # Warning Section
+    st.warning(f"""
+{get_text('warning_title', persian)}
+
+{get_text('warning_intro', persian)}
+- {get_text('warning_1', persian)}
+- {get_text('warning_2', persian)}
+- {get_text('warning_3', persian)}
+- {get_text('warning_4', persian)}
+- {get_text('warning_5', persian)}
+""")
     
     st.markdown("---")
     
     # Confirmation checkbox
     standards_accepted = st.checkbox(
-        "✅ I understand and accept that all calculations are based on the standards listed above, "
-        "and I will ensure compliance with local regulations and professional engineering review.",
+        get_text('confirm_checkbox', persian),
         key="standards_confirmation"
     )
     
     st.session_state.standards_confirmed = standards_accepted
     
     if standards_accepted:
-        st.success("✅ Standards confirmed. You may proceed to the design process.")
-        if st.button("🚀 Start Design Process", type="primary"):
+        st.success(get_text('confirm_success', persian))
+        if st.button(get_text('start_button', persian), type="primary"):
             st.session_state.step = 1
             st.rerun()
     else:
-        st.info("Please confirm your understanding of the standards to continue.")
+        st.info(get_text('confirm_info', persian))
 
 # === STEP 1: Generation selection ===
 if st.session_state.get('step', 0) == 1:
