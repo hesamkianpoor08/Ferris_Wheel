@@ -36,7 +36,7 @@ def get_text(key, persian=False):
         'feature_generation': {'en': "**Generation Selection**: Choose from various ferris wheel generations and structural types",
                               'fa': "**انتخاب نسل**: انتخاب از نسل‌ها و انواع سازه‌ای مختلف چرخ و فلک"},
         'feature_cabin': {'en': "**Cabin Configuration**: Design cabin geometry, capacity, and VIP arrangements",
-                         'fa': "** پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین های وی آی پی "},
+                         'fa': "** پیکربندی کابین**: طراحی هندسه، ظرفیت و آرایش کابین های وی آی پی"},
         'feature_performance': {'en': "**Performance Analysis**: Calculate rotation times, speeds, and passenger capacity",
                                'fa': "**تحلیل عملکرد**: محاسبه زمان چرخش، سرعت‌ها و ظرفیت مسافری"},
         'feature_environment': {'en': "**Environmental Assessment**: Analyze site conditions, wind loads, and terrain parameters",
@@ -51,10 +51,10 @@ def get_text(key, persian=False):
                            'fa': "این نرم‌افزار محاسبات و الزامات را بر اساس استانداردهای بین‌المللی و ملی زیر پیاده‌سازی می‌کند"},
         
         # Standards Headers
-        'standards_current': {'en': "#### Current Standards for Amusement Devices:", 'fa': "#### استانداردهای فعلی برای وسایل تفریحی:"},
-        'standards_legacy': {'en': "#### Legacy Standards (Reference):", 'fa': "#### استانداردهای قدیمی (مرجع):"},
-        'standards_loads': {'en': "#### Standards for Load Analysis:", 'fa': "#### استانداردهای تحلیل بار:"},
-        'standards_applications': {'en': "#### Key Application Areas:", 'fa': "#### حوزه‌های کاربردی کلیدی:"},
+        'standards_current': {'en': "#### Current Standards for Amusement Devices:", 'fa': "#### استانداردهای فعلی برای وسایل تفریحی"},
+        'standards_legacy': {'en': "#### Legacy Standards (Reference):", 'fa': "#### استانداردهای قدیمی (مرجع)"},
+        'standards_loads': {'en': "#### Standards for Load Analysis:", 'fa': "#### استانداردهای تحلیل بار"},
+        'standards_applications': {'en': "#### Key Application Areas:", 'fa': "#### حوزه‌های کاربردی کلیدی"},
         
         # Application Areas
         'app_wind': {'en': "**Wind Load Analysis**: AS 1170.4, EN 1991-1-4, ISIRI 2800",
@@ -68,7 +68,7 @@ def get_text(key, persian=False):
         
         # Warning
         'warning_title': {'en': "⚠️ **Important Notice:**", 'fa': "⚠️ **اطلاعیه مهم:**"},
-        'warning_intro': {'en': "By proceeding, you acknowledge that:", 'fa': "با ادامه، شما تأیید می‌کنید که:"},
+        'warning_intro': {'en': "By proceeding, you acknowledge that:", 'fa': "با ادامه، شما تأیید می‌کنید که"},
         'warning_1': {'en': "This tool provides preliminary design calculations based on the referenced standards",
                      'fa': "این ابزار محاسبات طراحی اولیه را بر اساس استانداردهای ذکر شده ارائه می‌دهد"},
         'warning_2': {'en': "Final designs must be reviewed and approved by licensed professional engineers",
