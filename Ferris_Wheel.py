@@ -1918,6 +1918,7 @@ st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
 st.markdown("---")
 
+
 # === STEP 0: Welcome and Standards ===
 if st.session_state.get('step', 0) == 0:
     col_lang1, col_lang2 = st.columns([3,1])
@@ -1937,11 +1938,8 @@ if st.session_state.get('step', 0) == 0:
             st.rerun()
     
     st.markdown("---")
-
-    st.header(get_text('welcome_header', persian))
-    st.markdown("---")
     
-    # About Section
+    # About Section (بدون عنوان تکراری)
     st.markdown(f"### {get_text('about_title', persian)}")
     st.markdown(get_text('about_intro', persian))
     
