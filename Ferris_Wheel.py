@@ -1024,6 +1024,79 @@ def determine_restraint_area_iso(ax, az):
     
     return 2  # Default
 
+def estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter):
+    """
+    تخمین مساحت سطح کابین بر اساس شکل، ظرفیت و قطر چرخ
+    
+    Parameters:
+    -----------
+    cabin_geometry : str
+        شکل کابین (Square, Vertical Cylinder, Horizontal Cylinder, Spherical)
+    cabin_capacity : int
+        ظرفیت مسافری کابین
+    diameter : float
+        قطر چرخ (متر)
+    
+    Returns:
+    --------
+    float
+        مساحت سطح تقریبی کابین (متر مربع)
+    """
+    
+    # تخمین ابعاد کابین بر اساس ظرفیت
+    # فرض: هر مسافر نیاز به ~0.6 m² فضای کف دارد
+    floor_area_per_person = 0.6  # m²
+    floor_area = cabin_capacity * floor_area_per_person
+    
+    # ارتفاع استاندارد کابین
+    cabin_height = 2.2  # meters
+    
+    # محدودیت اندازه کابین بر اساس قطر چرخ
+    # کابین نباید بیشتر از 1/8 قطر چرخ باشد
+    max_cabin_dimension = diameter / 8.0
+    
+    if "Square" in cabin_geometry or "مربع" in cabin_geometry or "مکعب" in cabin_geometry:
+        # کابین مربعی/مکعبی
+        side_length = min(np.sqrt(floor_area), max_cabin_dimension)
+        # مساحت سطح = 2×(طول×عرض) + 4×(طول×ارتفاع)
+        surface_area = 2 * (side_length ** 2) + 4 * (side_length * cabin_height)
+        
+    elif "Vertical" in cabin_geometry or "عمودی" in cabin_geometry:
+        # استوانه عمودی (ایستاده)
+        radius = min(np.sqrt(floor_area / np.pi), max_cabin_dimension / 2.0)
+        # مساحت سطح = 2×π×r² + 2×π×r×h
+        surface_area = 2 * np.pi * (radius ** 2) + 2 * np.pi * radius * cabin_height
+        
+    elif "Horizontal" in cabin_geometry or "افقی" in cabin_geometry:
+        # استوانه افقی (خوابیده)
+        # طول استوانه بر اساس فضای کف
+        length = min(floor_area / 2.0, max_cabin_dimension)
+        radius = min(1.0, max_cabin_dimension / 4.0)  # شعاع ثابت ~1m
+        # مساحت سطح = 2×π×r² + 2×π×r×L
+        surface_area = 2 * np.pi * (radius ** 2) + 2 * np.pi * radius * length
+        
+    elif "Spherical" in cabin_geometry or "کروی" in cabin_geometry or "sphere" in cabin_geometry.lower():
+        # کابین کروی
+        # حجم مورد نیاز بر اساس ظرفیت
+        volume_per_person = 1.5  # m³ per person
+        required_volume = cabin_capacity * volume_per_person
+        # شعاع کره: V = (4/3)πr³
+        radius = min((3 * required_volume / (4 * np.pi)) ** (1/3), max_cabin_dimension / 2.0)
+        # مساحت سطح کره = 4πr²
+        surface_area = 4 * np.pi * (radius ** 2)
+        
+    else:
+        # پیش‌فرض: مربع
+        side_length = min(np.sqrt(floor_area), max_cabin_dimension)
+        surface_area = 2 * (side_length ** 2) + 4 * (side_length * cabin_height)
+    
+    # محدود کردن مساحت به محدوده منطقی
+    # حداقل: 8 m² (کابین خیلی کوچک)
+    # حداکثر: 25 m² (کابین بزرگ)
+    surface_area = max(8.0, min(surface_area, 25.0))
+    
+    return round(surface_area, 2)
+
 def determine_restraint_area_as(ax, az):
     """Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)"""
     # Zone 1: Upper region
@@ -2176,12 +2249,19 @@ elif st.session_state.step == 9:
         st.session_state.enable_wind = False
     if 'enable_earthquake' not in st.session_state:
         st.session_state.enable_earthquake = False
-    if 'cabin_area' not in st.session_state:
-        st.session_state.cabin_area = min(diameter * 1.5, 20.0)
+    if 'snow_coefficient' not in st.session_state:
+        st.session_state.snow_coefficient = 0.2  # kN/m²
     if 'terror_factor' not in st.session_state:
         st.session_state.terror_factor = 1.0
     if 'height_factor' not in st.session_state:
         st.session_state.height_factor = 1.0
+    if 'seismic_coefficient' not in st.session_state:
+        st.session_state.seismic_coefficient = 0.15
+    
+    # محاسبه خودکار مساحت سطح کابین
+    cabin_geometry = st.session_state.get('cabin_geometry', 'Square')
+    cabin_capacity = st.session_state.get('cabin_capacity', 6)
+    cabin_surface_area = estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter)
     
     col1, col2, col3 = st.columns(3)
     
@@ -2193,15 +2273,25 @@ elif st.session_state.step == 9:
         st.session_state.enable_snow = enable_snow
         
         if enable_snow:
-            st.caption("Snow load: 0.2 kN/m²" if not persian else "بار برف: ۰.۲ کیلونیوتن بر متر مربع")
-            # Approximate cabin surface area based on diameter
-            # Make sure default value doesn't exceed max_value
-            default_cabin_area = min(diameter * 1.5, 20.0)
-            cabin_area = st.number_input("Cabin Surface Area (m²)" if not persian else "مساحت سطح کابین (متر مربع)", 
-                                        min_value=1.0, max_value=20.0, 
-                                        value=default_cabin_area, step=0.5, format="%.2f",
-                                        key="cabin_area_input")
-            st.session_state.cabin_area = cabin_area
+            # نمایش مساحت محاسبه شده
+            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²\n\n"
+                   f"Based on: {cabin_geometry}, {cabin_capacity} passengers")
+            
+            # ضریب برف قابل ویرایش
+            snow_coef = st.number_input(
+                "Snow Pressure (kN/m²)" if not persian else "فشار برف (کیلونیوتن بر متر مربع)", 
+                min_value=0.1, max_value=1.0, 
+                value=st.session_state.snow_coefficient, 
+                step=0.05, 
+                format="%.2f",
+                key="snow_coef_input",
+                help="Standard value: 0.2 kN/m² (modifiable)"
+            )
+            st.session_state.snow_coefficient = snow_coef
+            
+            # محاسبه بار برف
+            snow_load_calc = snow_coef * cabin_surface_area
+            st.caption(f"Snow Load = {snow_coef} × {cabin_surface_area} = **{snow_load_calc:.2f} kN**")
     
     # Wind Load
     with col2:
@@ -2211,8 +2301,10 @@ elif st.session_state.step == 9:
         st.session_state.enable_wind = enable_wind
         
         if enable_wind:
+            # نمایش مساحت محاسبه شده
+            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²")
+            
             # Based on Table 1 from the image
-            # Initialize default index if not set
             if 'height_category_index' not in st.session_state:
                 st.session_state.height_category_index = 0
             
@@ -2223,7 +2315,7 @@ elif st.session_state.step == 9:
                 key="height_category"
             )
             
-            # Store the category value separately (not directly to session_state of the widget)
+            # Store the category value separately
             if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
                 st.session_state.height_category_value = height_category
             
@@ -2238,7 +2330,7 @@ elif st.session_state.step == 9:
             st.session_state.wind_pressure = wind_pressure
             st.caption(f"Wind pressure q: {wind_pressure} kN/m²")
             
-            # Terror and Height factors (فاکتور وحشت و ارتفاع)
+            # Terror and Height factors
             st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
             terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
                                      min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
@@ -2249,6 +2341,10 @@ elif st.session_state.step == 9:
                                      min_value=1.0, max_value=5.0, value=st.session_state.height_factor, step=0.5,
                                      key="height_factor_slider")
             st.session_state.height_factor = height_factor
+            
+            # محاسبه بار باد
+            wind_load_calc = wind_pressure * cabin_surface_area * terror_factor * height_factor
+            st.caption(f"Wind Load = {wind_pressure} × {cabin_surface_area} × {terror_factor} × {height_factor} = **{wind_load_calc:.2f} kN**")
     
     # Earthquake Load
     with col3:
@@ -2260,19 +2356,21 @@ elif st.session_state.step == 9:
         if enable_earthquake:
             st.caption("Seismic loads" if not persian else "بارهای لرزه‌ای")
             
-            # Initialize default seismic coefficient if not set
-            if 'seismic_coefficient' not in st.session_state:
-                st.session_state.seismic_coefficient = 0.15
-            
-            # Seismic coefficient (approximate)
+            # Seismic coefficient (editable)
             seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
                                           min_value=0.0, max_value=0.5, 
                                           value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
-                                          key="seismic_coef_input")
+                                          key="seismic_coef_input",
+                                          help="Typical range: 0.10 - 0.35")
             st.session_state.seismic_coefficient = seismic_coef
             
-            st.caption(f"Approx. horizontal force: {seismic_coef}×Weight")
-            st.caption(f"Approx. vertical force: {seismic_coef*0.5}×Weight")
+            # محاسبه بار زلزله
+            approx_mass = diameter * 500  # kg
+            earthquake_load_calc = seismic_coef * (approx_mass * 9.81 / 1000)
+            
+            st.caption(f"Approx. cabin mass: {approx_mass:.0f} kg")
+            st.caption(f"Horizontal force: {seismic_coef} × {approx_mass * 9.81 / 1000:.1f} = **{earthquake_load_calc:.2f} kN**")
+            st.caption(f"Vertical force: **{earthquake_load_calc * 0.5:.2f} kN** (50% of horizontal)")
     
     st.markdown("---")
     st.subheader("Design Case Analysis")
@@ -2287,16 +2385,13 @@ elif st.session_state.step == 9:
     earthquake_load = 0.0
     
     if st.session_state.enable_snow:
-        snow_load = 0.2 * st.session_state.cabin_area  # kN
+        snow_load = st.session_state.snow_coefficient * cabin_surface_area  # kN
     
     if st.session_state.enable_wind:
-        # Wind load calculation with terror and height factors
-        wind_load = (st.session_state.wind_pressure * st.session_state.cabin_area * 
+        wind_load = (st.session_state.wind_pressure * cabin_surface_area * 
                     st.session_state.terror_factor * st.session_state.height_factor)  # kN
     
     if st.session_state.enable_earthquake:
-        # Approximate earthquake horizontal load
-        # Assuming cabin mass ~ 500 kg per meter of diameter
         approx_mass = diameter * 500  # kg
         earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)  # kN
     
@@ -2323,6 +2418,7 @@ elif st.session_state.step == 9:
         with load_col1:
             if st.session_state.enable_snow:
                 st.metric("Snow Load", f"{snow_load:.3f} kN")
+                st.caption(f"{st.session_state.snow_coefficient} kN/m² × {cabin_surface_area} m²")
         
         with load_col2:
             if st.session_state.enable_wind:
@@ -2351,10 +2447,13 @@ elif st.session_state.step == 9:
     with col3:
         st.metric("Device Class (Actual)", f"Class {class_actual}")
     
+    # ذخیره اطلاعات کامل برای Step 11
     st.session_state.classification_data = {
         'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
         'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual,
-        'snow_load': snow_load, 'wind_load': wind_load, 'earthquake_load': earthquake_load
+        'snow_load': snow_load, 'wind_load': wind_load, 'earthquake_load': earthquake_load,
+        'cabin_surface_area': cabin_surface_area,  # ذخیره مساحت برای گزارش
+        'snow_coefficient': st.session_state.snow_coefficient  # ذخیره ضریب برف
     }
     
     st.markdown("---")
@@ -2363,6 +2462,7 @@ elif st.session_state.step == 9:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
