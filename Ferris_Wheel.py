@@ -2234,9 +2234,15 @@ elif st.session_state.step == 9:
         rpm = 0.0
     
     st.subheader("Braking Acceleration Parameter")
-    braking_accel = st.number_input("Braking Acceleration (m/s²)", min_value=0.01, max_value=2.0, 
-                                    value=st.session_state.braking_acceleration, step=0.01, format="%.2f", 
-                                    key="braking_accel_input")
+    st.info("⚠️ **Note:** Per INSO 8987-1-2023, Design Case uses standard values (1 rpm, 0.7 m/s²). "
+            "Actual Operation uses your specified values below.")
+    
+    braking_accel = st.number_input("Braking Acceleration (m/s²) - Actual Operation", 
+                                    min_value=0.01, max_value=2.0, 
+                                    value=st.session_state.braking_acceleration, 
+                                    step=0.01, format="%.2f", 
+                                    key="braking_accel_input",
+                                    help="This value is used for Actual Operation analysis")
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
@@ -2373,13 +2379,8 @@ elif st.session_state.step == 9:
             st.caption(f"Vertical force: **{earthquake_load_calc * 0.5:.2f} kN** (50% of horizontal)")
     
     st.markdown("---")
-    st.subheader("Design Case Analysis")
-    st.markdown("**Design parameters:** Speed = 1 rpm, Braking acceleration = 0.7 m/s²")
     
-    omega_design = 1.0 * (2.0 * np.pi / 60.0)
-    a_brake_design = 0.7
-    
-    # Calculate additional loads for design case
+    # Calculate additional loads
     snow_load = 0.0
     wind_load = 0.0
     earthquake_load = 0.0
@@ -2395,12 +2396,27 @@ elif st.session_state.step == 9:
         approx_mass = diameter * 500  # kg
         earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)  # kN
     
+    # === DESIGN CASE ANALYSIS ===
+    st.subheader("🔧 Design Case Analysis")
+    st.markdown("**Per INSO 8987-1-2023 Standard Requirements:**")
+    
+    omega_design = 1.0 * (2.0 * np.pi / 60.0)
+    a_brake_design = 0.7
+    
+    # نمایش پارامترهای طراحی
+    design_col1, design_col2 = st.columns(2)
+    with design_col1:
+        st.metric("Design Speed", "1.0 rpm", help="Standard requirement per INSO 8987-1-2023")
+    with design_col2:
+        st.metric("Design Braking Accel", "0.7 m/s²", help="Standard requirement per INSO 8987-1-2023")
+    
     p_design, n_design, max_accel_design = calculate_dynamic_product(
         diameter, height, omega_design, a_brake_design, 
         snow_load, wind_load, earthquake_load
     )
     class_design = classify_device(p_design)
     
+    st.markdown("**Design Case Results:**")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Max Acceleration", f"{max_accel_design:.3f} m/s²")
@@ -2408,11 +2424,47 @@ elif st.session_state.step == 9:
     with col2:
         st.metric("Dynamic Product (p)", f"{p_design:.2f}")
     with col3:
-        st.metric("Device Class (Design)", f"Class {class_design}")
+        st.metric("Device Class", f"Class {class_design}")
+    
+    # === ACTUAL OPERATION ANALYSIS ===
+    st.markdown("---")
+    st.subheader("⚙️ Actual Operation Analysis")
+    st.markdown("**Based on Your Specified Parameters:**")
+    
+    # نمایش پارامترهای واقعی
+    actual_col1, actual_col2 = st.columns(2)
+    with actual_col1:
+        st.metric("Actual Speed", f"{rpm:.4f} rpm", help="Based on rotation time you specified")
+    with actual_col2:
+        st.metric("Actual Braking Accel", f"{braking_accel:.2f} m/s²", 
+                 delta=f"{braking_accel - a_brake_design:+.2f} from design",
+                 help="Value you specified above")
+    
+    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
+        diameter, height, angular_velocity, braking_accel,
+        snow_load, wind_load, earthquake_load
+    ) 
+    class_actual = classify_device(p_actual) 
+    
+    st.markdown("**Actual Operation Results:**")
+    col1, col2, col3 = st.columns(3) 
+    with col1:
+        st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²",
+                 delta=f"{max_accel_actual - max_accel_design:+.3f} m/s²")
+        st.caption(f"({n_actual:.3f}g)")
+    with col2:
+        st.metric("Dynamic Product (p)", f"{p_actual:.2f}",
+                 delta=f"{p_actual - p_design:+.2f}")
+    with col3:
+        st.metric("Device Class", f"Class {class_actual}",
+                 delta=f"{class_actual - class_design:+d}" if class_actual != class_design else "Same")
     
     # Display load contributions if any are enabled
     if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
-        st.markdown("**Additional Load Contributions:**" if not persian else "**مشارکت بارهای اضافی:**")
+        st.markdown("---")
+        st.markdown("**🌦️ Additional Load Contributions:**" if not persian else "**🌦️ مشارکت بارهای اضافی:**")
+        st.caption("These loads are included in both Design and Actual analyses above")
+        
         load_col1, load_col2, load_col3 = st.columns(3)
         
         with load_col1:
@@ -2423,37 +2475,22 @@ elif st.session_state.step == 9:
         with load_col2:
             if st.session_state.enable_wind:
                 st.metric("Wind Load", f"{wind_load:.3f} kN")
+                st.caption(f"With terror={st.session_state.terror_factor}, height={st.session_state.height_factor}")
         
         with load_col3:
             if st.session_state.enable_earthquake:
                 st.metric("Earthquake Load", f"{earthquake_load:.3f} kN")
-    
-    st.markdown("---")
-    st.subheader("Actual Operation Analysis")
-    st.markdown(f"**Actual parameters:** Speed = {rpm:.4f} rpm, Braking acceleration = {braking_accel} m/s²")
-    
-    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
-        diameter, height, angular_velocity, braking_accel,
-        snow_load, wind_load, earthquake_load
-    ) 
-    class_actual = classify_device(p_actual) 
-    
-    col1, col2, col3 = st.columns(3) 
-    with col1:
-        st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²")
-        st.caption(f"({n_actual:.3f}g)")
-    with col2:
-        st.metric("Dynamic Product (p)", f"{p_actual:.2f}")
-    with col3:
-        st.metric("Device Class (Actual)", f"Class {class_actual}")
+                st.caption(f"Coef={st.session_state.seismic_coefficient:.3f}")
     
     # ذخیره اطلاعات کامل برای Step 11
     st.session_state.classification_data = {
         'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
         'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual,
         'snow_load': snow_load, 'wind_load': wind_load, 'earthquake_load': earthquake_load,
-        'cabin_surface_area': cabin_surface_area,  # ذخیره مساحت برای گزارش
-        'snow_coefficient': st.session_state.snow_coefficient  # ذخیره ضریب برف
+        'cabin_surface_area': cabin_surface_area,
+        'snow_coefficient': st.session_state.snow_coefficient,
+        'braking_accel_actual': braking_accel,  # ذخیره شتاب ترمز واقعی
+        'braking_accel_design': a_brake_design  # ذخیره شتاب ترمز طراحی
     }
     
     st.markdown("---")
@@ -2462,6 +2499,7 @@ elif st.session_state.step == 9:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
+
 
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
