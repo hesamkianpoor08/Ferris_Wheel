@@ -2101,7 +2101,7 @@ if st.session_state.get("step", 0) == 2:
         st.session_state.num_cabins = min(max(st.session_state.num_cabins, min_c), max_c)
         st.session_state.capacities_calculated = False
         st.session_state.step = 3
-        st.rerun()
+        
 
     for i, (label, img_path) in enumerate(geom_images):
         with cols[i]:
