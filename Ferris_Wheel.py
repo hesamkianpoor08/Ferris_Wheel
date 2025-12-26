@@ -3214,21 +3214,82 @@ elif st.session_state.step == 11:
 
     st.markdown("---")
     
-    # Safety Classification
+    # Safety Classification - اصلاح شده با دو نوع Classification
     st.subheader("⚠️ Safety Classification")
     st.caption("Per INSO 8987-1-2023")
     if st.session_state.classification_data:
         class_data = st.session_state.classification_data
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Design Class", f"Class {class_data.get('class_design','N/A')}")
-            st.caption(f"Dynamic Product: {class_data.get('p_design',0):.2f}")
-        with col2:
-            st.metric("Actual Class", f"Class {class_data.get('class_actual','N/A')}")
-            st.caption(f"Dynamic Product: {class_data.get('p_actual',0):.2f}")
-        with col3:
+        
+        # نمایش پارامترهای عملیاتی
+        st.markdown("**Operational Parameters:**")
+        param_col1, param_col2, param_col3 = st.columns(3)
+        with param_col1:
+            rpm_actual = class_data.get('rpm_actual', 0)
+            st.metric("Rotation Speed", f"{rpm_actual:.4f} rpm")
+        with param_col2:
+            braking_accel = class_data.get('braking_accel', st.session_state.braking_acceleration)
+            st.metric("Braking Acceleration", f"{braking_accel:.2f} m/s²")
+        with param_col3:
             st.metric("Max Acceleration", f"{class_data.get('n_actual',0):.3f}g")
-            st.caption("Actual operation")
+        
+        st.markdown("---")
+        
+        # دو نوع Classification
+        st.markdown("**Device Classification (INSO 8987-1-2023):**")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### Intrinsic Safety **SECURED**")
+            class_secured = class_data.get('class_secured', 'N/A')
+            p_actual = class_data.get('p_actual', 0)
+            
+            if class_secured != 'N/A':
+                st.success(f"**Class {class_secured}**")
+                st.caption(f"Dynamic Product (p): {p_actual:.2f}")
+                
+                # توضیحات
+                secured_desc = {
+                    1: "Lowest classification - Minimal restraint requirements",
+                    2: "Low to moderate classification - Standard restraint",
+                    3: "Moderate to high classification - Enhanced restraint required",
+                    4: "Highest classification - Maximum restraint required"
+                }
+                st.info(secured_desc.get(class_secured, "Standard restraint"))
+                
+                # جدول محدوده‌ها
+                st.markdown("""
+**Classification Ranges:**
+- Class 1: 0.1 < P ≤ 25
+- Class 2: 25 < P ≤ 100
+- Class 3: 100 < P ≤ 200
+- Class 4: 200 < P
+""")
+        
+        with col2:
+            st.markdown("#### Intrinsic Safety **NOT Secured**")
+            class_not_secured = class_data.get('class_not_secured', 'N/A')
+            
+            if class_not_secured != 'N/A':
+                st.warning(f"**Class {class_not_secured}**")
+                st.caption(f"Dynamic Product (p): {p_actual:.2f}")
+                
+                # توضیحات
+                not_secured_desc = {
+                    2: "Requires additional safety measures",
+                    3: "Enhanced safety measures required",
+                    4: "Comprehensive safety system required",
+                    5: "Maximum safety classification - Special precautions mandatory"
+                }
+                st.info(not_secured_desc.get(class_not_secured, "Additional safety measures required"))
+                
+                # جدول محدوده‌ها
+                st.markdown("""
+**Classification Ranges:**
+- Class 2: 0.1 < P ≤ 25
+- Class 3: 25 < P ≤ 100
+- Class 4: 100 < P ≤ 200
+- Class 5: 200 < P
+""")
         
         # Display additional loads if any are active
         snow_load = class_data.get('snow_load', 0.0)
@@ -3387,6 +3448,13 @@ elif st.session_state.step == 11:
 - **Calculation:** {seismic_coef} × ({approx_mass} × 9.81 / 1000) = {earthquake_load:.2f} kN
 """
     
+    # دریافت مقادیر برای گزارش
+    rpm_actual = class_data.get('rpm_actual', 0) if st.session_state.classification_data else 0
+    braking_accel = class_data.get('braking_accel', st.session_state.braking_acceleration) if st.session_state.classification_data else 0
+    class_secured = class_data.get('class_secured', 'N/A') if st.session_state.classification_data else 'N/A'
+    class_not_secured = class_data.get('class_not_secured', 'N/A') if st.session_state.classification_data else 'N/A'
+    p_actual = class_data.get('p_actual', 0) if st.session_state.classification_data else 0
+    
     with st.expander("📋 View Complete Design Report"):
         st.markdown(f"""
         ## Ferris Wheel Design Report
@@ -3407,8 +3475,9 @@ elif st.session_state.step == 11:
         
         ### Operating Parameters
         - **Rotation Time:** {st.session_state.rotation_time_min:.2f} minutes
-        - **Rotational Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
+        - **Rotational Speed:** {rpm_actual:.4f} rpm
         - **Linear Speed at Rim:** {ang * (st.session_state.diameter / 2.0):.3f} m/s
+        - **Braking Acceleration:** {braking_accel:.2f} m/s²
         
         ### Motor & Drive System
         - **Rated Motor Power:** {power_data['rated_power']:.1f} kW (with safety factor 1.5)
@@ -3447,14 +3516,28 @@ elif st.session_state.step == 11:
         - **Seismic Hazard Level:** {env.get('seismic_hazard', 'N/A')}
         
         ### Safety Classification (INSO 8987-1-2023)
-        - **Design Class:** Class {class_data.get('class_design', 'N/A')}
-        - **Design Dynamic Product:** {class_data.get('p_design', 0):.2f}
-        - **Design Speed:** 1.0 rpm
-        - **Design Braking Acceleration:** {class_data.get('braking_accel_design', 0.7):.2f} m/s²
-        - **Actual Operating Class:** Class {class_data.get('class_actual', 'N/A')}
-        - **Actual Dynamic Product:** {class_data.get('p_actual', 0):.2f}
-        - **Actual Speed:** {ang * 60.0 / (2.0 * np.pi):.4f} rpm
-        - **Actual Braking Acceleration:** {class_data.get('braking_accel_actual', st.session_state.braking_acceleration):.2f} m/s²
+        
+        #### Intrinsic Safety SECURED
+        - **Classification:** Class {class_secured}
+        - **Dynamic Product (p):** {p_actual:.2f}
+        - **Range:** 
+          - Class 1: 0.1 < P ≤ 25
+          - Class 2: 25 < P ≤ 100
+          - Class 3: 100 < P ≤ 200
+          - Class 4: 200 < P
+        
+        #### Intrinsic Safety NOT Secured
+        - **Classification:** Class {class_not_secured}
+        - **Dynamic Product (p):** {p_actual:.2f}
+        - **Range:**
+          - Class 2: 0.1 < P ≤ 25
+          - Class 3: 25 < P ≤ 100
+          - Class 4: 100 < P ≤ 200
+          - Class 5: 200 < P
+        
+        #### Operational Parameters
+        - **Rotation Speed:** {rpm_actual:.4f} rpm
+        - **Braking Acceleration:** {braking_accel:.2f} m/s²
         - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
         {additional_loads_report}
         ### Restraint System Requirements
