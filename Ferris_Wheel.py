@@ -2510,6 +2510,25 @@ elif st.session_state.step == 7:
 # === STEP 8: Carousel Orientation ===
 
 if st.session_state.step == 8:
+
+    if st.session_state.get('scroll_to_top'):
+        components.html(
+            """
+            <script>
+                window.parent.document.querySelector('section.main').scrollTo(0, 0);
+            </script>
+            """,
+            height=0,
+        )
+        st.session_state.scroll_to_top = False
+    
+    st.header(get_text('provincial_characteristics', persian))
+    
+    if st.session_state.get('validation_errors'):
+        for e in st.session_state.validation_errors:
+            st.error(e)
+        st.session_state.validation_errors = []
+        
     st.header(get_text('carousel_orientation', persian))
     st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
