@@ -2528,7 +2528,7 @@ if st.session_state.step == 8:
         for e in st.session_state.validation_errors:
             st.error(e)
         st.session_state.validation_errors = []
-        
+
     st.header(get_text('carousel_orientation', persian))
     st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
@@ -2598,16 +2598,18 @@ elif st.session_state.step == 9:
         angular_velocity = 0.0
         rpm = 0.0
     
-    st.subheader("Braking Acceleration Parameter")
-    st.info("⚠️ **Note:** Per INSO 8987-1-2023, Design Case uses standard values (1 rpm, 0.7 m/s²). "
-            "Actual Operation uses your specified values below.")
+    st.subheader("Braking Acceleration Parameter" if not persian else "پارامتر شتاب ترمز")
+    st.info("⚠️ **Note:** Enter your actual braking acceleration for the design analysis" if not persian else 
+            "⚠️ **توجه:** شتاب ترمز واقعی خود را برای تحلیل طراحی وارد کنید")
     
-    braking_accel = st.number_input("Braking Acceleration (m/s²) - Actual Operation", 
-                                    min_value=0.01, max_value=2.0, 
-                                    value=st.session_state.braking_acceleration, 
-                                    step=0.01, format="%.2f", 
-                                    key="braking_accel_input",
-                                    help="This value is used for Actual Operation analysis")
+    braking_accel = st.number_input(
+        "Braking Acceleration (m/s²)" if not persian else "شتاب ترمز (متر بر مجذور ثانیه)", 
+        min_value=0.01, max_value=2.0, 
+        value=st.session_state.braking_acceleration, 
+        step=0.01, format="%.2f", 
+        key="braking_accel_input",
+        help="Actual braking acceleration for your design" if not persian else "شتاب ترمز واقعی برای طراحی شما"
+    )
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
@@ -2621,7 +2623,7 @@ elif st.session_state.step == 9:
     if 'enable_earthquake' not in st.session_state:
         st.session_state.enable_earthquake = False
     if 'snow_coefficient' not in st.session_state:
-        st.session_state.snow_coefficient = 0.2  # kN/m²
+        st.session_state.snow_coefficient = 0.2
     if 'terror_factor' not in st.session_state:
         st.session_state.terror_factor = 1.0
     if 'height_factor' not in st.session_state:
@@ -2644,11 +2646,11 @@ elif st.session_state.step == 9:
         st.session_state.enable_snow = enable_snow
         
         if enable_snow:
-            # نمایش مساحت محاسبه شده
             st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²\n\n"
-                   f"Based on: {cabin_geometry}, {cabin_capacity} passengers")
+                   f"Based on: {cabin_geometry}, {cabin_capacity} passengers" if not persian else
+                   f"**مساحت سطح کابین (تخمین):**\n{cabin_surface_area} متر مربع\n\n"
+                   f"بر اساس: {cabin_geometry}، {cabin_capacity} مسافر")
             
-            # ضریب برف قابل ویرایش
             snow_coef = st.number_input(
                 "Snow Pressure (kN/m²)" if not persian else "فشار برف (کیلونیوتن بر متر مربع)", 
                 min_value=0.1, max_value=1.0, 
@@ -2656,11 +2658,10 @@ elif st.session_state.step == 9:
                 step=0.05, 
                 format="%.2f",
                 key="snow_coef_input",
-                help="Standard value: 0.2 kN/m² (modifiable)"
+                help="Standard value: 0.2 kN/m² (modifiable)" if not persian else "مقدار استاندارد: 0.2 (قابل تغییر)"
             )
             st.session_state.snow_coefficient = snow_coef
             
-            # محاسبه بار برف
             snow_load_calc = snow_coef * cabin_surface_area
             st.caption(f"Snow Load = {snow_coef} × {cabin_surface_area} = **{snow_load_calc:.2f} kN**")
     
@@ -2672,10 +2673,9 @@ elif st.session_state.step == 9:
         st.session_state.enable_wind = enable_wind
         
         if enable_wind:
-            # نمایش مساحت محاسبه شده
-            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²")
+            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²" if not persian else
+                   f"**مساحت سطح کابین (تخمین):**\n{cabin_surface_area} متر مربع")
             
-            # Based on Table 1 from the image
             if 'height_category_index' not in st.session_state:
                 st.session_state.height_category_index = 0
             
@@ -2686,11 +2686,9 @@ elif st.session_state.step == 9:
                 key="height_category"
             )
             
-            # Store the category value separately
             if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
                 st.session_state.height_category_value = height_category
             
-            # Map height category to wind pressure
             wind_pressure_map = {
                 "0 < H ≤ 8": 0.20,
                 "8 < H ≤ 20": 0.30,
@@ -2701,7 +2699,6 @@ elif st.session_state.step == 9:
             st.session_state.wind_pressure = wind_pressure
             st.caption(f"Wind pressure q: {wind_pressure} kN/m²")
             
-            # Terror and Height factors
             st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
             terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
                                      min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
@@ -2713,7 +2710,6 @@ elif st.session_state.step == 9:
                                      key="height_factor_slider")
             st.session_state.height_factor = height_factor
             
-            # محاسبه بار باد
             wind_load_calc = wind_pressure * cabin_surface_area * terror_factor * height_factor
             st.caption(f"Wind Load = {wind_pressure} × {cabin_surface_area} × {terror_factor} × {height_factor} = **{wind_load_calc:.2f} kN**")
     
@@ -2727,7 +2723,6 @@ elif st.session_state.step == 9:
         if enable_earthquake:
             st.caption("Seismic loads" if not persian else "بارهای لرزه‌ای")
             
-            # Seismic coefficient (editable)
             seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
                                           min_value=0.0, max_value=0.5, 
                                           value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
@@ -2735,8 +2730,7 @@ elif st.session_state.step == 9:
                                           help="Typical range: 0.10 - 0.35")
             st.session_state.seismic_coefficient = seismic_coef
             
-            # محاسبه بار زلزله
-            approx_mass = diameter * 500  # kg
+            approx_mass = diameter * 500
             earthquake_load_calc = seismic_coef * (approx_mass * 9.81 / 1000)
             
             st.caption(f"Approx. cabin mass: {approx_mass:.0f} kg")
@@ -2751,120 +2745,180 @@ elif st.session_state.step == 9:
     earthquake_load = 0.0
     
     if st.session_state.enable_snow:
-        snow_load = st.session_state.snow_coefficient * cabin_surface_area  # kN
+        snow_load = st.session_state.snow_coefficient * cabin_surface_area
     
     if st.session_state.enable_wind:
         wind_load = (st.session_state.wind_pressure * cabin_surface_area * 
-                    st.session_state.terror_factor * st.session_state.height_factor)  # kN
+                    st.session_state.terror_factor * st.session_state.height_factor)
     
     if st.session_state.enable_earthquake:
-        approx_mass = diameter * 500  # kg
-        earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)  # kN
+        approx_mass = diameter * 500
+        earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)
     
-    # === DESIGN CASE ANALYSIS ===
-    st.subheader("🔧 Design Case Analysis")
-    st.markdown("**Per INSO 8987-1-2023 Standard Requirements:**")
+    # === ACTUAL OPERATION ANALYSIS (تحلیل طراحی واقعی) ===
+    st.subheader("⚙️ Device Classification Analysis" if not persian else "⚙️ تحلیل طبقه‌بندی دستگاه")
+    st.markdown("**Based on Your Design Parameters:**" if not persian else "**بر اساس پارامترهای طراحی شما:**")
     
-    omega_design = 1.0 * (2.0 * np.pi / 60.0)
-    a_brake_design = 0.7
+    # نمایش پارامترهای ورودی
+    param_col1, param_col2, param_col3 = st.columns(3)
+    with param_col1:
+        st.metric("Rotation Speed" if not persian else "سرعت چرخش", f"{rpm:.4f} rpm")
+    with param_col2:
+        st.metric("Braking Acceleration" if not persian else "شتاب ترمز", f"{braking_accel:.2f} m/s²")
+    with param_col3:
+        st.metric("Diameter" if not persian else "قطر", f"{diameter} m")
     
-    # نمایش پارامترهای طراحی
-    design_col1, design_col2 = st.columns(2)
-    with design_col1:
-        st.metric("Design Speed", "1.0 rpm", help="Standard requirement per INSO 8987-1-2023")
-    with design_col2:
-        st.metric("Design Braking Accel", "0.7 m/s²", help="Standard requirement per INSO 8987-1-2023")
-    
-    p_design, n_design, max_accel_design = calculate_dynamic_product(
-        diameter, height, omega_design, a_brake_design, 
-        snow_load, wind_load, earthquake_load
-    )
-    class_design = classify_device(p_design)
-    
-    st.markdown("**Design Case Results:**")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Max Acceleration", f"{max_accel_design:.3f} m/s²")
-        st.caption(f"({n_design:.3f}g)")
-    with col2:
-        st.metric("Dynamic Product (p)", f"{p_design:.2f}")
-    with col3:
-        st.metric("Device Class", f"Class {class_design}")
-    
-    # === ACTUAL OPERATION ANALYSIS ===
-    st.markdown("---")
-    st.subheader("⚙️ Actual Operation Analysis")
-    st.markdown("**Based on Your Specified Parameters:**")
-    
-    # نمایش پارامترهای واقعی
-    actual_col1, actual_col2 = st.columns(2)
-    with actual_col1:
-        st.metric("Actual Speed", f"{rpm:.4f} rpm", help="Based on rotation time you specified")
-    with actual_col2:
-        st.metric("Actual Braking Accel", f"{braking_accel:.2f} m/s²", 
-                 delta=f"{braking_accel - a_brake_design:+.2f} from design",
-                 help="Value you specified above")
-    
+    # محاسبه Dynamic Product
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
         diameter, height, angular_velocity, braking_accel,
         snow_load, wind_load, earthquake_load
-    ) 
-    class_actual = classify_device(p_actual) 
+    )
     
-    st.markdown("**Actual Operation Results:**")
-    col1, col2, col3 = st.columns(3) 
-    with col1:
-        st.metric("Max Acceleration", f"{max_accel_actual:.3f} m/s²",
-                 delta=f"{max_accel_actual - max_accel_design:+.3f} m/s²")
+    # طبقه‌بندی بر اساس دو جدول
+    def classify_intrinsic_secured(p):
+        """Intrinsic safety secured"""
+        if 0.1 < p <= 25:
+            return 1
+        elif 25 < p <= 100:
+            return 2
+        elif 100 < p <= 200:
+            return 3
+        elif p > 200:
+            return 4
+        else:
+            return None
+    
+    def classify_intrinsic_not_secured(p):
+        """Intrinsic safety not secured"""
+        if 0.1 < p <= 25:
+            return 2
+        elif 25 < p <= 100:
+            return 3
+        elif 100 < p <= 200:
+            return 4
+        elif p > 200:
+            return 5
+        else:
+            return None
+    
+    class_secured = classify_intrinsic_secured(p_actual)
+    class_not_secured = classify_intrinsic_not_secured(p_actual)
+    
+    st.markdown("---")
+    st.markdown("**Calculated Values:**" if not persian else "**مقادیر محاسبه شده:**")
+    
+    result_col1, result_col2, result_col3 = st.columns(3)
+    with result_col1:
+        st.metric("Max Acceleration" if not persian else "حداکثر شتاب", 
+                 f"{max_accel_actual:.3f} m/s²")
         st.caption(f"({n_actual:.3f}g)")
-    with col2:
-        st.metric("Dynamic Product (p)", f"{p_actual:.2f}",
-                 delta=f"{p_actual - p_design:+.2f}")
-    with col3:
-        st.metric("Device Class", f"Class {class_actual}",
-                 delta=f"{class_actual - class_design:+d}" if class_actual != class_design else "Same")
+    with result_col2:
+        st.metric("Dynamic Product (p)" if not persian else "حاصل‌ضرب دینامیکی", 
+                 f"{p_actual:.2f}")
+    with result_col3:
+        st.metric("Linear Velocity" if not persian else "سرعت خطی", 
+                 f"{(diameter/2.0) * angular_velocity:.3f} m/s")
+    
+    # نمایش دو نوع طبقه‌بندی
+    st.markdown("---")
+    st.subheader("📋 Device Classification per INSO 8987-1-2023" if not persian else 
+                "📋 طبقه‌بندی دستگاه طبق INSO 8987-1-2023")
+    
+    class_col1, class_col2 = st.columns(2)
+    
+    with class_col1:
+        st.markdown("#### **Intrinsic Safety Secured**" if not persian else "#### **ایمنی ذاتی تأمین شده**")
+        st.success(f"**Class {class_secured}**")
+        
+        # جدول محدوده‌ها
+        st.markdown("""
+| Class | Dynamic Product (P) |
+|-------|---------------------|
+| 1     | 0.1 < P ≤ 25        |
+| 2     | 25 < P ≤ 100        |
+| 3     | 100 < P ≤ 200       |
+| 4     | 200 < P             |
+""")
+        
+        if class_secured == 1:
+            st.info("✅ Lowest classification - Minimal restraint requirements")
+        elif class_secured == 2:
+            st.info("✅ Low to moderate classification - Standard restraint")
+        elif class_secured == 3:
+            st.warning("⚠️ Moderate to high classification - Enhanced restraint required")
+        elif class_secured == 4:
+            st.error("⚠️ Highest classification - Maximum restraint required")
+    
+    with class_col2:
+        st.markdown("#### **Intrinsic Safety NOT Secured**" if not persian else "#### **ایمنی ذاتی تأمین نشده**")
+        st.warning(f"**Class {class_not_secured}**")
+        
+        # جدول محدوده‌ها
+        st.markdown("""
+| Class | Dynamic Product (P) |
+|-------|---------------------|
+| 2     | 0.1 < P ≤ 25        |
+| 3     | 25 < P ≤ 100        |
+| 4     | 100 < P ≤ 200       |
+| 5     | 200 < P             |
+""")
+        
+        if class_not_secured == 2:
+            st.info("⚠️ Requires additional safety measures")
+        elif class_not_secured == 3:
+            st.warning("⚠️ Enhanced safety measures required")
+        elif class_not_secured == 4:
+            st.error("⚠️ Comprehensive safety system required")
+        elif class_not_secured == 5:
+            st.error("🚨 Maximum safety classification - Special precautions mandatory")
     
     # Display load contributions if any are enabled
     if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
         st.markdown("---")
         st.markdown("**🌦️ Additional Load Contributions:**" if not persian else "**🌦️ مشارکت بارهای اضافی:**")
-        st.caption("These loads are included in both Design and Actual analyses above")
+        st.caption("These loads are included in the analysis above" if not persian else 
+                  "این بارها در تحلیل بالا لحاظ شده‌اند")
         
         load_col1, load_col2, load_col3 = st.columns(3)
         
         with load_col1:
             if st.session_state.enable_snow:
-                st.metric("Snow Load", f"{snow_load:.3f} kN")
+                st.metric("Snow Load" if not persian else "بار برف", f"{snow_load:.3f} kN")
                 st.caption(f"{st.session_state.snow_coefficient} kN/m² × {cabin_surface_area} m²")
         
         with load_col2:
             if st.session_state.enable_wind:
-                st.metric("Wind Load", f"{wind_load:.3f} kN")
+                st.metric("Wind Load" if not persian else "بار باد", f"{wind_load:.3f} kN")
                 st.caption(f"With terror={st.session_state.terror_factor}, height={st.session_state.height_factor}")
         
         with load_col3:
             if st.session_state.enable_earthquake:
-                st.metric("Earthquake Load", f"{earthquake_load:.3f} kN")
+                st.metric("Earthquake Load" if not persian else "بار زلزله", f"{earthquake_load:.3f} kN")
                 st.caption(f"Coef={st.session_state.seismic_coefficient:.3f}")
     
-    # ذخیره اطلاعات کامل برای Step 11
+    # ذخیره اطلاعات کامل برای Step 10 و 11
     st.session_state.classification_data = {
-        'p_design': p_design, 'class_design': class_design, 'max_accel_design': max_accel_design, 'n_design': n_design,
-        'p_actual': p_actual, 'class_actual': class_actual, 'max_accel_actual': max_accel_actual, 'n_actual': n_actual,
-        'snow_load': snow_load, 'wind_load': wind_load, 'earthquake_load': earthquake_load,
+        'p_actual': p_actual, 
+        'class_secured': class_secured, 
+        'class_not_secured': class_not_secured,
+        'max_accel_actual': max_accel_actual, 
+        'n_actual': n_actual,
+        'rpm_actual': rpm,
+        'angular_velocity': angular_velocity,
+        'braking_accel': braking_accel,
+        'snow_load': snow_load, 
+        'wind_load': wind_load, 
+        'earthquake_load': earthquake_load,
         'cabin_surface_area': cabin_surface_area,
         'snow_coefficient': st.session_state.snow_coefficient,
-        'braking_accel_actual': braking_accel,  # ذخیره شتاب ترمز واقعی
-        'braking_accel_design': a_brake_design  # ذخیره شتاب ترمز طراحی
     }
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
-
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
@@ -2876,22 +2930,30 @@ elif st.session_state.step == 10:
     st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
+    # دریافت داده‌های واقعی از Step 9
     diameter = st.session_state.diameter
-    rotation_time_min = st.session_state.rotation_time_min
-    braking_accel = st.session_state.braking_acceleration
+    classification_data = st.session_state.get('classification_data', {})
     
-    # Get additional loads from session state
-    snow_load = st.session_state.get('classification_data', {}).get('snow_load', 0.0)
-    wind_load = st.session_state.get('classification_data', {}).get('wind_load', 0.0)
-    earthquake_load = st.session_state.get('classification_data', {}).get('earthquake_load', 0.0)
+    angular_velocity = classification_data.get('angular_velocity', 0.0)
+    braking_accel = classification_data.get('braking_accel', st.session_state.braking_acceleration)
+    rpm_actual = classification_data.get('rpm_actual', 0.0)
     
-    if rotation_time_min and rotation_time_min > 0:
-        rotation_time_sec = rotation_time_min * 60.0
-        angular_velocity = 2.0 * np.pi / rotation_time_sec
-    else:
-        angular_velocity = 0.0
+    # Get additional loads from classification data
+    snow_load = classification_data.get('snow_load', 0.0)
+    wind_load = classification_data.get('wind_load', 0.0)
+    earthquake_load = classification_data.get('earthquake_load', 0.0)
     
-    st.subheader("Passenger Acceleration Analysis")
+    st.subheader("Passenger Acceleration Analysis" if not persian else "تحلیل شتاب مسافران")
+    
+    # Display design parameters
+    st.info(f"""**Design Parameters:**
+- Rotation Speed: {rpm_actual:.4f} rpm
+- Braking Acceleration: {braking_accel:.2f} m/s²
+- Diameter: {diameter} m""" if not persian else
+f"""**پارامترهای طراحی:**
+- سرعت چرخش: {rpm_actual:.4f} دور در دقیقه
+- شتاب ترمز: {braking_accel:.2f} متر بر مجذور ثانیه
+- قطر: {diameter} متر""")
     
     # Display active loads
     if any([snow_load > 0, wind_load > 0, earthquake_load > 0]):
@@ -2906,6 +2968,7 @@ elif st.session_state.step == 10:
         st.write(" | ".join(load_info))
         st.markdown("---")
     
+    # محاسبه شتاب‌ها در تمام زوایا
     theta_vals = np.linspace(0, 2*np.pi, 360)
     max_ax = -float('inf')
     max_az = -float('inf')
@@ -2944,6 +3007,8 @@ elif st.session_state.step == 10:
     zone_counts_as = Counter(restraint_zones_as)
     predominant_zone_as = zone_counts_as.most_common(1)[0][0]
     
+    # نمایش محدوده شتاب‌ها
+    st.markdown("**Acceleration Ranges:**" if not persian else "**محدوده شتاب‌ها:**")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Max ax", f"{max_ax:.3f}g")
@@ -3007,7 +3072,6 @@ elif st.session_state.step == 10:
         - **Zone 5** (Red): Special consideration
         """)
         
-        
         st.markdown("**📊 Points Distribution in Zones (ISO):**")
         total_points = len(restraint_zones_iso)
         for zone in sorted(zone_counts_iso.keys()):
@@ -3032,7 +3096,6 @@ elif st.session_state.step == 10:
         - **Zone 5** (Red): Special consideration
         """)
         
-       
         st.markdown("**📊 Points Distribution in Zones (AS):**")
         total_points = len(restraint_zones_as)
         for zone in sorted(zone_counts_as.keys()):
@@ -3040,6 +3103,7 @@ elif st.session_state.step == 10:
             percentage = (count / total_points) * 100
             st.write(f"- Zone {zone}: {count} points ({percentage:.1f}%)")
     
+    # به‌روزرسانی classification_data با اطلاعات مهاربند
     st.session_state.classification_data.update({
         'restraint_zone_iso': predominant_zone_iso,
         'restraint_zone_as': predominant_zone_as,
@@ -3056,9 +3120,9 @@ elif st.session_state.step == 10:
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 11: Final Design Overview ===
 elif st.session_state.step == 11:
