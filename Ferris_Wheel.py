@@ -1318,8 +1318,13 @@ def classify_device(dynamic_product):
         return None
 
 def determine_restraint_area_iso(ax, az):
-    """Determine restraint area based on ISO 17842-2023 (ax and az in units of g)"""
-    # Zone 1: Upper region
+    """
+    Determine restraint area based on ISO 17842-2023 (ax and az in units of g)
+    """
+
+    az = -az
+    
+    # Zone 1: Lower region (was Upper)
     if ax > 0.2 and az > 0.2:
         return 1
     if 0 < ax <= 0.2 and az > 0.7:
@@ -1327,7 +1332,7 @@ def determine_restraint_area_iso(ax, az):
     if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
         return 1
     
-    # Zone 2: Upper-central region
+    # Zone 2: Lower-central region (was Upper-central)
     if 0 < ax <= 0.2 and 0.2 < az <= 0.7:
         return 2
     if -0.2 < ax < 0 and 0.2 < az <= (-1.5 * ax + 0.7):
@@ -1335,7 +1340,7 @@ def determine_restraint_area_iso(ax, az):
     if -0.7 < ax <= -0.2 and az > 0.2:
         return 2
     
-    # Zone 3: Central edges
+    # Zone 3: Central edges (همانند قبل)
     if -1.2 < ax <= -0.7 and az > 0.2:
         return 3
     if -0.7 < ax < 0 and ((-0.2/0.7) * ax) < az <= 0.2:
@@ -1343,7 +1348,7 @@ def determine_restraint_area_iso(ax, az):
     if ax > 0 and 0 < az <= 0.2:
         return 3
     
-    # Zone 4: Lower-central region
+    # Zone 4: Upper-central region (was Lower-central)
     if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
         return 4
     if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
@@ -1355,7 +1360,7 @@ def determine_restraint_area_iso(ax, az):
     if ax > 0.7 and -0.2 < az < 0:
         return 4
     
-    # Zone 5: Lower region
+    # Zone 5: Upper region (was Lower)
     if ax > 0.7 and az < -0.2:
         return 5
     if 0 < ax <= 0.7 and az < ((-0.2/0.7) * ax):
@@ -1366,6 +1371,287 @@ def determine_restraint_area_iso(ax, az):
         return 5
     
     return 2  # Default
+
+
+def determine_restraint_area_as(ax, az):
+    """
+    Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)
+    """
+    
+    az = -az
+    
+    # Zone 1: Lower region (was Upper)
+    if ax > 0.2 and az > 0.2:
+        return 1
+    
+    # Zone 2: Lower-central region (was Upper-central)
+    if -0.7 < ax <= 0.2 and az > 0.2:
+        return 2
+    
+    # Zone 3: Central region (همانند قبل)
+    if -0.7 < ax <= 0.7 and ((-0.2/0.7) * ax) < az <= 0.2:
+        return 3
+    if ax > 0.7 and -0.2 < az <= 0.2:
+        return 3
+    if -1.2 < ax <= -0.7 and az > 0.2:
+        return 3
+    
+    # Zone 4: Upper-central region (was Lower-central)
+    if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
+        return 4
+    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
+        return 4
+    if -1.8 < ax <= -1.2 and az > 0:
+        return 4
+    
+    # Zone 5: Upper region (was Lower)
+    if ax <= 0 and az <= 0:
+        return 5
+    if 0.7 <= ax and az < -0.2:
+        return 5
+    if 0 < ax < 0.7 and az < ((-0.2/0.7) * ax):
+        return 5
+    if ax < -1.8:
+        return 5
+    
+    return 2  # Default
+
+
+
+def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, 
+                                  snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
+    """
+    Plot the ax vs az acceleration envelope with ISO 17842 zones and actual acceleration points
+    MIRRORED: Zone 5 is now at TOP, Zone 1 is now at BOTTOM
+    """
+    theta_vals = np.linspace(0, 2*np.pi, 360)
+    ax_vals = []
+    az_vals = []
+    
+    for theta in theta_vals:
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load, g
+        )
+        ax_vals.append(a_x / g)
+        az_vals.append(-a_z / g)  # قرینه‌سازی: -az
+    
+    fig = go.Figure()
+    
+    # Zone 1 (Purple) - حالا پایین است
+    x_z1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
+    y_z1 = [-0.2, -0.2, -2.0, -2.0, -1, -0.7, -0.7]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
+                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=0.5, y=-1.2, text="Zone 1", showarrow=False, 
+                      font=dict(size=11, color="purple", family="Arial Black"))
+    
+    # Zone 2 (Orange) - حالا پایین-مرکزی است
+    x_z2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
+    y_z2 = [-0.2, -0.2, -0.7, -0.7, -1, -2, -2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
+                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=-0.2, y=-0.45, text="Zone 2", showarrow=False,
+                      font=dict(size=11, color="orange", family="Arial Black"))
+    
+    # Zone 3 (Yellow) - مرکزی
+    x_z3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
+    y_z3 = [-0.2, -0.2, 0, 0, -0.2, -0.2, -0.2, -2, -2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=0.5, y=-0.1, text="Zone 3", showarrow=False,
+                      font=dict(size=11, color="gold", family="Arial Black"))
+    
+    # Zone 4 (Green) - بالا-مرکزی
+    x_z4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
+    y_z4 = [0, 0, 0.2, 0.2, 0, 0, -0.2, -0.2, -2, -2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=-0.4, y=0.05, text="Zone 4", showarrow=False,
+                      font=dict(size=11, color="green", family="Arial Black"))
+    
+    # Zone 5 (Red) - حالا بالا است
+    x_z5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
+    y_z5 = [0.2, 0.2, 2.0, 2.0, 0, -2, -2, 0, 0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=1.0, y=0.8, text="Zone 5", showarrow=False,
+                      font=dict(size=11, color="red", family="Arial Black"))
+    
+    # Plot actual acceleration points (after zones for visibility)
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
+                             marker=dict(color='#2196F3', size=6, symbol='circle',
+                                       line=dict(color='darkblue', width=1)),
+                             line=dict(color='#2196F3', width=2),
+                             name='Acceleration Envelope'))
+    
+    # Highlight extreme points
+    max_ax_idx = np.argmax(ax_vals)
+    min_ax_idx = np.argmin(ax_vals)
+    max_az_idx = np.argmax(az_vals)
+    min_az_idx = np.argmin(az_vals)
+    
+    extreme_points = [
+        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
+        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
+        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
+        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
+    ]
+    
+    for ax, az, label in extreme_points:
+        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
+                                marker=dict(size=12, color='red', symbol='star'),
+                                text=[label], textposition='top center',
+                                textfont=dict(size=9, color='red', family='Arial Black'),
+                                showlegend=False))
+    
+    fig.update_layout(
+        title="ISO 17842 - Acceleration Envelope (Mirrored)", 
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]", 
+        height=700, 
+        template="plotly_white",
+        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+    )
+    return fig
+
+
+def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, 
+                                  snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
+    """
+    Plot the ax vs az acceleration envelope with AS 3533.1 zones and actual acceleration points
+    MIRRORED: Zone 5 is now at TOP, Zone 1 is now at BOTTOM
+    """
+    theta_vals = np.linspace(0, 2*np.pi, 360)
+    ax_vals = []
+    az_vals = []
+    
+    for theta in theta_vals:
+        a_x, a_z, _ = calculate_accelerations_at_angle(
+            theta, diameter, angular_velocity, braking_accel,
+            snow_load, wind_load, earthquake_load, g
+        )
+        ax_vals.append(a_x / g)
+        az_vals.append(-a_z / g)  # قرینه‌سازی: -az
+    
+    fig = go.Figure()
+    
+    # Zone 1 (Purple) - حالا پایین است
+    x_z1 = [0.2, 2.0, 2.0, 0.2]
+    y_z1 = [-0.2, -0.2, -2.0, -2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)',
+                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=0.8, y=-1.0, text="Zone 1", showarrow=False,
+                      font=dict(size=11, color="purple", family="Arial Black"))
+    
+    # Zone 2 (Orange) - پایین-مرکزی
+    x_z2 = [-0.7, 0.2, 0.2, -0.7]
+    y_z2 = [-0.2, -0.2, -2.0, -2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
+                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
+    fig.add_annotation(x=-0.2, y=-0.8, text="Zone 2", showarrow=False,
+                      font=dict(size=11, color="orange", family="Arial Black"))
+    
+    # Zone 3 (Yellow) - مرکزی
+    x_z3_1 = [-0.7, 0.7, 0.7, 0, -0.7]
+    y_z3_1 = [-0.2, 0.2, -0.2, 0, 0.2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z3_1, y=y_z3_1, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
+    
+    x_z3_2 = [0.7, 2.0, 2.0, 0.7]
+    y_z3_2 = [-0.2, -0.2, 0.2, 0.2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z3_2, y=y_z3_2, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
+    
+    x_z3_3 = [-1.2, -0.7, -0.7, -1.2]
+    y_z3_3 = [-0.2, -0.2, -2.0, -2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z3_3, y=y_z3_3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
+    
+    fig.add_annotation(x=0.2, y=-0.05, text="Zone 3", showarrow=False,
+                      font=dict(size=11, color="gold", family="Arial Black"))
+    
+    # Zone 4 (Green) - بالا-مرکزی
+    x_z4_1 = [-0.7, 0, 0, -0.7]
+    y_z4_1 = [0.2, 0, 0.2, 0.2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z4_1, y=y_z4_1, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
+    
+    x_z4_2 = [-1.2, -0.7, -0.7, -1.2]
+    y_z4_2 = [0, -0.2, 0.2, 0.2]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z4_2, y=y_z4_2, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
+    
+    x_z4_3 = [-1.8, -1.2, -1.2, -1.8]
+    y_z4_3 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z4_3, y=y_z4_3, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
+    
+    fig.add_annotation(x=-0.5, y=0.1, text="Zone 4", showarrow=False,
+                      font=dict(size=11, color="green", family="Arial Black"))
+    
+    # Zone 5 (Red) - حالا بالا است
+    x_z5_1 = [0, 0.7, 0.7, 0]
+    y_z5_1 = [0, 0.2, 0, 0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z5_1, y=y_z5_1, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
+    
+    x_z5_2 = [-2.0, 0, 0, -2.0]
+    y_z5_2 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z5_2, y=y_z5_2, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
+    
+    x_z5_3 = [0.7, 2.0, 2.0, 0.7]
+    y_z5_3 = [0.2, 0.2, 2.0, 2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z5_3, y=y_z5_3, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
+    
+    x_z5_4 = [-2.0, -1.8, -1.8, -2.0]
+    y_z5_4 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
+    fig.add_trace(go.Scatter(x=x_z5_4, y=y_z5_4, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
+    
+    fig.add_annotation(x=-0.8, y=0.8, text="Zone 5", showarrow=False,
+                      font=dict(size=11, color="red", family="Arial Black"))
+    
+    # Plot actual acceleration points
+    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
+                             marker=dict(color='#2196F3', size=6, symbol='circle',
+                                       line=dict(color='darkblue', width=1)),
+                             line=dict(color='#2196F3', width=2),
+                             name='Acceleration Envelope'))
+    
+    # Highlight extreme points
+    max_ax_idx = np.argmax(ax_vals)
+    min_ax_idx = np.argmin(ax_vals)
+    max_az_idx = np.argmax(az_vals)
+    min_az_idx = np.argmin(az_vals)
+    
+    extreme_points = [
+        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
+        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
+        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
+        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
+    ]
+    
+    for ax, az, label in extreme_points:
+        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
+                                marker=dict(size=12, color='red', symbol='star'),
+                                text=[label], textposition='top center',
+                                textfont=dict(size=9, color='red', family='Arial Black'),
+                                showlegend=False))
+    
+    fig.update_layout(
+        title="AS 3533.1 - Acceleration Envelope (Mirrored)", 
+        xaxis_title="Horizontal Acceleration ax [g]",
+        yaxis_title="Vertical Acceleration az [g]", 
+        height=700, 
+        template="plotly_white",
+        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
+    )
+    return fig
 
 def estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter):
     """
@@ -1440,225 +1726,7 @@ def estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter):
     
     return round(surface_area, 2)
 
-def determine_restraint_area_as(ax, az):
-    """Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)"""
-    # Zone 1: Upper region
-    if ax > 0.2 and az > 0.2:
-        return 1
-    
-    # Zone 2: Upper-central region
-    if -0.7 < ax <= 0.2 and az > 0.2:
-        return 2
-    
-    # Zone 3: Central region
-    if -0.7 < ax <= 0.7 and ((-0.2/0.7) * ax) < az <= 0.2:
-        return 3
-    if ax > 0.7 and -0.2 < az <= 0.2:
-        return 3
-    if -1.2 < ax <= -0.7 and az > 0.2:
-        return 3
-    
-    # Zone 4: Lower-central region
-    if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
-        return 4
-    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
-        return 4
-    if -1.8 < ax <= -1.2 and az > 0:
-        return 4
-    
-    # Zone 5: Lower region
-    if ax <= 0 and az <= 0:
-        return 5
-    if 0.7 <= ax and az < -0.2:
-        return 5
-    if 0 < ax < 0.7 and az < ((-0.2/0.7) * ax):
-        return 5
-    if ax < -1.8:
-        return 5
-    
-    return 2  # Default
 
-def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, 
-                                  snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
-    """Plot the ax vs az acceleration envelope with ISO 17842 zones and actual acceleration points"""
-    theta_vals = np.linspace(0, 2*np.pi, 360)
-    ax_vals = []
-    az_vals = []
-    
-    for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(
-            theta, diameter, angular_velocity, braking_accel,
-            snow_load, wind_load, earthquake_load, g
-        )
-        ax_vals.append(a_x / g)
-        az_vals.append(a_z / g)
-    
-    fig = go.Figure()
-    
-    # Zone 1 (Purple)
-    x_z1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
-    y_z1 = [0.2, 0.2, 2.0, 2.0, 1, 0.7, 0.7]
-    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
-                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=1.2, text="Zone 1", showarrow=False, 
-                      font=dict(size=11, color="purple", family="Arial Black"))
-    
-    # Zone 2 (Orange)
-    x_z2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
-    y_z2 = [0.2, 0.2, 0.7, 0.7, 1, 2, 2]
-    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
-                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=0.45, text="Zone 2", showarrow=False,
-                      font=dict(size=11, color="orange", family="Arial Black"))
-    
-    # Zone 3 (Yellow)
-    x_z3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
-    y_z3 = [0.2, 0.2, 0, 0, 0.2, 0.2, 0.2, 2, 2]
-    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=0.1, text="Zone 3", showarrow=False,
-                      font=dict(size=11, color="gold", family="Arial Black"))
-    
-    # Zone 4 (Green)
-    x_z4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
-    y_z4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2, 2]
-    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.4, y=-0.05, text="Zone 4", showarrow=False,
-                      font=dict(size=11, color="green", family="Arial Black"))
-    
-    # Zone 5 (Red)
-    x_z5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
-    y_z5 = [-0.2, -0.2, -2.0, -2.0, 0, 2, 2, 0, 0]
-    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
-                      font=dict(size=11, color="red", family="Arial Black"))
-    
-    # Plot actual acceleration points (after zones for visibility)
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
-                             marker=dict(color='#2196F3', size=6, symbol='circle',
-                                       line=dict(color='darkblue', width=1)),
-                             line=dict(color='#2196F3', width=2),
-                             name='Acceleration Envelope'))
-    
-    # Highlight extreme points
-    max_ax_idx = np.argmax(ax_vals)
-    min_ax_idx = np.argmin(ax_vals)
-    max_az_idx = np.argmax(az_vals)
-    min_az_idx = np.argmin(az_vals)
-    
-    extreme_points = [
-        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
-        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
-        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
-        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
-    ]
-    
-    for ax, az, label in extreme_points:
-        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
-                                marker=dict(size=12, color='red', symbol='star'),
-                                text=[label], textposition='top center',
-                                textfont=dict(size=9, color='red', family='Arial Black'),
-                                showlegend=False))
-    
-    fig.update_layout(title="ISO 17842 - Acceleration Envelope with Actual Operating Points", 
-                      xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
-    return fig
-
-def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, 
-                                 snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
-    """Plot the ax vs az acceleration envelope with AS 3533.1 zones and actual acceleration points"""
-    theta_vals = np.linspace(0, 2*np.pi, 360)
-    ax_vals = []
-    az_vals = []
-    
-    for theta in theta_vals:
-        a_x, a_z, _ = calculate_accelerations_at_angle(
-            theta, diameter, angular_velocity, braking_accel,
-            snow_load, wind_load, earthquake_load, g
-        )
-        ax_vals.append(a_x / g)
-        az_vals.append(a_z / g)
-    
-    fig = go.Figure()
-    
-    # Zone 1 (Purple)
-    x_z1 = [0.2, 2.0, 2.0, 0.2]
-    y_z1 = [0.2, 0.2, 2.0, 2.0]
-    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
-                             line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.8, y=1.0, text="Zone 1", showarrow=False,
-                      font=dict(size=11, color="purple", family="Arial Black"))
-    
-    # Zone 2 (Orange)
-    x_z2 = [0.2, -0.7, -0.7, 0.2]
-    y_z2 = [0.2, 0.2, 2.0, 2.0]
-    fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
-                             line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=0.8, text="Zone 2", showarrow=False,
-                      font=dict(size=11, color="orange", family="Arial Black"))
-    
-    # Zone 3 (Yellow)
-    x_z3 = [-1.2, -1.2, -0.7, -0.7, 2, 2.0, 0.7, 0, -0.7, -1.2]
-    y_z3 = [0.2, 2, 2, 0.2, 0.2, -0.2, -0.2, 0, 0.2, 0.2]
-    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=0.05, text="Zone 3", showarrow=False,
-                      font=dict(size=11, color="gold", family="Arial Black"))
-    
-    # Zone 4 (Green)
-    x_z4 = [-1.8, -1.8, -1.2, -1.2, -0.7, 0]
-    y_z4 = [0, 2, 2, 0.2, 0.2, 0]
-    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.5, y=0.05, text="Zone 4", showarrow=False,
-                      font=dict(size=11, color="green", family="Arial Black"))
-    
-    # Zone 5 (Red)
-    x_z5 = [0, -1.8, -1.8, -2.0, -2, -2, 2, 2, 0.7]
-    y_z5 = [0, 0, 2, 2.0, 0, -2, -2, -0.2, -0.2]
-    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
-                      font=dict(size=11, color="red", family="Arial Black"))
-    
-    # Plot actual acceleration points (after zones for visibility)
-    fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
-                             marker=dict(color='#2196F3', size=6, symbol='circle',
-                                       line=dict(color='darkblue', width=1)),
-                             line=dict(color='#2196F3', width=2),
-                             name='Acceleration Envelope'))
-    
-    # Highlight extreme points
-    max_ax_idx = np.argmax(ax_vals)
-    min_ax_idx = np.argmin(ax_vals)
-    max_az_idx = np.argmax(az_vals)
-    min_az_idx = np.argmin(az_vals)
-    
-    extreme_points = [
-        (ax_vals[max_ax_idx], az_vals[max_ax_idx], 'Max ax'),
-        (ax_vals[min_ax_idx], az_vals[min_ax_idx], 'Min ax'),
-        (ax_vals[max_az_idx], az_vals[max_az_idx], 'Max az'),
-        (ax_vals[min_az_idx], az_vals[min_az_idx], 'Min az')
-    ]
-    
-    for ax, az, label in extreme_points:
-        fig.add_trace(go.Scatter(x=[ax], y=[az], mode='markers+text',
-                                marker=dict(size=12, color='red', symbol='star'),
-                                text=[label], textposition='top center',
-                                textfont=dict(size=9, color='red', family='Arial Black'),
-                                showlegend=False))
-    
-    fig.update_layout(title="AS 3533.1 - Acceleration Envelope with Actual Operating Points", 
-                      xaxis_title="Horizontal Acceleration ax [g]",
-                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
-                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
-    return fig
 
 def create_orientation_diagram(selected_direction, land_length=None, land_width=None, diameter=None):
     """Create a visual diagram showing the carousel orientation on land area"""
@@ -2872,7 +2940,7 @@ elif st.session_state.step == 9:
         elif class_not_secured == 5:
             st.error("🚨 Maximum safety classification - Special precautions mandatory")
     
-    # Display load contributions if any are enabled
+    # Display load contributions if any are enabled 
     if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
         st.markdown("---")
         st.markdown("**🌦️ Additional Load Contributions:**" if not persian else "**🌦️ مشارکت بارهای اضافی:**")
