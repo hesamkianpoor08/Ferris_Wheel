@@ -1317,6 +1317,55 @@ def classify_device(dynamic_product):
     else:
         return None
 
+def determine_restraint_area_iso(ax, az):
+    """Determine restraint area based on ISO 17842-2023 (ax and az in units of g)"""
+    # Zone 1: Upper region
+    if ax > 0.2 and az > 0.2:
+        return 1
+    if 0 < ax <= 0.2 and az > 0.7:
+        return 1
+    if -0.2 < ax < 0 and az > (-1.5 * ax + 0.7):
+        return 1
+    
+    # Zone 2: Upper-central region
+    if 0 < ax <= 0.2 and 0.2 < az <= 0.7:
+        return 2
+    if -0.2 < ax < 0 and 0.2 < az <= (-1.5 * ax + 0.7):
+        return 2
+    if -0.7 < ax <= -0.2 and az > 0.2:
+        return 2
+    
+    # Zone 3: Central edges
+    if -1.2 < ax <= -0.7 and az > 0.2:
+        return 3
+    if -0.7 < ax < 0 and ((-0.2/0.7) * ax) < az <= 0.2:
+        return 3
+    if ax > 0 and 0 < az <= 0.2:
+        return 3
+    
+    # Zone 4: Lower-central region
+    if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
+        return 4
+    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
+        return 4
+    if -1.8 < ax <= -1.2 and az > 0:
+        return 4
+    if 0 < ax <= 0.7 and ((-0.2/0.7) * ax) < az < 0:
+        return 4
+    if ax > 0.7 and -0.2 < az < 0:
+        return 4
+    
+    # Zone 5: Lower region
+    if ax > 0.7 and az < -0.2:
+        return 5
+    if 0 < ax <= 0.7 and az < ((-0.2/0.7) * ax):
+        return 5
+    if ax < 0 and az < 0:
+        return 5
+    if ax < -1.8:
+        return 5
+    
+    return 2  # Default
 
 def estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter):
     """
@@ -1391,117 +1440,47 @@ def estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter):
     
     return round(surface_area, 2)
 
-
-
-def determine_restraint_area_iso(ax, az):
-    """
-    Determine restraint area based on ISO 17842-2023 (ax and az in units of g)
-    MIRRORED ZONES: Zone boundaries are flipped, but input (ax, az) stays the same
-    """
-    # قرینه‌سازی Zone‌ها: برای تطبیق با Zone‌های قرینه شده
-    az_flipped = -az
-    
-    # Zone 1: حالا در پایین است (was Upper)
-    if ax > 0.2 and az_flipped > 0.2:
-        return 1
-    if 0 < ax <= 0.2 and az_flipped > 0.7:
-        return 1
-    if -0.2 < ax < 0 and az_flipped > (-1.5 * ax + 0.7):
-        return 1
-    
-    # Zone 2: حالا در پایین-مرکزی است (was Upper-central)
-    if 0 < ax <= 0.2 and 0.2 < az_flipped <= 0.7:
-        return 2
-    if -0.2 < ax < 0 and 0.2 < az_flipped <= (-1.5 * ax + 0.7):
-        return 2
-    if -0.7 < ax <= -0.2 and az_flipped > 0.2:
-        return 2
-    
-    # Zone 3: مرکزی (همانند قبل)
-    if -1.2 < ax <= -0.7 and az_flipped > 0.2:
-        return 3
-    if -0.7 < ax < 0 and ((-0.2/0.7) * ax) < az_flipped <= 0.2:
-        return 3
-    if ax > 0 and 0 < az_flipped <= 0.2:
-        return 3
-    
-    # Zone 4: حالا در بالا-مرکزی است (was Lower-central)
-    if -0.7 < ax < 0 and 0 < az_flipped < ((-0.2/0.7) * ax):
-        return 4
-    if -1.2 < ax <= -0.7 and 0 < az_flipped <= 0.2:
-        return 4
-    if -1.8 < ax <= -1.2 and az_flipped > 0:
-        return 4
-    if 0 < ax <= 0.7 and ((-0.2/0.7) * ax) < az_flipped < 0:
-        return 4
-    if ax > 0.7 and -0.2 < az_flipped < 0:
-        return 4
-    
-    # Zone 5: حالا در بالا است (was Lower)
-    if ax > 0.7 and az_flipped < -0.2:
-        return 5
-    if 0 < ax <= 0.7 and az_flipped < ((-0.2/0.7) * ax):
-        return 5
-    if ax < 0 and az_flipped < 0:
-        return 5
-    if ax < -1.8:
-        return 5
-    
-    return 2  # Default
-
-
 def determine_restraint_area_as(ax, az):
-    """
-    Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)
-    MIRRORED ZONES: Zone boundaries are flipped, but input (ax, az) stays the same
-    """
-    # قرینه‌سازی Zone‌ها: برای تطبیق با Zone‌های قرینه شده
-    az_flipped = -az
-    
-    # Zone 1: حالا در پایین است (was Upper)
-    if ax > 0.2 and az_flipped > 0.2:
+    """Determine restraint area based on AS 3533.1-2009+A1-2011 (ax and az in units of g)"""
+    # Zone 1: Upper region
+    if ax > 0.2 and az > 0.2:
         return 1
     
-    # Zone 2: حالا در پایین-مرکزی است (was Upper-central)
-    if -0.7 < ax <= 0.2 and az_flipped > 0.2:
+    # Zone 2: Upper-central region
+    if -0.7 < ax <= 0.2 and az > 0.2:
         return 2
     
-    # Zone 3: مرکزی (همانند قبل)
-    if -0.7 < ax <= 0.7 and ((-0.2/0.7) * ax) < az_flipped <= 0.2:
+    # Zone 3: Central region
+    if -0.7 < ax <= 0.7 and ((-0.2/0.7) * ax) < az <= 0.2:
         return 3
-    if ax > 0.7 and -0.2 < az_flipped <= 0.2:
+    if ax > 0.7 and -0.2 < az <= 0.2:
         return 3
-    if -1.2 < ax <= -0.7 and az_flipped > 0.2:
+    if -1.2 < ax <= -0.7 and az > 0.2:
         return 3
     
-    # Zone 4: حالا در بالا-مرکزی است (was Lower-central)
-    if -0.7 < ax < 0 and 0 < az_flipped < ((-0.2/0.7) * ax):
+    # Zone 4: Lower-central region
+    if -0.7 < ax < 0 and 0 < az < ((-0.2/0.7) * ax):
         return 4
-    if -1.2 < ax <= -0.7 and 0 < az_flipped <= 0.2:
+    if -1.2 < ax <= -0.7 and 0 < az <= 0.2:
         return 4
-    if -1.8 < ax <= -1.2 and az_flipped > 0:
+    if -1.8 < ax <= -1.2 and az > 0:
         return 4
     
-    # Zone 5: حالا در بالا است (was Lower)
-    if ax <= 0 and az_flipped <= 0:
+    # Zone 5: Lower region
+    if ax <= 0 and az <= 0:
         return 5
-    if 0.7 <= ax and az_flipped < -0.2:
+    if 0.7 <= ax and az < -0.2:
         return 5
-    if 0 < ax < 0.7 and az_flipped < ((-0.2/0.7) * ax):
+    if 0 < ax < 0.7 and az < ((-0.2/0.7) * ax):
         return 5
     if ax < -1.8:
         return 5
     
     return 2  # Default
-
-
 
 def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel, 
                                   snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
-    """
-    Plot the ax vs az acceleration envelope with ISO 17842 zones (MIRRORED)
-    Points stay the same, only zone boundaries are flipped
-    """
+    """Plot the ax vs az acceleration envelope with ISO 17842 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
@@ -1512,51 +1491,51 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel,
             snow_load, wind_load, earthquake_load, g
         )
         ax_vals.append(a_x / g)
-        az_vals.append(a_z / g)  # ✅ نقاط تغییر نمی‌کنند
+        az_vals.append(-a_z / g)
     
     fig = go.Figure()
     
-    # Zone 1 (Purple) - حالا پایین است
+    # Zone 1 (Purple)
     x_z1 = [0.2, 2.0, 2.0, -0.2, -0.2, 0, 0.2]
-    y_z1 = [-0.2, -0.2, -2.0, -2.0, -1, -0.7, -0.7]  # قرینه: y → -y
+    y_z1 = [0.2, 0.2, 2.0, 2.0, 1, 0.7, 0.7]
     fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=-1.2, text="Zone 1", showarrow=False, 
+    fig.add_annotation(x=0.5, y=1.2, text="Zone 1", showarrow=False, 
                       font=dict(size=11, color="purple", family="Arial Black"))
     
-    # Zone 2 (Orange) - حالا پایین-مرکزی است
+    # Zone 2 (Orange)
     x_z2 = [-0.7, 0.2, 0.2, 0, -0.2, -0.2, -0.7]
-    y_z2 = [-0.2, -0.2, -0.7, -0.7, -1, -2, -2]  # قرینه: y → -y
+    y_z2 = [0.2, 0.2, 0.7, 0.7, 1, 2, 2]
     fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=-0.45, text="Zone 2", showarrow=False,
+    fig.add_annotation(x=-0.2, y=0.45, text="Zone 2", showarrow=False,
                       font=dict(size=11, color="orange", family="Arial Black"))
     
-    # Zone 3 (Yellow) - مرکزی
+    # Zone 3 (Yellow)
     x_z3 = [-1.2, -0.7, 0, 2, 2.0, 2.0, -0.7, -0.7, -1.2]
-    y_z3 = [-0.2, -0.2, 0, 0, -0.2, -0.2, -0.2, -2, -2]  # قرینه: y → -y
+    y_z3 = [0.2, 0.2, 0, 0, 0.2, 0.2, 0.2, 2, 2]
     fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.5, y=-0.1, text="Zone 3", showarrow=False,
+    fig.add_annotation(x=0.5, y=0.1, text="Zone 3", showarrow=False,
                       font=dict(size=11, color="gold", family="Arial Black"))
     
-    # Zone 4 (Green) - بالا-مرکزی
+    # Zone 4 (Green)
     x_z4 = [-1.8, 0, 0.7, 2, 2, 0, -0.7, -1.2, -1.2, -1.8]
-    y_z4 = [0, 0, 0.2, 0.2, 0, 0, -0.2, -0.2, -2, -2]  # قرینه: y → -y
+    y_z4 = [0, 0, -0.2, -0.2, 0, 0, 0.2, 0.2, 2, 2]
     fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.4, y=0.05, text="Zone 4", showarrow=False,
+    fig.add_annotation(x=-0.4, y=-0.05, text="Zone 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
-    # Zone 5 (Red) - حالا بالا است
+    # Zone 5 (Red)
     x_z5 = [0.7, 2.0, 2.0, -2, -2.0, -2.0, -1.8, -1.8, 0]
-    y_z5 = [0.2, 0.2, 2.0, 2.0, 0, -2, -2, 0, 0]  # قرینه: y → -y
+    y_z5 = [-0.2, -0.2, -2.0, -2.0, 0, 2, 2, 0, 0]
     fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=1.0, y=0.8, text="Zone 5", showarrow=False,
+    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
                       font=dict(size=11, color="red", family="Arial Black"))
     
-    # Plot actual acceleration points (نقاط تغییر نمی‌کنند!)
+    # Plot actual acceleration points (after zones for visibility)
     fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
                              marker=dict(color='#2196F3', size=6, symbol='circle',
                                        line=dict(color='darkblue', width=1)),
@@ -1583,24 +1562,16 @@ def plot_acceleration_envelope_iso(diameter, angular_velocity, braking_accel,
                                 textfont=dict(size=9, color='red', family='Arial Black'),
                                 showlegend=False))
     
-    fig.update_layout(
-        title="ISO 17842 - Acceleration Envelope (Zones Mirrored)", 
-        xaxis_title="Horizontal Acceleration ax [g]",
-        yaxis_title="Vertical Acceleration az [g]", 
-        height=700, 
-        template="plotly_white",
-        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
-    )
+    fig.update_layout(title="ISO 17842 - Acceleration Envelope with Actual Operating Points", 
+                      xaxis_title="Horizontal Acceleration ax [g]",
+                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
+                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
     return fig
 
-
 def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel, 
-                                  snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
-    """
-    Plot the ax vs az acceleration envelope with AS 3533.1 zones (MIRRORED - CORRECTED)
-    Points stay the same, only zone boundaries are flipped
-    """
+                                 snow_load=0.0, wind_load=0.0, earthquake_load=0.0, g=9.81):
+    """Plot the ax vs az acceleration envelope with AS 3533.1 zones and actual acceleration points"""
     theta_vals = np.linspace(0, 2*np.pi, 360)
     ax_vals = []
     az_vals = []
@@ -1611,99 +1582,51 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel,
             snow_load, wind_load, earthquake_load, g
         )
         ax_vals.append(a_x / g)
-        az_vals.append(a_z / g)  # ✅ نقاط تغییر نمی‌کنند
+        az_vals.append(-a_z / g)
     
     fig = go.Figure()
     
-    # Zone 1 (Purple) - حالا پایین است
+    # Zone 1 (Purple)
     x_z1 = [0.2, 2.0, 2.0, 0.2]
-    y_z1 = [-0.2, -0.2, -2.0, -2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)',
+    y_z1 = [0.2, 0.2, 2.0, 2.0]
+    fig.add_trace(go.Scatter(x=x_z1, y=y_z1, fill='toself', fillcolor='rgba(128,0,128,0.15)', 
                              line=dict(color='purple', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=0.8, y=-1.0, text="Zone 1", showarrow=False,
+    fig.add_annotation(x=0.8, y=1.0, text="Zone 1", showarrow=False,
                       font=dict(size=11, color="purple", family="Arial Black"))
     
-    # Zone 2 (Orange) - حالا پایین-مرکزی است (اصلاح شده)
-    x_z2 = [-0.7, 0.2, 0.2, -0.7, -0.7]
-    y_z2 = [-0.2, -0.2, -2.0, -2.0, -0.2]  # قرینه و بسته
+    # Zone 2 (Orange)
+    x_z2 = [0.2, -0.7, -0.7, 0.2]
+    y_z2 = [0.2, 0.2, 2.0, 2.0]
     fig.add_trace(go.Scatter(x=x_z2, y=y_z2, fill='toself', fillcolor='rgba(255,165,0,0.15)',
                              line=dict(color='orange', width=2, dash='dash'), showlegend=False))
-    fig.add_annotation(x=-0.2, y=-0.8, text="Zone 2", showarrow=False,
+    fig.add_annotation(x=-0.2, y=0.8, text="Zone 2", showarrow=False,
                       font=dict(size=11, color="orange", family="Arial Black"))
     
-    # Zone 3 (Yellow) - مرکزی (سه قسمت جداگانه)
-    # قسمت 1: مرکزی اصلی
-    x_z3_1 = [-0.7, 0.7, 0, -0.7]
-    y_z3_1 = [0.2, -0.2, 0, 0.2]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z3_1, y=y_z3_1, fill='toself', fillcolor='rgba(255,255,0,0.15)',
+    # Zone 3 (Yellow)
+    x_z3 = [-1.2, -1.2, -0.7, -0.7, 2, 2.0, 0.7, 0, -0.7, -1.2]
+    y_z3 = [0.2, 2, 2, 0.2, 0.2, -0.2, -0.2, 0, 0.2, 0.2]
+    fig.add_trace(go.Scatter(x=x_z3, y=y_z3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
                              line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 2: سمت راست
-    x_z3_2 = [0.7, 2.0, 2.0, 0.7]
-    y_z3_2 = [0.2, 0.2, -0.2, -0.2]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z3_2, y=y_z3_2, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 3: سمت چپ پایین
-    x_z3_3 = [-1.2, -0.7, -0.7, -1.2]
-    y_z3_3 = [-0.2, -0.2, -2.0, -2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z3_3, y=y_z3_3, fill='toself', fillcolor='rgba(255,255,0,0.15)',
-                             line=dict(color='gold', width=2, dash='dash'), showlegend=False))
-    
-    fig.add_annotation(x=0.2, y=-0.05, text="Zone 3", showarrow=False,
+    fig.add_annotation(x=0.5, y=0.05, text="Zone 3", showarrow=False,
                       font=dict(size=11, color="gold", family="Arial Black"))
     
-    # Zone 4 (Green) - حالا بالا-مرکزی است (سه قسمت اصلاح شده)
-    # قسمت 1: مرکزی
-    x_z4_1 = [-0.7, 0, 0, -0.7]
-    y_z4_1 = [-0.2, 0, 0.2, 0.2]  # قرینه: y → -y (از 0.2 تا -0.2)
-    fig.add_trace(go.Scatter(x=x_z4_1, y=y_z4_1, fill='toself', fillcolor='rgba(0,255,0,0.15)',
+    # Zone 4 (Green)
+    x_z4 = [-1.8, -1.8, -1.2, -1.2, -0.7, 0]
+    y_z4 = [0, 2, 2, 0.2, 0.2, 0]
+    fig.add_trace(go.Scatter(x=x_z4, y=y_z4, fill='toself', fillcolor='rgba(0,255,0,0.15)',
                              line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 2: سمت چپ
-    x_z4_2 = [-1.2, -0.7, -0.7, -1.2]
-    y_z4_2 = [-0.2, -0.2, 0.2, 0.2]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z4_2, y=y_z4_2, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 3: سمت چپ بالا
-    x_z4_3 = [-1.8, -1.2, -1.2, -1.8]
-    y_z4_3 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z4_3, y=y_z4_3, fill='toself', fillcolor='rgba(0,255,0,0.15)',
-                             line=dict(color='green', width=2, dash='dash'), showlegend=False))
-    
-    fig.add_annotation(x=-0.5, y=0.1, text="Zone 4", showarrow=False,
+    fig.add_annotation(x=-0.5, y=0.05, text="Zone 4", showarrow=False,
                       font=dict(size=11, color="green", family="Arial Black"))
     
-    # Zone 5 (Red) - حالا بالا است (چهار قسمت اصلاح شده)
-    # قسمت 1: مرکزی بالا
-    x_z5_1 = [0, 0.7, 0, 0]
-    y_z5_1 = [0, -0.2, 0.2, 0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z5_1, y=y_z5_1, fill='toself', fillcolor='rgba(255,0,0,0.15)',
+    # Zone 5 (Red)
+    x_z5 = [0, -1.8, -1.8, -2.0, -2, -2, 2, 2, 0.7]
+    y_z5 = [0, 0, 2, 2.0, 0, -2, -2, -0.2, -0.2]
+    fig.add_trace(go.Scatter(x=x_z5, y=y_z5, fill='toself', fillcolor='rgba(255,0,0,0.15)',
                              line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 2: سمت چپ بالا
-    x_z5_2 = [-2.0, 0, 0, -2.0]
-    y_z5_2 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z5_2, y=y_z5_2, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 3: سمت راست بالا
-    x_z5_3 = [0.7, 2.0, 2.0, 0.7]
-    y_z5_3 = [-0.2, -0.2, 2.0, 2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z5_3, y=y_z5_3, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    
-    # قسمت 4: کنج چپ
-    x_z5_4 = [-2.0, -1.8, -1.8, -2.0]
-    y_z5_4 = [0, 0, 2.0, 2.0]  # قرینه: y → -y
-    fig.add_trace(go.Scatter(x=x_z5_4, y=y_z5_4, fill='toself', fillcolor='rgba(255,0,0,0.15)',
-                             line=dict(color='red', width=2, dash='dash'), showlegend=False))
-    
-    fig.add_annotation(x=-0.8, y=0.8, text="Zone 5", showarrow=False,
+    fig.add_annotation(x=1.0, y=-0.8, text="Zone 5", showarrow=False,
                       font=dict(size=11, color="red", family="Arial Black"))
     
-    # Plot actual acceleration points (نقاط تغییر نمی‌کنند!)
+    # Plot actual acceleration points (after zones for visibility)
     fig.add_trace(go.Scatter(x=ax_vals, y=az_vals, mode='markers+lines',
                              marker=dict(color='#2196F3', size=6, symbol='circle',
                                        line=dict(color='darkblue', width=1)),
@@ -1730,15 +1653,11 @@ def plot_acceleration_envelope_as(diameter, angular_velocity, braking_accel,
                                 textfont=dict(size=9, color='red', family='Arial Black'),
                                 showlegend=False))
     
-    fig.update_layout(
-        title="AS 3533.1 - Acceleration Envelope (Zones Mirrored - Corrected)", 
-        xaxis_title="Horizontal Acceleration ax [g]",
-        yaxis_title="Vertical Acceleration az [g]", 
-        height=700, 
-        template="plotly_white",
-        xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
-        yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black')
-    )
+    fig.update_layout(title="AS 3533.1 - Acceleration Envelope with Actual Operating Points", 
+                      xaxis_title="Horizontal Acceleration ax [g]",
+                      yaxis_title="Vertical Acceleration az [g]", height=700, template="plotly_white",
+                      xaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'),
+                      yaxis=dict(range=[-2.2, 2.2], zeroline=True, zerolinewidth=2, zerolinecolor='black'))
     return fig
 
 def create_orientation_diagram(selected_direction, land_length=None, land_width=None, diameter=None):
