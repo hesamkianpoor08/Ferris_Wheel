@@ -2985,19 +2985,23 @@ f"""**پارامترهای طراحی:**
         a_x_g = a_x / 9.81
         a_z_g = a_z / 9.81
         
+        # ✅ برای نمایش: az را قرینه می‌کنیم
+        a_z_g_mirrored = -a_z_g
+        
         if a_x_g > max_ax:
             max_ax = a_x_g
-        if a_z_g > max_az:
-            max_az = a_z_g
+        if a_z_g_mirrored > max_az:  # ✅ استفاده از مقدار قرینه شده
+            max_az = a_z_g_mirrored
         if a_x_g < min_ax:
             min_ax = a_x_g
-        if a_z_g < min_az:
-            min_az = a_z_g
+        if a_z_g_mirrored < min_az:  # ✅ استفاده از مقدار قرینه شده
+            min_az = a_z_g_mirrored
         
-        zone_iso = determine_restraint_area_iso(a_x_g, a_z_g)
+        # ✅ Zone را بر اساس موقعیت قرینه شده تشخیص می‌دهیم
+        zone_iso = determine_restraint_area_iso(a_x_g, a_z_g_mirrored)
         restraint_zones_iso.append(zone_iso)
         
-        zone_as = determine_restraint_area_as(a_x_g, a_z_g)
+        zone_as = determine_restraint_area_as(a_x_g, a_z_g_mirrored)
         restraint_zones_as.append(zone_as)
     
     from collections import Counter
