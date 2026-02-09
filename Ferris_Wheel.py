@@ -1886,15 +1886,6 @@ def validate_current_step_and_next():
         st.session_state.validation_errors = []
         st.session_state.step = min(12, st.session_state.step + 1)
 
-
-def axis_label(axis):
-    return {
-        'NS': 'North–South',
-        'EW': 'East–West',
-        'NE_SW': 'Northeast–Southwest',
-        'SE_NW': 'Southeast–Northwest'
-    }[axis]
-
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
     s = 1 / math.sqrt(2)
@@ -1907,66 +1898,94 @@ def map_direction_to_axis_and_vector(dir_str):
     if d in ('northwest-southeast', 'northwest–southeast', 'northwest southeast'):
         return 'SE_NW', 'Northwest–Southeast', (-s, s)
 
-    if d in ('north', 'n'): return 'NS', 'North', (0, 1)
-    if d in ('south', 's'): return 'NS', 'South', (0, -1)
-    if d in ('east', 'e'): return 'EW', 'East', (1, 0)
-    if d in ('west', 'w'): return 'EW', 'West', (-1, 0)
-    if d in ('northeast', 'ne'): return 'NE_SW', 'Northeast', (s, s)
-    if d in ('southwest', 'sw'): return 'NE_SW', 'Southwest', (-s, -s)
-    if d in ('southeast', 'se'): return 'SE_NW', 'Southeast', (s, -s)
-    if d in ('northwest', 'nw'): return 'SE_NW', 'Northwest', (-s, s)
+    if d in ('north', 'n'):
+        return 'NS', 'North', (0, 1)
+    if d in ('south', 's'):
+        return 'NS', 'South', (0, -1)
+    if d in ('east', 'e'):
+        return 'EW', 'East', (1, 0)
+    if d in ('west', 'w'):
+        return 'EW', 'West', (-1, 0)
+    if d in ('northeast', 'ne'):
+        return 'NE_SW', 'Northeast', (s, s)
+    if d in ('southwest', 'sw'):
+        return 'NE_SW', 'Southwest', (-s, -s)
+    if d in ('southeast', 'se'):
+        return 'SE_NW', 'Southeast', (s, -s)
+    if d in ('northwest', 'nw'):
+        return 'SE_NW', 'Northwest', (-s, s)
 
     return 'NS', 'North–South', (0, 1)
 
-def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
+
+def axis_label(axis):
+    return {
+        'NS': 'North–South',
+        'EW': 'East–West',
+        'NE_SW': 'Northeast–Southwest',
+        'SE_NW': 'Southeast–Northwest'
+    }[axis]
+
+def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
+    """
+    Creates a diagram showing land orientation with wind direction arrow.
+    Rectangle stays fixed (not rotated), only arrow direction changes.
+    """
     w = float(land_length)
     h = float(land_width)
     
-    xs = [-w/2, w/2, w/2, -w/2, -w/2]
-    ys = [-h/2, -h/2, h/2, h/2, -h/2]
+    # Create fixed rectangle (no rotation)
+    corners = [(-w/2, -h/2), (w/2, -h/2), (w/2, h/2), (-w/2, h/2), (-w/2, -h/2)]
+    xs, ys = zip(*corners)
     
     fig = go.Figure()
-
+    
+    # Draw the land rectangle (fixed, no rotation)
     fig.add_trace(go.Scatter(
         x=xs, y=ys, 
         mode='lines', 
-        line=dict(color='rgb(30,90,160)', width=3),
+        fill='toself',
+        fillcolor='rgba(60,140,220,0.6)', 
+        line=dict(color='rgb(30,90,160)', width=2),
         showlegend=False, 
         hoverinfo='skip'
     ))
-
-    arrow_length = min(w, h) * 0.4
-    dx = arrow_vec[0] * arrow_length
-    dy = arrow_vec[1] * arrow_length
-
+    
+    # Calculate arrow parameters based on direction
+    L = max(w, h) * 0.5  # Arrow length
+    
+    # Arrow start and end points based on wind direction
+    dx = arrow_vec[0] * L
+    dy = arrow_vec[1] * L
+    
+    # Add wind direction arrow (no text label, just arrow)
     fig.add_annotation(
-        x=dx, y=dy,
-        ax=-dx, ay=-dy,
-        xref="x", yref="y",
-        axref="x", ayref="y",
+        x=dx, y=dy,      # Arrow head position
+        ax=0, ay=0,      # Arrow tail at center
         arrowhead=3, 
         arrowsize=1.5,
         arrowwidth=4, 
-        arrowcolor='red', 
-        text="", 
-        showarrow=True
+        arrowcolor='red',
+        showarrow=True,
+        text="",  # No text inside the diagram
+        font=dict(size=14, color='black')
     )
-
-    pad = max(w, h) * 0.2
+    
+    # Set layout with proper padding
+    pad = max(w, h) * 0.4
     fig.update_layout(
         xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
         yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
-        width=600, 
+        width=700, 
         height=500, 
-        margin=dict(l=20, r=20, t=30, b=20),
-        showlegend=False,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)'
+        margin=dict(l=20, r=20, t=30, b=20), 
+        showlegend=False
     )
+    
+    # Keep aspect ratio 1:1
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     
     return fig
-
 
 
 
@@ -2578,7 +2597,9 @@ elif st.session_state.step == 7:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 8: Carousel Orientation ===
+
 if st.session_state.step == 8:
+
     if st.session_state.get('scroll_to_top'):
         components.html(
             """
@@ -2607,10 +2628,13 @@ if st.session_state.step == 8:
     land_width = env.get('land_width', 100)
 
     axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
+    suggested_label = axis_label(axis_key)
 
+    st.subheader(f"Suggested Orientation: {suggested_label}")
     st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
+    st.info(f"Based on prevailing wind direction ({wind_direction})")
 
-    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec)
+    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
@@ -2620,7 +2644,7 @@ if st.session_state.step == 8:
         if st.button("✅ Confirm Suggested Orientation"):
             st.session_state.carousel_orientation = axis_key
             st.session_state.orientation_confirmed = True
-            st.success("Orientation confirmed")
+            st.success(f"Orientation confirmed: {suggested_label}")
 
     with col2:
         st.markdown("**Or select custom orientation:**")
@@ -2630,11 +2654,11 @@ if st.session_state.step == 8:
     custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
 
     if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
-        axis_key_custom, _, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
+        axis_key_custom, arrow_text_custom, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
         st.session_state.carousel_orientation = axis_key_custom
         st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set")
-        fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom)
+        st.success(f"Custom orientation set: {custom_direction}")
+        fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom, arrow_text_custom)
         st.plotly_chart(fig_custom, use_container_width=True)
 
     st.markdown("---")
