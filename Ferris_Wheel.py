@@ -1886,6 +1886,15 @@ def validate_current_step_and_next():
         st.session_state.validation_errors = []
         st.session_state.step = min(12, st.session_state.step + 1)
 
+
+def axis_label(axis):
+    return {
+        'NS': 'North–South',
+        'EW': 'East–West',
+        'NE_SW': 'Northeast–Southwest',
+        'SE_NW': 'Southeast–Northwest'
+    }[axis]
+
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
     s = 1 / math.sqrt(2)
@@ -1958,7 +1967,6 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     
     return fig
-
 
 
 
@@ -2641,7 +2649,6 @@ if st.session_state.step == 8:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
         
-
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
