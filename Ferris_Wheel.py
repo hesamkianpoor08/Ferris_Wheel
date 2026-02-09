@@ -1918,7 +1918,7 @@ def map_direction_to_axis_and_vector(dir_str):
 
     return 'NS', 'North–South', (0, 1)
 
-def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
+def create_orientation_diagram(land_length, land_width, arrow_vec):
     w = float(land_length)
     h = float(land_width)
     
@@ -1949,7 +1949,8 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
         arrowwidth=4, 
         arrowcolor='red', 
         text="", 
-        showarrow=True
+        showarrow=True,
+        arrowside='end+start'  # <--- این خط اضافه شد تا فلش دوطرفه شود
     )
 
     pad = max(w, h) * 0.2
@@ -1964,9 +1965,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
         paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
-    
     return fig
-
 
 
 
