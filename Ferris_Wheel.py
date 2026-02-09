@@ -1930,8 +1930,6 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
     fig.add_trace(go.Scatter(
         x=xs, y=ys, 
         mode='lines', 
-        fill='toself',
-        fillcolor='rgba(60,140,220,0.3)', 
         line=dict(color='rgb(30,90,160)', width=3),
         showlegend=False, 
         hoverinfo='skip'
@@ -1962,7 +1960,8 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
         height=500, 
         margin=dict(l=20, r=20, t=30, b=20),
         showlegend=False,
-        plot_bgcolor='white'
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     
@@ -2579,7 +2578,6 @@ elif st.session_state.step == 7:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 8: Carousel Orientation ===
-
 if st.session_state.step == 8:
     if st.session_state.get('scroll_to_top'):
         components.html(
@@ -2609,11 +2607,8 @@ if st.session_state.step == 8:
     land_width = env.get('land_width', 100)
 
     axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
-    suggested_label = axis_label(axis_key)
 
-    st.subheader(f"Suggested Orientation: {suggested_label}")
     st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
-    st.info(f"Based on prevailing wind direction ({wind_direction})")
 
     fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec)
     st.plotly_chart(fig, use_container_width=True)
@@ -2625,7 +2620,7 @@ if st.session_state.step == 8:
         if st.button("✅ Confirm Suggested Orientation"):
             st.session_state.carousel_orientation = axis_key
             st.session_state.orientation_confirmed = True
-            st.success(f"Orientation confirmed: {suggested_label}")
+            st.success("Orientation confirmed")
 
     with col2:
         st.markdown("**Or select custom orientation:**")
@@ -2638,7 +2633,7 @@ if st.session_state.step == 8:
         axis_key_custom, _, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
         st.session_state.carousel_orientation = axis_key_custom
         st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set: {custom_direction}")
+        st.success(f"Custom orientation set")
         fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom)
         st.plotly_chart(fig_custom, use_container_width=True)
 
@@ -2648,7 +2643,7 @@ if st.session_state.step == 8:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
-        
+
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
