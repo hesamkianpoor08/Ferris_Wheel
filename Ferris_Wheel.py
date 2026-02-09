@@ -1919,7 +1919,8 @@ def map_direction_to_axis_and_vector(dir_str):
     return 'NS', 'North–South', (0, 1)
 
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
-    w, h = float(land_length), float(land_width)
+    w = float(land_length)
+    h = float(land_width)
     
     # مستطیل ثابت بدون چرخش
     xs = [-w/2, w/2, w/2, -w/2, -w/2]
@@ -1927,31 +1928,44 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
     
     fig = go.Figure()
 
-    # رسم بدنه مستطیل
+    # رسم خطوط دور مستطیل زمین
     fig.add_trace(go.Scatter(
-        x=xs, y=ys, mode='lines', 
+        x=xs, y=ys, 
+        mode='lines', 
         line=dict(color='rgb(30,90,160)', width=3),
-        showlegend=False, hoverinfo='skip'
+        showlegend=False, 
+        hoverinfo='skip'
     ))
 
-    # تنظیم طول فلش (۴۰٪ کوچکترین ضلع)
+    # تنظیم طول فلش بر اساس ابعاد زمین
     L = min(w, h) * 0.4
-    dx, dy = arrow_vec[0] * L, arrow_vec[1] * L
+    dx = arrow_vec[0] * L
+    dy = arrow_vec[1] * L
 
-    # رسم فلش دوطرفه قرمز در مرکز
+    # رسم فلش دوطرفه قرمز در مرکز (بدون متن)
     fig.add_annotation(
-        x=dx, y=dy, ax=-dx, ay=-dy,
-        xref="x", yref="y", axref="x", ayref="y",
-        arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor='red',
-        text="", showarrow=True, arrowside='end+start'
+        x=dx, y=dy,
+        ax=-dx, ay=-dy,
+        xref="x", yref="y",
+        axref="x", ayref="y",
+        arrowhead=3, 
+        arrowsize=1.5,
+        arrowwidth=4, 
+        arrowcolor='red', 
+        text="", 
+        showarrow=True,
+        arrowside='end+start' # ایجاد فلش دوطرفه
     )
 
-    pad = max(w, h) * 0.2
+    pad = max(w, h) * 0.3
     fig.update_layout(
         xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
         yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
-        width=600, height=450, margin=dict(l=10, r=10, t=10, b=10),
-        showlegend=False, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
+        width=700, height=500, 
+        margin=dict(l=20, r=20, t=30, b=20),
+        showlegend=False,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     return fig
@@ -2571,37 +2585,59 @@ if st.session_state.step == 8:
         components.html("<script>window.parent.document.querySelector('section.main').scrollTo(0, 0);</script>", height=0)
         st.session_state.scroll_to_top = False
     
+    st.header(get_text('provincial_characteristics', persian))
+    
+    if st.session_state.get('validation_errors'):
+        for e in st.session_state.validation_errors:
+            st.error(e)
+        st.session_state.validation_errors = []
+
     st.header(get_text('carousel_orientation', persian))
     st.markdown("---")
 
     env = st.session_state.get('environment_data', {})
+    wind_direction = env.get('wind_direction', 'North')
     land_length = env.get('land_length', 100)
     land_width = env.get('land_width', 100)
-    
-    directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
-    
-    col_ctrl, col_graph = st.columns([1, 2])
-    
-    with col_ctrl:
-        # منوی انتخاب جهت (تغییر این، بلافاصله نمودار سمت راست را آپدیت می‌کند)
-        selected_dir = st.selectbox(get_text('custom_direction', persian), options=directions, key="dir_selector")
-        axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(selected_dir)
-        
-        if st.button("✅ Confirm Orientation", use_container_width=True):
-            st.session_state.carousel_orientation = axis_key
-            st.session_state.orientation_confirmed = True
-            st.success("Confirmed!")
 
-    with col_graph:
-        st.write(f"**Land: {land_length}m × {land_width}m**")
-        # فراخوانی نمودار فقط و فقط در اینجا
-        fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
-        st.plotly_chart(fig, use_container_width=True)
+    # تعیین پارامترها برای جلوگیری از ارور در فراخوانی تابع
+    axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
+
+    st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
+
+    # نمایش نمودار (بدون متون پیشنهادی اضافی)
+    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
-    c1, c2 = st.columns(2)
-    with c1: st.button("⬅️ Back", on_click=go_back)
-    with c2: st.button("Next ➡️", on_click=validate_current_step_and_next)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Confirm Suggested Orientation"):
+            st.session_state.carousel_orientation = axis_key
+            st.session_state.orientation_confirmed = True
+            st.success("Orientation confirmed")
+
+    with col2:
+        directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
+        init_index = directions.index(wind_direction) if wind_direction in directions else 0
+        custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
+
+        if st.button("Set Custom Orientation"):
+            axis_key_custom, arrow_text_custom, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
+            st.session_state.carousel_orientation = axis_key_custom
+            st.session_state.orientation_confirmed = True
+            st.success("Custom orientation set")
+            # نمایش مجدد نمودار با جهت جدید
+            fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom, arrow_text_custom)
+            st.plotly_chart(fig_custom, use_container_width=True)
+
+    st.markdown("---")
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back", on_click=go_back)
+    with right_col:
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
