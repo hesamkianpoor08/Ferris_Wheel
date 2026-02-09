@@ -1928,8 +1928,8 @@ def axis_label(axis):
 
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
     """
-    Creates a diagram showing land orientation with wind direction arrow and text label.
-    Rectangle stays fixed (not rotated), arrow shows wind direction with label.
+    Creates a diagram showing land orientation with wind direction arrow ON the rectangle.
+    Arrow is drawn on the land, text label is shown outside (below the diagram).
     """
     w = float(land_length)
     h = float(land_width)
@@ -1951,48 +1951,47 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         hoverinfo='skip'
     ))
     
-    # Calculate arrow parameters based on direction
-    L = max(w, h) * 0.5  # Arrow length
+    # Calculate arrow parameters - arrow should be INSIDE the rectangle
+    # Make arrow length proportional to rectangle size but not too long
+    arrow_length = min(w, h) * 0.4  
     
     # Arrow start and end points based on wind direction
-    dx = arrow_vec[0] * L
-    dy = arrow_vec[1] * L
+    dx = arrow_vec[0] * arrow_length
+    dy = arrow_vec[1] * arrow_length
     
-    # Add wind direction arrow (red arrow pointing in wind direction)
+    # Add wind direction arrow ON the rectangle (red arrow from center outward)
     fig.add_annotation(
-        x=dx, y=dy,      # Arrow head position
+        x=dx, y=dy,      # Arrow head position (inside rectangle)
         ax=0, ay=0,      # Arrow tail at center
         arrowhead=3, 
         arrowsize=1.5,
         arrowwidth=4, 
         arrowcolor='red',
         showarrow=True,
-        text="",  # No text on the arrow itself
-        font=dict(size=14, color='black')
-    )
-    
-    # Add text label for wind direction (separate from arrow)
-    # Position it slightly offset from the arrow head
-    text_offset = 1.2  # Multiplier for text position relative to arrow
-    fig.add_annotation(
-        x=dx * text_offset, 
-        y=dy * text_offset,
-        text=arrow_text,  # Display wind direction text (e.g., "شمال-جنوب")
-        showarrow=False,
-        font=dict(size=16, color='black', family='Arial'),
-        xanchor='center',
-        yanchor='middle'
+        text="",  # No text on arrow
     )
     
     # Set layout with proper padding
-    pad = max(w, h) * 0.5
+    pad = max(w, h) * 0.3
     fig.update_layout(
         xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
         yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
         width=700, 
         height=500, 
-        margin=dict(l=20, r=20, t=30, b=20), 
-        showlegend=False
+        margin=dict(l=20, r=20, t=30, b=60),  # Extra bottom margin for text
+        showlegend=False,
+        # Add text annotation BELOW the diagram (outside)
+        annotations=[
+            dict(
+                x=0.5, y=-0.05,  # Position at bottom center (in paper coordinates)
+                xref='paper', yref='paper',
+                text=f"<b>جهت باد: {arrow_text}</b>",
+                showarrow=False,
+                font=dict(size=16, color='black'),
+                xanchor='center',
+                yanchor='top'
+            )
+        ]
     )
     
     # Keep aspect ratio 1:1
