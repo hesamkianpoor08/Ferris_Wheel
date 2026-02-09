@@ -3337,19 +3337,19 @@ elif st.session_state.step == 11:
     if axis_key:
         st.write(f"**Selected Orientation:** {axis_label(axis_key)}")
         arrow_map = {
-            'NS': (0, 1, axis_label('NS')),
-            'EW': (1, 0, axis_label('EW')),
-            'NE_SW': (1/math.sqrt(2), 1/math.sqrt(2), axis_label('NE_SW')),
-            'SE_NW': (-1/math.sqrt(2), 1/math.sqrt(2), axis_label('SE_NW'))
+            'NS': (0, 1),
+            'EW': (1, 0),
+            'NE_SW': (1/math.sqrt(2), 1/math.sqrt(2)),
+            'SE_NW': (-1/math.sqrt(2), 1/math.sqrt(2))
         }
-        arrow_vec_x, arrow_vec_y, arrow_text = arrow_map.get(axis_key, (0,1,axis_label('NS')))
-        arrow_vec = (arrow_vec_x, arrow_vec_y)
+        arrow_vec = arrow_map.get(axis_key, (0, 1))
+        
+        # اصلاح شده: حذف پارامتر arrow_text
         fig_final_orientation = create_orientation_diagram(
             axis_key,
-            env.get('land_length'),
-            env.get('land_width'),
-            arrow_vec,
-            arrow_text
+            env.get('land_length', 100),
+            env.get('land_width', 100),
+            arrow_vec
         )
         st.plotly_chart(fig_final_orientation, use_container_width=True)
     else:
@@ -3651,7 +3651,7 @@ elif st.session_state.step == 11:
         - **Terrain Category:** {env.get('terrain_category', 'N/A')}
         - **Roughness Length (z₀):** {env.get('terrain_z0', 'N/A')} m
         - **Minimum Height (z_min):** {env.get('terrain_zmin', 'N/A')} m
-        - **Carousel Orientation:** {st.session_state.carousel_orientation}
+        - **Carousel Orientation:** {axis_label(st.session_state.carousel_orientation) if st.session_state.get('carousel_orientation') else 'N/A'}
         
         ### Geotechnical Data (ISIRI 2800)
         - **Soil Type:** {st.session_state.soil_type}
