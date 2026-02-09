@@ -1918,15 +1918,17 @@ def map_direction_to_axis_and_vector(dir_str):
 
     return 'NS', 'North–South', (0, 1)
 
-def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
+def create_orientation_diagram(land_length, land_width, arrow_vec):
     w = float(land_length)
     h = float(land_width)
     
+    # مستطیل ثابت
     xs = [-w/2, w/2, w/2, -w/2, -w/2]
     ys = [-h/2, -h/2, h/2, h/2, -h/2]
     
     fig = go.Figure()
 
+    # رسم بدنه مستطیل
     fig.add_trace(go.Scatter(
         x=xs, y=ys, 
         mode='lines', 
@@ -1935,10 +1937,12 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
         hoverinfo='skip'
     ))
 
+    # تنظیم طول فلش بر اساس ابعاد زمین
     arrow_length = min(w, h) * 0.4
     dx = arrow_vec[0] * arrow_length
     dy = arrow_vec[1] * arrow_length
 
+    # رسم فلش جهت باد در مرکز
     fig.add_annotation(
         x=dx, y=dy,
         ax=-dx, ay=-dy,
@@ -1964,7 +1968,6 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
         paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
-    
     return fig
 
 
@@ -2580,14 +2583,7 @@ elif st.session_state.step == 7:
 # === STEP 8: Carousel Orientation ===
 if st.session_state.step == 8:
     if st.session_state.get('scroll_to_top'):
-        components.html(
-            """
-            <script>
-                window.parent.document.querySelector('section.main').scrollTo(0, 0);
-            </script>
-            """,
-            height=0,
-        )
+        components.html("<script>window.parent.document.querySelector('section.main').scrollTo(0, 0);</script>", height=0)
         st.session_state.scroll_to_top = False
     
     st.header(get_text('provincial_characteristics', persian))
@@ -2598,7 +2594,6 @@ if st.session_state.step == 8:
         st.session_state.validation_errors = []
 
     st.header(get_text('carousel_orientation', persian))
-    st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
     st.markdown("---")
 
     env = st.session_state.get('environment_data', {})
@@ -2606,11 +2601,14 @@ if st.session_state.step == 8:
     land_length = env.get('land_length', 100)
     land_width = env.get('land_width', 100)
 
-    axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
+    # تعیین بردار جهت فعلی بر اساس انتخاب کاربر یا پیشنهاد سیستم
+    current_dir_label = st.session_state.get('custom_orientation_select', wind_direction)
+    _, _, arrow_vec = map_direction_to_axis_and_vector(current_dir_label)
 
-    st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
+    st.write(f"**Land dimensions:** {land_length} m × {land_width} m")
 
-    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec)
+    # نمایش تک نمودار مرکزی
+    fig = create_orientation_diagram(land_length, land_width, arrow_vec)
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
@@ -2618,24 +2616,28 @@ if st.session_state.step == 8:
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Confirm Suggested Orientation"):
-            st.session_state.carousel_orientation = axis_key
+            axis_suggested, _, _ = map_direction_to_axis_and_vector(wind_direction)
+            st.session_state.carousel_orientation = axis_suggested
             st.session_state.orientation_confirmed = True
-            st.success("Orientation confirmed")
+            st.success("Confirmed")
 
     with col2:
-        st.markdown("**Or select custom orientation:**")
-
-    directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
-    init_index = directions.index(wind_direction) if wind_direction in directions else 0
-    custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
-
-    if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
-        axis_key_custom, _, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
-        st.session_state.carousel_orientation = axis_key_custom
-        st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set")
-        fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom)
-        st.plotly_chart(fig_custom, use_container_width=True)
+        directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
+        init_index = directions.index(wind_direction) if wind_direction in directions else 0
+        
+        # تغییر در selectbox مستقیماً نمودار بالا را آپدیت می‌کند
+        custom_direction = st.selectbox(
+            get_text('custom_direction', persian), 
+            options=directions, 
+            index=init_index,
+            key="custom_orientation_select" 
+        )
+        
+        if st.button("Set Custom Orientation"):
+            axis_custom, _, _ = map_direction_to_axis_and_vector(custom_direction)
+            st.session_state.carousel_orientation = axis_custom
+            st.session_state.orientation_confirmed = True
+            st.rerun()
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
