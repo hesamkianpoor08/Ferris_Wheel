@@ -1928,8 +1928,8 @@ def axis_label(axis):
 
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
     """
-    Creates a diagram showing land orientation with wind direction arrow.
-    Rectangle stays fixed (not rotated), only arrow direction changes.
+    Creates a diagram showing land orientation with wind direction arrow and text label.
+    Rectangle stays fixed (not rotated), arrow shows wind direction with label.
     """
     w = float(land_length)
     h = float(land_width)
@@ -1958,7 +1958,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
     dx = arrow_vec[0] * L
     dy = arrow_vec[1] * L
     
-    # Add wind direction arrow (no text label, just arrow)
+    # Add wind direction arrow (red arrow pointing in wind direction)
     fig.add_annotation(
         x=dx, y=dy,      # Arrow head position
         ax=0, ay=0,      # Arrow tail at center
@@ -1967,12 +1967,25 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         arrowwidth=4, 
         arrowcolor='red',
         showarrow=True,
-        text="",  # No text inside the diagram
+        text="",  # No text on the arrow itself
         font=dict(size=14, color='black')
     )
     
+    # Add text label for wind direction (separate from arrow)
+    # Position it slightly offset from the arrow head
+    text_offset = 1.2  # Multiplier for text position relative to arrow
+    fig.add_annotation(
+        x=dx * text_offset, 
+        y=dy * text_offset,
+        text=arrow_text,  # Display wind direction text (e.g., "شمال-جنوب")
+        showarrow=False,
+        font=dict(size=16, color='black', family='Arial'),
+        xanchor='center',
+        yanchor='middle'
+    )
+    
     # Set layout with proper padding
-    pad = max(w, h) * 0.4
+    pad = max(w, h) * 0.5
     fig.update_layout(
         xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
         yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
@@ -1986,6 +1999,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     
     return fig
+
 
 
 
