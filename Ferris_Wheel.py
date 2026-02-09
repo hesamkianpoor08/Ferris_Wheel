@@ -1918,17 +1918,15 @@ def map_direction_to_axis_and_vector(dir_str):
 
     return 'NS', 'North–South', (0, 1)
 
-def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
+def create_orientation_diagram(land_length, land_width, arrow_vec):
     w = float(land_length)
     h = float(land_width)
     
-    # مستطیل ثابت
     xs = [-w/2, w/2, w/2, -w/2, -w/2]
     ys = [-h/2, -h/2, h/2, h/2, -h/2]
     
     fig = go.Figure()
 
-    # رسم مستطیل بدون رنگ داخلی
     fig.add_trace(go.Scatter(
         x=xs, y=ys, 
         mode='lines', 
@@ -1937,25 +1935,34 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         hoverinfo='skip'
     ))
 
-    # طول فلش
-    L = min(w, h) * 0.4
-    dx, dy = arrow_vec[0] * L, arrow_vec[1] * L
+    arrow_length = min(w, h) * 0.4
+    dx = arrow_vec[0] * arrow_length
+    dy = arrow_vec[1] * arrow_length
 
-    # فلش دوطرفه قرمز
     fig.add_annotation(
-        x=dx, y=dy, ax=-dx, ay=-dy,
-        xref="x", yref="y", axref="x", ayref="y",
-        arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor='red',
-        text="", showarrow=True, arrowside='end+start'
+        x=dx, y=dy,
+        ax=-dx, ay=-dy,
+        xref="x", yref="y",
+        axref="x", ayref="y",
+        arrowhead=3, 
+        arrowsize=1.5,
+        arrowwidth=4, 
+        arrowcolor='red', 
+        text="", 
+        showarrow=True,
+        arrowside='end+start'  # <--- این خط اضافه شد تا فلش دوطرفه شود
     )
 
+    pad = max(w, h) * 0.2
     fig.update_layout(
-        xaxis=dict(range=[-w/2*1.5, w/2*1.5], visible=False),
-        yaxis=dict(range=[-h/2*1.5, h/2*1.5], visible=False),
-        margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
+        yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
+        width=600, 
+        height=500, 
+        margin=dict(l=20, r=20, t=30, b=20),
+        showlegend=False,
         plot_bgcolor='rgba(0,0,0,0)',
-        showlegend=False
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     return fig
