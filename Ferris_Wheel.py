@@ -1919,19 +1919,8 @@ def map_direction_to_axis_and_vector(dir_str):
     return 'NS', 'North–South', (0, 1)
 
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text):
-    """
-    ایجاد نمودار جهت‌گیری با مستطیل ثابت
-    """
-    import plotly.graph_objects as go
-    import numpy as np
-    
-    # تبدیل به float برای اطمینان
-    try:
-        w = float(land_length)
-        h = float(land_width)
-    except:
-        w = 100.0
-        h = 100.0
+    w = float(land_length)
+    h = float(land_width)
     
     # مستطیل ثابت بدون چرخش
     xs = [-w/2, w/2, w/2, -w/2, -w/2]
@@ -1945,8 +1934,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         mode='lines', 
         line=dict(color='rgb(30,90,160)', width=3),
         showlegend=False, 
-        hoverinfo='skip',
-        name='Land Boundary'
+        hoverinfo='skip'
     ))
 
     # تنظیم طول فلش بر اساس ابعاد زمین
@@ -1954,7 +1942,7 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
     dx = arrow_vec[0] * L
     dy = arrow_vec[1] * L
 
-    # رسم فلش دوطرفه قرمز در مرکز
+    # رسم فلش دوطرفه قرمز در مرکز (بدون متن)
     fig.add_annotation(
         x=dx, y=dy,
         ax=-dx, ay=-dy,
@@ -1966,54 +1954,22 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         arrowcolor='red', 
         text="", 
         showarrow=True,
-        arrowside='end+start',
-        name='Orientation Arrow'
+        arrowside='end+start' # ایجاد فلش دوطرفه
     )
-
-    # اضافه کردن متن جهت (اختیاری)
-    if arrow_text:
-        fig.add_annotation(
-            x=0, y=0,
-            xref="x", yref="y",
-            text=arrow_text,
-            showarrow=False,
-            font=dict(size=14, color='black'),
-            bgcolor='rgba(255,255,255,0.8)',
-            bordercolor='black',
-            borderwidth=1,
-            borderpad=4,
-            opacity=0.9
-        )
 
     pad = max(w, h) * 0.3
     fig.update_layout(
-        xaxis=dict(
-            range=[-w/2-pad, w/2+pad], 
-            visible=False,
-            showgrid=False,
-            zeroline=False
-        ),
-        yaxis=dict(
-            range=[-h/2-pad, h/2+pad], 
-            visible=False,
-            showgrid=False,
-            zeroline=False,
-            scaleanchor="x",
-            scaleratio=1
-        ),
-        width=700, 
-        height=500, 
+        xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
+        yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
+        width=700, height=500, 
         margin=dict(l=20, r=20, t=30, b=20),
         showlegend=False,
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        title=f"Carousel Orientation: {axis_key}",
-        title_font=dict(size=16),
-        # اضافه کردن UID برای جلوگیری از cache
-        template='plotly_white'
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
-    
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
     return fig
+
 
 
 
@@ -2644,76 +2600,47 @@ if st.session_state.step == 8:
     land_length = env.get('land_length', 100)
     land_width = env.get('land_width', 100)
 
-    # تعیین پارامترها
+    # تعیین پارامترها برای جلوگیری از ارور در فراخوانی تابع
     axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
 
     st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
 
-    # ایجاد container مخصوص برای نمودار
-    chart_container = st.container()
-    with chart_container:
-        # نمایش نمودار با کلید منحصر به فرد
-        fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
-        st.plotly_chart(fig, use_container_width=True, key=f"orientation_chart_step8_main")
+    # نمایش نمودار (بدون متون پیشنهادی اضافی)
+    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("✅ Confirm Suggested Orientation", key="confirm_orientation_btn"):
+        if st.button("✅ Confirm Suggested Orientation"):
             st.session_state.carousel_orientation = axis_key
             st.session_state.orientation_confirmed = True
-            st.session_state.need_chart_refresh = True  # فلگ برای بازسازی نمودار
             st.success("Orientation confirmed")
-            # بازسازی صفحه
-            st.rerun()
 
     with col2:
         directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
         init_index = directions.index(wind_direction) if wind_direction in directions else 0
-        custom_direction = st.selectbox(
-            get_text('custom_direction', persian), 
-            options=directions, 
-            index=init_index, 
-            key="custom_orientation_select_step8"
-        )
+        custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
 
-        if st.button("Set Custom Orientation", key="custom_orientation_btn"):
+        if st.button("Set Custom Orientation"):
             axis_key_custom, arrow_text_custom, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
             st.session_state.carousel_orientation = axis_key_custom
             st.session_state.orientation_confirmed = True
-            st.session_state.need_chart_refresh = True  # فلگ برای بازسازی نمودار
             st.success("Custom orientation set")
-            
-            # پاک کردن و ایجاد مجدد container
-            chart_container.empty()
-            with chart_container:
-                fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom, arrow_text_custom)
-                st.plotly_chart(fig_custom, use_container_width=True, key=f"orientation_chart_step8_custom")
-            st.rerun()
+            # نمایش مجدد نمودار با جهت جدید
+            fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom, arrow_text_custom)
+            st.plotly_chart(fig_custom, use_container_width=True)
 
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back, key="back_step8")
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next, key="next_step8")
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
-    # پاکسازی cache مرتبط با نمودارهای قبلی
-    if hasattr(st, 'cache_data'):
-        try:
-            st.cache_data.clear()
-        except:
-            pass
-    
-    # پاکسازی session state از داده‌های مربوط به نمودار
-    keys_to_clean = ['fig', 'orientation_fig', 'chart_container']
-    for key in keys_to_clean:
-        if key in st.session_state:
-            del st.session_state[key]
-    
     st.header(get_text('device_classification', persian))
     
     st.markdown("**Calculation per INSO 8987-1-2023**")
@@ -2738,9 +2665,9 @@ elif st.session_state.step == 9:
     braking_accel = st.number_input(
         "Braking Acceleration (m/s²)" if not persian else "شتاب ترمز (متر بر مجذور ثانیه)", 
         min_value=0.01, max_value=2.0, 
-        value=st.session_state.get('braking_acceleration', 0.5), 
+        value=st.session_state.braking_acceleration, 
         step=0.01, format="%.2f", 
-        key="braking_accel_input_step9",
+        key="braking_accel_input",
         help="Actual braking acceleration for your design" if not persian else "شتاب ترمز واقعی برای طراحی شما"
     )
     st.session_state.braking_acceleration = braking_accel
@@ -2775,7 +2702,7 @@ elif st.session_state.step == 9:
     with col1:
         enable_snow = st.checkbox("🌨️ Snow Load" if not persian else "🌨️ بار برف", 
                                   value=st.session_state.enable_snow,
-                                  key="snow_checkbox_step9")
+                                  key="snow_checkbox")
         st.session_state.enable_snow = enable_snow
         
         if enable_snow:
@@ -2790,7 +2717,7 @@ elif st.session_state.step == 9:
                 value=st.session_state.snow_coefficient, 
                 step=0.05, 
                 format="%.2f",
-                key="snow_coef_input_step9",
+                key="snow_coef_input",
                 help="Standard value: 0.2 kN/m² (modifiable)" if not persian else "مقدار استاندارد: 0.2 (قابل تغییر)"
             )
             st.session_state.snow_coefficient = snow_coef
@@ -2802,7 +2729,7 @@ elif st.session_state.step == 9:
     with col2:
         enable_wind = st.checkbox("💨 Wind Load" if not persian else "💨 بار باد", 
                                   value=st.session_state.enable_wind,
-                                  key="wind_checkbox_step9")
+                                  key="wind_checkbox")
         st.session_state.enable_wind = enable_wind
         
         if enable_wind:
@@ -2816,7 +2743,7 @@ elif st.session_state.step == 9:
                 "Height Category (m)" if not persian else "دسته‌بندی ارتفاع (متر)",
                 options=["0 < H ≤ 8", "8 < H ≤ 20", "20 < H ≤ 35", "35 < H ≤ 50"],
                 index=st.session_state.height_category_index,
-                key="height_category_step9"
+                key="height_category"
             )
             
             if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
@@ -2835,12 +2762,12 @@ elif st.session_state.step == 9:
             st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
             terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
                                      min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
-                                     key="terror_factor_slider_step9")
+                                     key="terror_factor_slider")
             st.session_state.terror_factor = terror_factor
             
             height_factor = st.slider("Height Factor" if not persian else "فاکتور ارتفاع", 
                                      min_value=1.0, max_value=5.0, value=st.session_state.height_factor, step=0.5,
-                                     key="height_factor_slider_step9")
+                                     key="height_factor_slider")
             st.session_state.height_factor = height_factor
             
             wind_load_calc = wind_pressure * cabin_surface_area * terror_factor * height_factor
@@ -2850,7 +2777,7 @@ elif st.session_state.step == 9:
     with col3:
         enable_earthquake = st.checkbox("🌍 Earthquake Load" if not persian else "🌍 بار زلزله", 
                                        value=st.session_state.enable_earthquake,
-                                       key="earthquake_checkbox_step9")
+                                       key="earthquake_checkbox")
         st.session_state.enable_earthquake = enable_earthquake
         
         if enable_earthquake:
@@ -2859,7 +2786,7 @@ elif st.session_state.step == 9:
             seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
                                           min_value=0.0, max_value=0.5, 
                                           value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
-                                          key="seismic_coef_input_step9",
+                                          key="seismic_coef_input",
                                           help="Typical range: 0.10 - 0.35")
             st.session_state.seismic_coefficient = seismic_coef
             
@@ -2888,17 +2815,18 @@ elif st.session_state.step == 9:
         approx_mass = diameter * 500
         earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)
     
-    # === ACTUAL OPERATION ANALYSIS ===
+    # === ACTUAL OPERATION ANALYSIS (تحلیل طراحی واقعی) ===
     st.subheader("⚙️ Device Classification Analysis" if not persian else "⚙️ تحلیل طبقه‌بندی دستگاه")
     st.markdown("**Based on Your Design Parameters:**" if not persian else "**بر اساس پارامترهای طراحی شما:**")
     
+    # نمایش پارامترهای ورودی
     param_col1, param_col2, param_col3 = st.columns(3)
     with param_col1:
-        st.metric("Rotation Speed" if not persian else "سرعت چرخش", f"{rpm:.4f} rpm", key="rpm_metric_step9")
+        st.metric("Rotation Speed" if not persian else "سرعت چرخش", f"{rpm:.4f} rpm")
     with param_col2:
-        st.metric("Braking Acceleration" if not persian else "شتاب ترمز", f"{braking_accel:.2f} m/s²", key="accel_metric_step9")
+        st.metric("Braking Acceleration" if not persian else "شتاب ترمز", f"{braking_accel:.2f} m/s²")
     with param_col3:
-        st.metric("Diameter" if not persian else "قطر", f"{diameter} m", key="diameter_metric_step9")
+        st.metric("Diameter" if not persian else "قطر", f"{diameter} m")
     
     # محاسبه Dynamic Product
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
@@ -2906,8 +2834,9 @@ elif st.session_state.step == 9:
         snow_load, wind_load, earthquake_load
     )
     
-    # طبقه‌بندی
+    # طبقه‌بندی بر اساس دو جدول
     def classify_intrinsic_secured(p):
+        """Intrinsic safety secured"""
         if 0.1 < p <= 25:
             return 1
         elif 25 < p <= 100:
@@ -2920,6 +2849,7 @@ elif st.session_state.step == 9:
             return None
     
     def classify_intrinsic_not_secured(p):
+        """Intrinsic safety not secured"""
         if 0.1 < p <= 25:
             return 2
         elif 25 < p <= 100:
@@ -2940,16 +2870,16 @@ elif st.session_state.step == 9:
     result_col1, result_col2, result_col3 = st.columns(3)
     with result_col1:
         st.metric("Max Acceleration" if not persian else "حداکثر شتاب", 
-                 f"{max_accel_actual:.3f} m/s²", key="max_accel_metric_step9")
+                 f"{max_accel_actual:.3f} m/s²")
         st.caption(f"({n_actual:.3f}g)")
     with result_col2:
         st.metric("Dynamic Product (p)" if not persian else "حاصل‌ضرب دینامیکی", 
-                 f"{p_actual:.2f}", key="p_metric_step9")
+                 f"{p_actual:.2f}")
     with result_col3:
         st.metric("Linear Velocity" if not persian else "سرعت خطی", 
-                 f"{(diameter/2.0) * angular_velocity:.3f} m/s", key="velocity_metric_step9")
+                 f"{(diameter/2.0) * angular_velocity:.3f} m/s")
     
-    # نمایش طبقه‌بندی
+    # نمایش دو نوع طبقه‌بندی
     st.markdown("---")
     st.subheader("📋 Device Classification per INSO 8987-1-2023" if not persian else 
                 "📋 طبقه‌بندی دستگاه طبق INSO 8987-1-2023")
@@ -2959,6 +2889,8 @@ elif st.session_state.step == 9:
     with class_col1:
         st.markdown("#### **Intrinsic Safety Secured**" if not persian else "#### **ایمنی ذاتی تأمین شده**")
         st.success(f"**Class {class_secured}**")
+        
+        # جدول محدوده‌ها
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -2968,9 +2900,20 @@ elif st.session_state.step == 9:
 | 4     | 200 < P             |
 """)
         
+        if class_secured == 1:
+            st.info("✅ Lowest classification - Minimal restraint requirements")
+        elif class_secured == 2:
+            st.info("✅ Low to moderate classification - Standard restraint")
+        elif class_secured == 3:
+            st.warning("⚠️ Moderate to high classification - Enhanced restraint required")
+        elif class_secured == 4:
+            st.error("⚠️ Highest classification - Maximum restraint required")
+    
     with class_col2:
         st.markdown("#### **Intrinsic Safety NOT Secured**" if not persian else "#### **ایمنی ذاتی تأمین نشده**")
         st.warning(f"**Class {class_not_secured}**")
+        
+        # جدول محدوده‌ها
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -2979,27 +2922,41 @@ elif st.session_state.step == 9:
 | 4     | 100 < P ≤ 200       |
 | 5     | 200 < P             |
 """)
+        
+        if class_not_secured == 2:
+            st.info("⚠️ Requires additional safety measures")
+        elif class_not_secured == 3:
+            st.warning("⚠️ Enhanced safety measures required")
+        elif class_not_secured == 4:
+            st.error("⚠️ Comprehensive safety system required")
+        elif class_not_secured == 5:
+            st.error("🚨 Maximum safety classification - Special precautions mandatory")
     
-    # نمایش بارهای اضافی
+    # Display load contributions if any are enabled 
     if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
         st.markdown("---")
         st.markdown("**🌦️ Additional Load Contributions:**" if not persian else "**🌦️ مشارکت بارهای اضافی:**")
+        st.caption("These loads are included in the analysis above" if not persian else 
+                  "این بارها در تحلیل بالا لحاظ شده‌اند")
         
         load_col1, load_col2, load_col3 = st.columns(3)
         
         with load_col1:
             if st.session_state.enable_snow:
-                st.metric("Snow Load" if not persian else "بار برف", f"{snow_load:.3f} kN", key="snow_metric_step9")
+                st.metric("Snow Load" if not persian else "بار برف", f"{snow_load:.3f} kN")
+                st.caption(f"{st.session_state.snow_coefficient} kN/m² × {cabin_surface_area} m²")
         
         with load_col2:
             if st.session_state.enable_wind:
-                st.metric("Wind Load" if not persian else "بار باد", f"{wind_load:.3f} kN", key="wind_metric_step9")
+                st.metric("Wind Load" if not persian else "بار باد", f"{wind_load:.3f} kN")
+                st.caption(f"With terror={st.session_state.terror_factor}, height={st.session_state.height_factor}")
         
         with load_col3:
             if st.session_state.enable_earthquake:
-                st.metric("Earthquake Load" if not persian else "بار زلزله", f"{earthquake_load:.3f} kN", key="quake_metric_step9")
+                st.metric("Earthquake Load" if not persian else "بار زلزله", f"{earthquake_load:.3f} kN")
+                st.caption(f"Coef={st.session_state.seismic_coefficient:.3f}")
     
-    # ذخیره اطلاعات
+    # ذخیره اطلاعات کامل برای Step 10 و 11
     st.session_state.classification_data = {
         'p_actual': p_actual, 
         'class_secured': class_secured, 
@@ -3013,14 +2970,16 @@ elif st.session_state.step == 9:
         'wind_load': wind_load, 
         'earthquake_load': earthquake_load,
         'cabin_surface_area': cabin_surface_area,
+        'snow_coefficient': st.session_state.snow_coefficient,
     }
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back, key="back_step9")
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next, key="next_step9")
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 10: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
