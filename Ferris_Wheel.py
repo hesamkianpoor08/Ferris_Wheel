@@ -1922,13 +1922,13 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
     w = float(land_length)
     h = float(land_width)
     
-    # مستطیل ثابت بدون چرخش
+    # مستطیل ثابت (بدون چرخش)
     xs = [-w/2, w/2, w/2, -w/2, -w/2]
     ys = [-h/2, -h/2, h/2, h/2, -h/2]
     
     fig = go.Figure()
 
-    # رسم خطوط دور مستطیل زمین
+    # رسم مستطیل زمین
     fig.add_trace(go.Scatter(
         x=xs, y=ys, 
         mode='lines', 
@@ -1937,12 +1937,12 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         hoverinfo='skip'
     ))
 
-    # تنظیم طول فلش بر اساس ابعاد زمین
+    # محاسبه بردار فلش
     L = min(w, h) * 0.4
     dx = arrow_vec[0] * L
     dy = arrow_vec[1] * L
 
-    # رسم فلش دوطرفه قرمز در مرکز (بدون متن)
+    # رسم فلش دوطرفه قرمز
     fig.add_annotation(
         x=dx, y=dy,
         ax=-dx, ay=-dy,
@@ -1954,22 +1954,22 @@ def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arr
         arrowcolor='red', 
         text="", 
         showarrow=True,
-        arrowside='end+start' # ایجاد فلش دوطرفه
+        arrowside='end+start'  # فلش دو سر
     )
 
-    pad = max(w, h) * 0.3
+    pad = max(w, h) * 0.2
     fig.update_layout(
         xaxis=dict(range=[-w/2-pad, w/2+pad], visible=False),
         yaxis=dict(range=[-h/2-pad, h/2+pad], visible=False),
-        width=700, height=500, 
-        margin=dict(l=20, r=20, t=30, b=20),
+        width=600, height=450, 
+        margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    
     return fig
-
 
 
 
@@ -2581,12 +2581,12 @@ elif st.session_state.step == 7:
 
 # === STEP 8: Carousel Orientation ===
 if st.session_state.step == 8:
+    # اسکرول به بالا در ابتدای ورود به مرحله
     if st.session_state.get('scroll_to_top'):
         components.html("<script>window.parent.document.querySelector('section.main').scrollTo(0, 0);</script>", height=0)
         st.session_state.scroll_to_top = False
     
-    st.header(get_text('provincial_characteristics', persian))
-    
+    # نمایش خطاها
     if st.session_state.get('validation_errors'):
         for e in st.session_state.validation_errors:
             st.error(e)
@@ -2595,48 +2595,76 @@ if st.session_state.step == 8:
     st.header(get_text('carousel_orientation', persian))
     st.markdown("---")
 
+    # دریافت اطلاعات محیطی
     env = st.session_state.get('environment_data', {})
-    wind_direction = env.get('wind_direction', 'North')
+    default_wind = env.get('wind_direction', 'North')
     land_length = env.get('land_length', 100)
     land_width = env.get('land_width', 100)
 
-    # تعیین پارامترها برای جلوگیری از ارور در فراخوانی تابع
-    axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
+    # --- بخش انتخاب جهت و نمایش نمودار ---
+    
+    # لیست جهت‌ها
+    directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
+    
+    # تعیین ایندکس پیش‌فرض:
+    # اگر قبلا تایید شده، همان را نشان بده، اگر نه، جهت باد محیطی را نشان بده
+    if st.session_state.get('orientation_confirmed') and 'carousel_orientation' in st.session_state:
+        # تبدیل کد محور ذخیره شده (مثل NS) به نام جهت (مثل North-South) برای نمایش در منو
+        saved_axis = st.session_state.carousel_orientation
+        # پیدا کردن نام جهت بر اساس محور ذخیره شده (یک تقریب برای UI)
+        current_selection_name = default_wind # fallback
+        if saved_axis == 'NS': current_selection_name = 'North-South'
+        elif saved_axis == 'EW': current_selection_name = 'East-West'
+        elif saved_axis == 'NE_SW': current_selection_name = 'Northeast-Southwest'
+        elif saved_axis == 'SE_NW': current_selection_name = 'Northwest-Southeast'
+    else:
+        current_selection_name = default_wind
 
-    st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
+    # پیدا کردن ایندکس در لیست
+    try:
+        idx = directions.index(current_selection_name)
+    except ValueError:
+        idx = 0
 
-    # نمایش نمودار (بدون متون پیشنهادی اضافی)
-    fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
-    st.plotly_chart(fig, use_container_width=True)
+    col_ctrl, col_graph = st.columns([1, 2])
 
-    st.markdown("---")
+    with col_ctrl:
+        st.write("\n") # فاصله ساز
+        st.write("\n")
+        st.markdown("**Select Orientation:**")
+        # این Selectbox جهت را تعیین می‌کند. تغییر آن بلافاصله نمودار را تغییر می‌دهد.
+        selected_direction = st.selectbox(
+            get_text('custom_direction', persian), 
+            options=directions, 
+            index=idx,
+            key="step8_direction_selector"
+        )
+        
+        st.write("\n")
+        
+        # تبدیل انتخاب منو به پارامترهای نمودار
+        axis_key, arrow_text, arrow_vec = map_direction_to_axis_and_vector(selected_direction)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Confirm Suggested Orientation"):
+        # دکمه تایید
+        if st.button("✅ Confirm Orientation", use_container_width=True):
             st.session_state.carousel_orientation = axis_key
             st.session_state.orientation_confirmed = True
-            st.success("Orientation confirmed")
+            st.success(f"Confirmed: {selected_direction}")
 
-    with col2:
-        directions = ['North-South', 'Northeast-Southwest', 'East-West', 'Northwest-Southeast']
-        init_index = directions.index(wind_direction) if wind_direction in directions else 0
-        custom_direction = st.selectbox(get_text('custom_direction', persian), options=directions, index=init_index, key="custom_orientation_select")
-
-        if st.button("Set Custom Orientation"):
-            axis_key_custom, arrow_text_custom, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
-            st.session_state.carousel_orientation = axis_key_custom
-            st.session_state.orientation_confirmed = True
-            st.success("Custom orientation set")
-            # نمایش مجدد نمودار با جهت جدید
-            fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom, arrow_text_custom)
-            st.plotly_chart(fig_custom, use_container_width=True)
+    with col_graph:
+        st.markdown(f"<center><b>Land: {land_length}m × {land_width}m</b></center>", unsafe_allow_html=True)
+        # رسم نمودار بر اساس انتخاب لحظه‌ای (selected_direction)
+        fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec, arrow_text)
+        st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
+    
+    # دکمه‌های ناوبری پایین صفحه
     left_col, right_col = st.columns([1,1])
     with left_col:
         st.button("⬅️ Back", on_click=go_back)
     with right_col:
+        # فقط این دکمه اجازه رفتن به مرحله 9 را می‌دهد
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 9: Device Classification ===
