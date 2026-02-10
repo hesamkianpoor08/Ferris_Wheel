@@ -1885,7 +1885,7 @@ def validate_current_step_and_next():
         st.session_state.scroll_to_top = True
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(13, st.session_state.step + 1)
+        st.session_state.step = min(14, st.session_state.step + 1)
 
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
