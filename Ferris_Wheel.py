@@ -2039,7 +2039,7 @@ with st.sidebar:
         reset_design()
         st.rerun()
 
-total_steps = 15
+total_steps = 14
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
 st.markdown("---")
