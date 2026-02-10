@@ -2757,153 +2757,12 @@ elif st.session_state.step == 9:
     st.session_state.braking_acceleration = braking_accel
     
     st.markdown("---")
-    st.subheader("Additional Load Factors" if not persian else "بارهای اضافی")
     
-    # Initialize session state variables if not present
-    if 'enable_snow' not in st.session_state:
-        st.session_state.enable_snow = False
-    if 'enable_wind' not in st.session_state:
-        st.session_state.enable_wind = False
-    if 'enable_earthquake' not in st.session_state:
-        st.session_state.enable_earthquake = False
-    if 'snow_coefficient' not in st.session_state:
-        st.session_state.snow_coefficient = 0.2
-    if 'terror_factor' not in st.session_state:
-        st.session_state.terror_factor = 1.0
-    if 'height_factor' not in st.session_state:
-        st.session_state.height_factor = 1.0
-    if 'seismic_coefficient' not in st.session_state:
-        st.session_state.seismic_coefficient = 0.15
-    
-    # محاسبه خودکار مساحت سطح کابین
-    cabin_geometry = st.session_state.get('cabin_geometry', 'Square')
-    cabin_capacity = st.session_state.get('cabin_capacity', 6)
-    cabin_surface_area = estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    # Snow Load
-    with col1:
-        enable_snow = st.checkbox("🌨️ Snow Load" if not persian else "🌨️ بار برف", 
-                                  value=st.session_state.enable_snow,
-                                  key="snow_checkbox")
-        st.session_state.enable_snow = enable_snow
-        
-        if enable_snow:
-            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²\n\n"
-                   f"Based on: {cabin_geometry}, {cabin_capacity} passengers" if not persian else
-                   f"**مساحت سطح کابین (تخمین):**\n{cabin_surface_area} متر مربع\n\n"
-                   f"بر اساس: {cabin_geometry}، {cabin_capacity} مسافر")
-            
-            snow_coef = st.number_input(
-                "Snow Pressure (kN/m²)" if not persian else "فشار برف (کیلونیوتن بر متر مربع)", 
-                min_value=0.1, max_value=1.0, 
-                value=st.session_state.snow_coefficient, 
-                step=0.05, 
-                format="%.2f",
-                key="snow_coef_input",
-                help="Standard value: 0.2 kN/m² (modifiable)" if not persian else "مقدار استاندارد: 0.2 (قابل تغییر)"
-            )
-            st.session_state.snow_coefficient = snow_coef
-            
-            snow_load_calc = snow_coef * cabin_surface_area
-            st.caption(f"Snow Load = {snow_coef} × {cabin_surface_area} = **{snow_load_calc:.2f} kN**")
-    
-    # Wind Load
-    with col2:
-        enable_wind = st.checkbox("💨 Wind Load" if not persian else "💨 بار باد", 
-                                  value=st.session_state.enable_wind,
-                                  key="wind_checkbox")
-        st.session_state.enable_wind = enable_wind
-        
-        if enable_wind:
-            st.info(f"**Cabin Surface Area (estimated):**\n{cabin_surface_area} m²" if not persian else
-                   f"**مساحت سطح کابین (تخمین):**\n{cabin_surface_area} متر مربع")
-            
-            if 'height_category_index' not in st.session_state:
-                st.session_state.height_category_index = 0
-            
-            height_category = st.selectbox(
-                "Height Category (m)" if not persian else "دسته‌بندی ارتفاع (متر)",
-                options=["0 < H ≤ 8", "8 < H ≤ 20", "20 < H ≤ 35", "35 < H ≤ 50"],
-                index=st.session_state.height_category_index,
-                key="height_category"
-            )
-            
-            if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
-                st.session_state.height_category_value = height_category
-            
-            wind_pressure_map = {
-                "0 < H ≤ 8": 0.20,
-                "8 < H ≤ 20": 0.30,
-                "20 < H ≤ 35": 0.35,
-                "35 < H ≤ 50": 0.40
-            }
-            wind_pressure = wind_pressure_map[height_category]
-            st.session_state.wind_pressure = wind_pressure
-            st.caption(f"Wind pressure q: {wind_pressure} kN/m²")
-            
-            st.markdown("**Design Factors:**" if not persian else "**ضرایب طراحی:**")
-            terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
-                                     min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
-                                     key="terror_factor_slider")
-            st.session_state.terror_factor = terror_factor
-            
-            height_factor = st.slider("Height Factor" if not persian else "فاکتور ارتفاع", 
-                                     min_value=1.0, max_value=5.0, value=st.session_state.height_factor, step=0.5,
-                                     key="height_factor_slider")
-            st.session_state.height_factor = height_factor
-            
-            wind_load_calc = wind_pressure * cabin_surface_area * terror_factor * height_factor
-            st.caption(f"Wind Load = {wind_pressure} × {cabin_surface_area} × {terror_factor} × {height_factor} = **{wind_load_calc:.2f} kN**")
-    
-    # Earthquake Load
-    with col3:
-        enable_earthquake = st.checkbox("🌍 Earthquake Load" if not persian else "🌍 بار زلزله", 
-                                       value=st.session_state.enable_earthquake,
-                                       key="earthquake_checkbox")
-        st.session_state.enable_earthquake = enable_earthquake
-        
-        if enable_earthquake:
-            st.caption("Seismic loads" if not persian else "بارهای لرزه‌ای")
-            
-            seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
-                                          min_value=0.0, max_value=0.5, 
-                                          value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
-                                          key="seismic_coef_input",
-                                          help="Typical range: 0.10 - 0.35")
-            st.session_state.seismic_coefficient = seismic_coef
-            
-            approx_mass = diameter * 500
-            earthquake_load_calc = seismic_coef * (approx_mass * 9.81 / 1000)
-            
-            st.caption(f"Approx. cabin mass: {approx_mass:.0f} kg")
-            st.caption(f"Horizontal force: {seismic_coef} × {approx_mass * 9.81 / 1000:.1f} = **{earthquake_load_calc:.2f} kN**")
-            st.caption(f"Vertical force: **{earthquake_load_calc * 0.5:.2f} kN** (50% of horizontal)")
-    
-    st.markdown("---")
-    
-    # Calculate additional loads
-    snow_load = 0.0
-    wind_load = 0.0
-    earthquake_load = 0.0
-    
-    if st.session_state.enable_snow:
-        snow_load = st.session_state.snow_coefficient * cabin_surface_area
-    
-    if st.session_state.enable_wind:
-        wind_load = (st.session_state.wind_pressure * cabin_surface_area * 
-                    st.session_state.terror_factor * st.session_state.height_factor)
-    
-    if st.session_state.enable_earthquake:
-        approx_mass = diameter * 500
-        earthquake_load = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)
-    
-    # === ACTUAL OPERATION ANALYSIS (تحلیل طراحی واقعی) ===
+    # === DEVICE CLASSIFICATION ANALYSIS (Only Gravity + Braking) ===
     st.subheader("⚙️ Device Classification Analysis" if not persian else "⚙️ تحلیل طبقه‌بندی دستگاه")
-    st.markdown("**Based on Your Design Parameters:**" if not persian else "**بر اساس پارامترهای طراحی شما:**")
+    st.markdown("**Based on Gravity and Braking Acceleration Only:**" if not persian else "**بر اساس گرانش و شتاب ترمز:**")
     
-    # نمایش پارامترهای ورودی
+    # Display input parameters
     param_col1, param_col2, param_col3 = st.columns(3)
     with param_col1:
         st.metric("Rotation Speed" if not persian else "سرعت چرخش", f"{rpm:.4f} rpm")
@@ -2912,15 +2771,63 @@ elif st.session_state.step == 9:
     with param_col3:
         st.metric("Diameter" if not persian else "قطر", f"{diameter} m")
     
-    # محاسبه Dynamic Product
-    p_actual, n_actual, max_accel_actual = calculate_dynamic_product(
-        diameter, height, angular_velocity, braking_accel,
-        snow_load, wind_load, earthquake_load
+    # Calculate Dynamic Product (WITHOUT environmental loads)
+    def calculate_accelerations_clean(theta, diameter, angular_velocity, braking_accel, g=9.81):
+        """
+        Calculate accelerations at a given angle (only gravity + braking + centripetal)
+        Environmental loads are NOT included in device classification
+        """
+        radius = diameter / 2.0
+        a_centripetal = radius * (angular_velocity ** 2)
+        
+        # Gravity components
+        a_z_gravity = -g
+        a_x_gravity = 0
+        
+        # Centripetal acceleration components
+        a_x_centripetal = a_centripetal * np.cos(theta)
+        a_z_centripetal = a_centripetal * np.sin(theta)
+        
+        # Braking acceleration components
+        a_x_braking = braking_accel * np.sin(theta)
+        a_z_braking = -braking_accel * np.cos(theta)
+        
+        # Total accelerations (NO environmental loads)
+        a_x_total = a_x_gravity + a_x_centripetal + a_x_braking
+        a_z_total = a_z_gravity + a_z_centripetal + a_z_braking
+        
+        a_total = np.sqrt(a_x_total**2 + a_z_total**2)
+        
+        return a_x_total, a_z_total, a_total
+    
+    def calculate_dynamic_product_clean(diameter, height, angular_velocity, braking_accel, g=9.81):
+        """
+        Calculate dynamic product (only operational accelerations, no environmental loads)
+        """
+        theta_vals = np.linspace(0, 2*np.pi, 360)
+        max_accel = 0
+        
+        for theta in theta_vals:
+            _, _, a_total = calculate_accelerations_clean(
+                theta, diameter, angular_velocity, braking_accel, g
+            )
+            if a_total > max_accel:
+                max_accel = a_total
+        
+        v = (diameter / 2.0) * angular_velocity
+        n = max_accel / g
+        p = v * height * n
+        
+        return p, n, max_accel
+    
+    # Calculate dynamic product
+    p_actual, n_actual, max_accel_actual = calculate_dynamic_product_clean(
+        diameter, height, angular_velocity, braking_accel
     )
     
-    # طبقه‌بندی بر اساس دو جدول
+    # Classification functions
     def classify_intrinsic_secured(p):
-        """Intrinsic safety secured"""
+        """Intrinsic safety secured per INSO 8987-1-2023"""
         if 0.1 < p <= 25:
             return 1
         elif 25 < p <= 100:
@@ -2933,7 +2840,7 @@ elif st.session_state.step == 9:
             return None
     
     def classify_intrinsic_not_secured(p):
-        """Intrinsic safety not secured"""
+        """Intrinsic safety not secured per INSO 8987-1-2023"""
         if 0.1 < p <= 25:
             return 2
         elif 25 < p <= 100:
@@ -2963,7 +2870,7 @@ elif st.session_state.step == 9:
         st.metric("Linear Velocity" if not persian else "سرعت خطی", 
                  f"{(diameter/2.0) * angular_velocity:.3f} m/s")
     
-    # نمایش دو نوع طبقه‌بندی
+    # Display classifications
     st.markdown("---")
     st.subheader("📋 Device Classification per INSO 8987-1-2023" if not persian else 
                 "📋 طبقه‌بندی دستگاه طبق INSO 8987-1-2023")
@@ -2974,7 +2881,6 @@ elif st.session_state.step == 9:
         st.markdown("#### **Intrinsic Safety Secured**" if not persian else "#### **ایمنی ذاتی تأمین شده**")
         st.success(f"**Class {class_secured}**")
         
-        # جدول محدوده‌ها
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -2997,7 +2903,6 @@ elif st.session_state.step == 9:
         st.markdown("#### **Intrinsic Safety NOT Secured**" if not persian else "#### **ایمنی ذاتی تأمین نشده**")
         st.warning(f"**Class {class_not_secured}**")
         
-        # جدول محدوده‌ها
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -3016,31 +2921,7 @@ elif st.session_state.step == 9:
         elif class_not_secured == 5:
             st.error("🚨 Maximum safety classification - Special precautions mandatory")
     
-    # Display load contributions if any are enabled 
-    if any([st.session_state.enable_snow, st.session_state.enable_wind, st.session_state.enable_earthquake]):
-        st.markdown("---")
-        st.markdown("**🌦️ Additional Load Contributions:**" if not persian else "**🌦️ مشارکت بارهای اضافی:**")
-        st.caption("These loads are included in the analysis above" if not persian else 
-                  "این بارها در تحلیل بالا لحاظ شده‌اند")
-        
-        load_col1, load_col2, load_col3 = st.columns(3)
-        
-        with load_col1:
-            if st.session_state.enable_snow:
-                st.metric("Snow Load" if not persian else "بار برف", f"{snow_load:.3f} kN")
-                st.caption(f"{st.session_state.snow_coefficient} kN/m² × {cabin_surface_area} m²")
-        
-        with load_col2:
-            if st.session_state.enable_wind:
-                st.metric("Wind Load" if not persian else "بار باد", f"{wind_load:.3f} kN")
-                st.caption(f"With terror={st.session_state.terror_factor}, height={st.session_state.height_factor}")
-        
-        with load_col3:
-            if st.session_state.enable_earthquake:
-                st.metric("Earthquake Load" if not persian else "بار زلزله", f"{earthquake_load:.3f} kN")
-                st.caption(f"Coef={st.session_state.seismic_coefficient:.3f}")
-    
-    # ذخیره اطلاعات کامل برای Step 10 و 11
+    # Store classification data for next steps
     st.session_state.classification_data = {
         'p_actual': p_actual, 
         'class_secured': class_secured, 
@@ -3050,12 +2931,9 @@ elif st.session_state.step == 9:
         'rpm_actual': rpm,
         'angular_velocity': angular_velocity,
         'braking_accel': braking_accel,
-        'snow_load': snow_load, 
-        'wind_load': wind_load, 
-        'earthquake_load': earthquake_load,
-        'cabin_surface_area': cabin_surface_area,
-        'snow_coefficient': st.session_state.snow_coefficient,
     }
+    
+    st.info("ℹ️ **Note:** Environmental loads (wind, snow, earthquake) will be calculated separately in the next step and are not included in the device classification.")
     
     st.markdown("---")
     left_col, right_col = st.columns([1,1])
@@ -3065,7 +2943,699 @@ elif st.session_state.step == 9:
         st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
 
-# === STEP 10: Restraint Type (Both ISO and AS Standards) ===
+# === STEP 10: environmental loads ===
+elif st.session_state.step == 10:
+    st.header("🌦️ Environmental Loads Analysis" if not persian else "🌦️ تحلیل بارهای محیطی")
+    st.caption("Per ISO 17842-2023, AS 3533.1-2009, ISIRI 2800, ISIRI 519")
+    st.markdown("---")
+    
+    diameter = st.session_state.diameter
+    height = diameter * 1.1
+    
+    # Initialize session state variables
+    if 'enable_snow' not in st.session_state:
+        st.session_state.enable_snow = False
+    if 'enable_wind' not in st.session_state:
+        st.session_state.enable_wind = False
+    if 'enable_earthquake' not in st.session_state:
+        st.session_state.enable_earthquake = False
+    if 'snow_coefficient' not in st.session_state:
+        st.session_state.snow_coefficient = 0.2
+    if 'terror_factor' not in st.session_state:
+        st.session_state.terror_factor = 1.0
+    if 'height_factor' not in st.session_state:
+        st.session_state.height_factor = 1.0
+    if 'seismic_coefficient' not in st.session_state:
+        st.session_state.seismic_coefficient = 0.15
+    
+    # Calculate cabin surface area
+    cabin_geometry = st.session_state.get('cabin_geometry', 'Square')
+    cabin_capacity = st.session_state.get('cabin_capacity', 6)
+    cabin_surface_area = estimate_cabin_surface_area(cabin_geometry, cabin_capacity, diameter)
+    
+    st.info(f"**Estimated Cabin Surface Area:** {cabin_surface_area} m² (based on {cabin_geometry}, {cabin_capacity} passengers)")
+    
+    st.markdown("---")
+    
+    # === ENVIRONMENTAL LOAD FACTORS ===
+    col1, col2, col3 = st.columns(3)
+    
+    # SNOW LOAD
+    with col1:
+        enable_snow = st.checkbox("🌨️ Snow Load" if not persian else "🌨️ بار برف", 
+                                  value=st.session_state.enable_snow,
+                                  key="snow_checkbox")
+        st.session_state.enable_snow = enable_snow
+        
+        if enable_snow:
+            st.markdown("**Per ISO 17842-2023 §4.3.3.5**")
+            
+            snow_coef = st.number_input(
+                "Snow Pressure (kN/m²)" if not persian else "فشار برف (کیلونیوتن بر متر مربع)", 
+                min_value=0.1, max_value=1.0, 
+                value=st.session_state.snow_coefficient, 
+                step=0.05, 
+                format="%.2f",
+                key="snow_coef_input",
+                help="Standard value: 0.2 kN/m² per ISO 17842-2023"
+            )
+            st.session_state.snow_coefficient = snow_coef
+            
+            snow_load_calc = snow_coef * cabin_surface_area
+            st.success(f"**Snow Force: {snow_load_calc:.2f} kN**")
+            st.caption(f"Calculation: {snow_coef} × {cabin_surface_area} m²")
+    
+    # WIND LOAD
+    with col2:
+        enable_wind = st.checkbox("💨 Wind Load" if not persian else "💨 بار باد", 
+                                  value=st.session_state.enable_wind,
+                                  key="wind_checkbox")
+        st.session_state.enable_wind = enable_wind
+        
+        if enable_wind:
+            st.markdown("**Per ISO 17842-2023 §4.3.3.4**")
+            
+            if 'height_category_index' not in st.session_state:
+                st.session_state.height_category_index = 0
+            
+            height_category = st.selectbox(
+                "Height Category (m)" if not persian else "دسته‌بندی ارتفاع (متر)",
+                options=["0 < H ≤ 8", "8 < H ≤ 20", "20 < H ≤ 35", "35 < H ≤ 50"],
+                index=st.session_state.height_category_index,
+                key="height_category"
+            )
+            
+            if 'height_category_value' not in st.session_state or st.session_state.height_category_value != height_category:
+                st.session_state.height_category_value = height_category
+            
+            wind_pressure_map = {
+                "0 < H ≤ 8": 0.20,
+                "8 < H ≤ 20": 0.30,
+                "20 < H ≤ 35": 0.35,
+                "35 < H ≤ 50": 0.40
+            }
+            wind_pressure = wind_pressure_map[height_category]
+            st.session_state.wind_pressure = wind_pressure
+            st.caption(f"Base wind pressure q: {wind_pressure} kN/m²")
+            
+            st.markdown("**Design Factors:**")
+            terror_factor = st.slider("Terror Factor" if not persian else "فاکتور وحشت", 
+                                     min_value=1.0, max_value=5.0, value=st.session_state.terror_factor, step=0.5,
+                                     key="terror_factor_slider")
+            st.session_state.terror_factor = terror_factor
+            
+            height_factor = st.slider("Height Factor" if not persian else "فاکتور ارتفاع", 
+                                     min_value=1.0, max_value=5.0, value=st.session_state.height_factor, step=0.5,
+                                     key="height_factor_slider")
+            st.session_state.height_factor = height_factor
+            
+            wind_load_calc = wind_pressure * cabin_surface_area * terror_factor * height_factor
+            st.success(f"**Wind Force: {wind_load_calc:.2f} kN**")
+            st.caption(f"Calculation: {wind_pressure} × {cabin_surface_area} × {terror_factor} × {height_factor}")
+    
+    # EARTHQUAKE LOAD
+    with col3:
+        enable_earthquake = st.checkbox("🌍 Earthquake Load" if not persian else "🌍 بار زلزله", 
+                                       value=st.session_state.enable_earthquake,
+                                       key="earthquake_checkbox")
+        st.session_state.enable_earthquake = enable_earthquake
+        
+        if enable_earthquake:
+            st.markdown("**Per ISO 17842-2023 §4.3.4 & ISIRI 2800**")
+            
+            seismic_coef = st.number_input("Seismic Coefficient" if not persian else "ضریب زلزله", 
+                                          min_value=0.0, max_value=0.5, 
+                                          value=st.session_state.seismic_coefficient, step=0.01, format="%.3f",
+                                          key="seismic_coef_input",
+                                          help="Typical range per ISIRI 2800: 0.10 - 0.35")
+            st.session_state.seismic_coefficient = seismic_coef
+            
+            # Approximate cabin mass
+            approx_mass = diameter * 500  # kg per meter of diameter
+            earthquake_load_calc = seismic_coef * (approx_mass * 9.81 / 1000)
+            
+            st.success(f"**Horizontal Force: {earthquake_load_calc:.2f} kN**")
+            st.success(f"**Vertical Force: {earthquake_load_calc * 0.5:.2f} kN**")
+            st.caption(f"Approx. cabin mass: {approx_mass:.0f} kg")
+            st.caption(f"Calculation: {seismic_coef} × {approx_mass * 9.81 / 1000:.1f} kN")
+    
+    st.markdown("---")
+    
+    # Calculate total forces
+    snow_force = 0.0
+    wind_force = 0.0
+    earthquake_force_h = 0.0
+    earthquake_force_v = 0.0
+    
+    if st.session_state.enable_snow:
+        snow_force = st.session_state.snow_coefficient * cabin_surface_area
+    
+    if st.session_state.enable_wind:
+        wind_force = (st.session_state.wind_pressure * cabin_surface_area * 
+                    st.session_state.terror_factor * st.session_state.height_factor)
+    
+    if st.session_state.enable_earthquake:
+        approx_mass = diameter * 500
+        earthquake_force_h = st.session_state.seismic_coefficient * (approx_mass * 9.81 / 1000)
+        earthquake_force_v = earthquake_force_h * 0.5
+    
+    # === FORCE SUMMARY ===
+    st.subheader("📊 Total Environmental Forces" if not persian else "📊 مجموع نیروهای محیطی")
+    
+    force_col1, force_col2, force_col3 = st.columns(3)
+    
+    with force_col1:
+        st.metric("Vertical Forces (Z-axis)" if not persian else "نیروهای عمودی (محور Z)", 
+                 f"{snow_force + earthquake_force_v:.2f} kN")
+        if snow_force > 0:
+            st.caption(f"Snow: {snow_force:.2f} kN ↓")
+        if earthquake_force_v > 0:
+            st.caption(f"Earthquake (vertical): {earthquake_force_v:.2f} kN")
+    
+    with force_col2:
+        st.metric("Horizontal Forces (X-axis)" if not persian else "نیروهای افقی (محور X)", 
+                 f"{wind_force + earthquake_force_h:.2f} kN")
+        if wind_force > 0:
+            st.caption(f"Wind: {wind_force:.2f} kN →")
+        if earthquake_force_h > 0:
+            st.caption(f"Earthquake (horizontal): {earthquake_force_h:.2f} kN")
+    
+    with force_col3:
+        total_force = np.sqrt((wind_force + earthquake_force_h)**2 + (snow_force + earthquake_force_v)**2)
+        st.metric("Resultant Force" if not persian else "نیروی محصول", 
+                 f"{total_force:.2f} kN")
+        st.caption("Vector sum of all forces")
+    
+    # === 3D FORCE VISUALIZATION ===
+    st.markdown("---")
+    st.subheader("🎯 3D Force Visualization" if not persian else "🎯 تصویرسازی سه‌بعدی نیروها")
+    
+    # Create 3D visualization of forces
+    def create_force_diagram(diameter, height, snow_f, wind_f, eq_h, eq_v):
+        """Create 3D visualization of environmental forces on Ferris wheel"""
+        import plotly.graph_objects as go
+        
+        # Ferris wheel outline (simplified)
+        theta = np.linspace(0, 2*np.pi, 100)
+        radius = diameter / 2
+        x_circle = radius * np.cos(theta)
+        y_circle = np.zeros_like(theta)
+        z_circle = radius * np.sin(theta) + height/2
+        
+        # Create figure
+        fig = go.Figure()
+        
+        # Add Ferris wheel outline
+        fig.add_trace(go.Scatter3d(
+            x=x_circle, y=y_circle, z=z_circle,
+            mode='lines',
+            line=dict(color='gray', width=4),
+            name='Ferris Wheel',
+            showlegend=True
+        ))
+        
+        # Add support structure
+        fig.add_trace(go.Scatter3d(
+            x=[0, 0], y=[0, 0], z=[0, height/2],
+            mode='lines',
+            line=dict(color='gray', width=6),
+            name='Support',
+            showlegend=True
+        ))
+        
+        # Force scaling factor (for visualization)
+        scale = diameter / 20.0
+        
+        # Add force vectors
+        origin = [0, 0, height/2]  # Center of wheel
+        
+        # Snow force (downward, Z-axis)
+        if snow_f > 0:
+            arrow_length = snow_f * scale
+            fig.add_trace(go.Scatter3d(
+                x=[origin[0], origin[0]],
+                y=[origin[1], origin[1]],
+                z=[origin[2], origin[2] - arrow_length],
+                mode='lines+text',
+                line=dict(color='blue', width=8),
+                text=['', f'Snow<br>{snow_f:.1f} kN'],
+                textposition='bottom center',
+                name=f'Snow: {snow_f:.1f} kN',
+                showlegend=True
+            ))
+            # Add arrowhead
+            fig.add_trace(go.Cone(
+                x=[origin[0]], y=[origin[1]], z=[origin[2] - arrow_length],
+                u=[0], v=[0], w=[-1],
+                sizemode='absolute',
+                sizeref=diameter/10,
+                showscale=False,
+                colorscale=[[0, 'blue'], [1, 'blue']],
+                showlegend=False
+            ))
+        
+        # Wind force (horizontal, X-axis)
+        if wind_f > 0:
+            arrow_length = wind_f * scale
+            fig.add_trace(go.Scatter3d(
+                x=[origin[0], origin[0] + arrow_length],
+                y=[origin[1], origin[1]],
+                z=[origin[2], origin[2]],
+                mode='lines+text',
+                line=dict(color='green', width=8),
+                text=['', f'Wind<br>{wind_f:.1f} kN'],
+                textposition='top center',
+                name=f'Wind: {wind_f:.1f} kN',
+                showlegend=True
+            ))
+            # Add arrowhead
+            fig.add_trace(go.Cone(
+                x=[origin[0] + arrow_length], y=[origin[1]], z=[origin[2]],
+                u=[1], v=[0], w=[0],
+                sizemode='absolute',
+                sizeref=diameter/10,
+                showscale=False,
+                colorscale=[[0, 'green'], [1, 'green']],
+                showlegend=False
+            ))
+        
+        # Earthquake forces
+        if eq_h > 0 or eq_v > 0:
+            # Horizontal component
+            if eq_h > 0:
+                arrow_length_h = eq_h * scale
+                fig.add_trace(go.Scatter3d(
+                    x=[origin[0], origin[0] + arrow_length_h],
+                    y=[origin[1], origin[1]],
+                    z=[origin[2], origin[2]],
+                    mode='lines+text',
+                    line=dict(color='red', width=8, dash='dash'),
+                    text=['', f'EQ-H<br>{eq_h:.1f} kN'],
+                    textposition='top center',
+                    name=f'Earthquake (H): {eq_h:.1f} kN',
+                    showlegend=True
+                ))
+                fig.add_trace(go.Cone(
+                    x=[origin[0] + arrow_length_h], y=[origin[1]], z=[origin[2]],
+                    u=[1], v=[0], w=[0],
+                    sizemode='absolute',
+                    sizeref=diameter/10,
+                    showscale=False,
+                    colorscale=[[0, 'red'], [1, 'red']],
+                    showlegend=False
+                ))
+            
+            # Vertical component
+            if eq_v > 0:
+                arrow_length_v = eq_v * scale
+                fig.add_trace(go.Scatter3d(
+                    x=[origin[0]], y=[origin[1]], z=[origin[2], origin[2] + arrow_length_v],
+                    mode='lines+text',
+                    line=dict(color='orange', width=8, dash='dash'),
+                    text=['', f'EQ-V<br>{eq_v:.1f} kN'],
+                    textposition='top center',
+                    name=f'Earthquake (V): {eq_v:.1f} kN',
+                    showlegend=True
+                ))
+                fig.add_trace(go.Cone(
+                    x=[origin[0]], y=[origin[1]], z=[origin[2] + arrow_length_v],
+                    u=[0], v=[0], w=[1],
+                    sizemode='absolute',
+                    sizeref=diameter/10,
+                    showscale=False,
+                    colorscale=[[0, 'orange'], [1, 'orange']],
+                    showlegend=False
+                ))
+        
+        # Layout
+        fig.update_layout(
+            scene=dict(
+                xaxis=dict(title='X (m)', range=[-diameter, diameter]),
+                yaxis=dict(title='Y (m)', range=[-diameter/2, diameter/2]),
+                zaxis=dict(title='Z (m)', range=[0, height*1.2]),
+                aspectmode='data'
+            ),
+            title='Environmental Forces on Ferris Wheel Structure',
+            showlegend=True,
+            height=700
+        )
+        
+        return fig
+    
+    fig_forces = create_force_diagram(diameter, height, snow_force, wind_force, 
+                                     earthquake_force_h, earthquake_force_v)
+    st.plotly_chart(fig_forces, use_container_width=True)
+    
+    st.info("**Legend:** Blue = Snow (downward), Green = Wind (horizontal), Red/Orange = Earthquake (horizontal/vertical)")
+    
+    # Store environmental loads for next steps
+    st.session_state.environmental_loads = {
+        'snow_force': snow_force,
+        'wind_force': wind_force,
+        'earthquake_force_h': earthquake_force_h,
+        'earthquake_force_v': earthquake_force_v,
+        'total_force': total_force,
+        'cabin_surface_area': cabin_surface_area,
+        'snow_coefficient': st.session_state.snow_coefficient if enable_snow else 0,
+        'wind_pressure': st.session_state.wind_pressure if enable_wind else 0,
+        'terror_factor': st.session_state.terror_factor if enable_wind else 1,
+        'height_factor': st.session_state.height_factor if enable_wind else 1,
+        'seismic_coefficient': st.session_state.seismic_coefficient if enable_earthquake else 0,
+    }
+    
+    st.markdown("---")
+    st.success("✅ Environmental loads calculated. These will be used for bearing selection in the next step.")
+    
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
+    with right_col:
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
+
+
+# === STEP 11:bearing selection ===
+elif st.session_state.step == 11:
+    st.header("⚙️ Bearing Selection" if not persian else "⚙️ انتخاب یاتاقان")
+    st.caption("Based on SKF Spherical Roller Bearings Catalog")
+    st.markdown("---")
+    
+    # Get data from previous steps
+    diameter = st.session_state.diameter
+    class_data = st.session_state.get('classification_data', {})
+    env_loads = st.session_state.get('environmental_loads', {})
+    
+    # Calculate total loads
+    num_cabins = st.session_state.num_cabins
+    cabin_capacity = st.session_state.cabin_capacity
+    cabin_mass = cabin_capacity * 75  # kg per person (75 kg average)
+    
+    # Get environmental forces
+    snow_force = env_loads.get('snow_force', 0) * 1000  # Convert kN to N
+    wind_force = env_loads.get('wind_force', 0) * 1000  # Convert kN to N
+    eq_force_h = env_loads.get('earthquake_force_h', 0) * 1000  # Convert kN to N
+    eq_force_v = env_loads.get('earthquake_force_v', 0) * 1000  # Convert kN to N
+    
+    st.subheader("📊 Load Summary")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Wheel Diameter", f"{diameter} m")
+        st.metric("Number of Cabins", num_cabins)
+    with col2:
+        st.metric("Cabin Mass", f"{cabin_mass} kg")
+        st.metric("Total Cabin Mass", f"{cabin_mass * num_cabins / 1000:.1f} tons")
+    with col3:
+        total_env_force = np.sqrt((wind_force + eq_force_h)**2 + (snow_force + eq_force_v)**2)
+        st.metric("Total Env. Force", f"{total_env_force/1000:.2f} kN")
+    
+    st.markdown("---")
+    
+    # === CABIN SWING AXLE BEARINGS ===
+    st.subheader("🔄 Cabin Swing Axle Bearings" if not persian else "🔄 یاتاقان محور چرخش کابین")
+    st.caption("Spherical Plain Bearings (Maintenance-Free) - Angular Contact Type")
+    
+    st.markdown("""
+    **Application:** Cabin pivot points allowing free rotation
+    - **Type:** Maintenance-free spherical plain bearings (GAC..F series)
+    - **Material:** Steel/PTFE composite sliding surface
+    - **Lubrication:** Maintenance-free (lifetime lubrication)
+    - **Function:** Allows cabin to remain upright during wheel rotation
+    """)
+    
+    # Calculate cabin bearing load
+    # Each cabin has one pivot point, load is cabin weight + dynamic effects
+    cabin_bearing_load = cabin_mass * 9.81 * 1.5  # N, with 1.5 safety factor
+    
+    st.info(f"**Required Load Capacity per Cabin Bearing:** {cabin_bearing_load/1000:.2f} kN")
+    
+    # Bearing selection based on load (simplified from SKF catalog)
+    # GAC series from the uploaded image
+    cabin_bearing_options = [
+        {"designation": "GAC 25 F", "d": 25, "D": 47, "C": 21.6, "C0": 34.5},
+        {"designation": "GAC 30 F", "d": 30, "D": 55, "C": 27, "C0": 43},
+        {"designation": "GAC 35 F", "d": 35, "D": 62, "C": 32.5, "C0": 52},
+        {"designation": "GAC 40 F", "d": 40, "D": 68, "C": 39, "C0": 62},
+        {"designation": "GAC 45 F", "d": 45, "D": 75, "C": 45.5, "C0": 73.5},
+        {"designation": "GAC 50 F", "d": 50, "D": 80, "C": 53, "C0": 85},
+        {"designation": "GAC 55 F", "d": 55, "D": 90, "C": 53, "C0": 85},
+        {"designation": "GAC 60 F", "d": 60, "D": 95, "C": 63, "C0": 100},
+    ]
+    
+    # Find suitable bearing (C0 > required load with safety margin)
+    required_C0 = cabin_bearing_load / 1000  # Convert to kN
+    suitable_cabin_bearings = [b for b in cabin_bearing_options if b['C0'] > required_C0 * 1.2]
+    
+    if suitable_cabin_bearings:
+        selected_cabin_bearing = suitable_cabin_bearings[0]  # Select smallest suitable bearing
+        
+        st.success(f"""
+        **Selected Cabin Bearing:** {selected_cabin_bearing['designation']}
+        - Bore diameter (d): {selected_cabin_bearing['d']} mm
+        - Outer diameter (D): {selected_cabin_bearing['D']} mm
+        - Static load rating (C₀): {selected_cabin_bearing['C0']} kN
+        - Safety factor: {selected_cabin_bearing['C0'] / required_C0:.2f}
+        """)
+        
+        st.session_state.cabin_bearing = selected_cabin_bearing
+    else:
+        st.error("No suitable bearing found in standard range. Custom bearing required.")
+        st.session_state.cabin_bearing = None
+    
+    st.markdown("---")
+    
+    # === MAIN SPINDLE BEARINGS ===
+    st.subheader("🎯 Main Spindle Bearings" if not persian else "🎯 یاتاقان محور اصلی")
+    st.caption("Spherical Roller Bearings (Tapered Bore) - Heavy Duty")
+    
+    st.markdown("""
+    **Application:** Main wheel rotation axis
+    - **Type:** Spherical roller bearings with tapered bore (for easy mounting)
+    - **Series:** 222xx, 223xx, 230xx, 231xx (depending on load)
+    - **Features:** Self-aligning, high load capacity, suitable for heavy radial and axial loads
+    - **Mounting:** On tapered shaft/adapter sleeve
+    """)
+    
+    # Calculate main bearing loads
+    # Total wheel mass (structure + cabins + equipment)
+    total_wheel_mass = (diameter * 1000 + cabin_mass * num_cabins + diameter * 500)  # kg
+    radial_load = total_wheel_mass * 9.81  # N
+    
+    # Add environmental loads
+    total_radial_load = np.sqrt(radial_load**2 + (wind_force + eq_force_h)**2)
+    axial_load = snow_force + eq_force_v + radial_load * 0.1  # 10% axial component
+    
+    # Equivalent dynamic load (simplified)
+    # P = X*Fr + Y*Fa, where X and Y are factors (use X=1, Y=1.5 as approximation)
+    equivalent_load = total_radial_load + 1.5 * axial_load
+    
+    st.info(f"""
+    **Main Bearing Load Analysis:**
+    - Total Wheel Mass: {total_wheel_mass/1000:.1f} tons
+    - Radial Load: {total_radial_load/1000:.2f} kN
+    - Axial Load: {axial_load/1000:.2f} kN
+    - Equivalent Dynamic Load: {equivalent_load/1000:.2f} kN
+    """)
+    
+    # Bearing selection (simplified from SKF catalog - 23xxx series tapered bore)
+    # Data from uploaded bearing tables
+    spindle_bearing_options = [
+        {"designation": "23030 CCK/W33", "d": 150, "D": 225, "C": 531, "C0": 750},
+        {"designation": "23032 CCK/W33", "d": 160, "D": 240, "C": 614, "C0": 880},
+        {"designation": "23034 CCK/W33", "d": 170, "D": 260, "C": 745, "C0": 1060},
+        {"designation": "23036 CCK/W33", "d": 180, "D": 280, "C": 883, "C0": 1250},
+        {"designation": "23038 CC/W33", "d": 190, "D": 290, "C": 916, "C0": 1340},
+        {"designation": "23040 CC/W33", "d": 200, "D": 310, "C": 1058, "C0": 1530},
+        {"designation": "23044 CC/W33", "d": 220, "D": 340, "C": 1261, "C0": 1860},
+        {"designation": "23048 CC/W33", "d": 240, "D": 360, "C": 1340, "C0": 2080},
+        {"designation": "23052 CC/W33", "d": 260, "D": 400, "C": 1675, "C0": 2550},
+        {"designation": "23056 CC/W33", "d": 280, "D": 420, "C": 1797, "C0": 2850},
+        {"designation": "23060 CC/W33", "d": 300, "D": 460, "C": 2219, "C0": 3450},
+    ]
+    
+    # Find suitable bearing (C > equivalent load with safety factor 1.5)
+    required_C = (equivalent_load / 1000) * 1.5  # kN, with safety factor
+    suitable_spindle_bearings = [b for b in spindle_bearing_options if b['C'] > required_C]
+    
+    if suitable_spindle_bearings:
+        selected_spindle_bearing = suitable_spindle_bearings[0]  # Select smallest suitable bearing
+        
+        st.success(f"""
+        **Selected Main Spindle Bearing:** {selected_spindle_bearing['designation']}
+        - Bore diameter (d): {selected_spindle_bearing['d']} mm
+        - Outer diameter (D): {selected_spindle_bearing['D']} mm  
+        - Width (B): Refer to SKF catalog
+        - Dynamic load rating (C): {selected_spindle_bearing['C']} kN
+        - Static load rating (C₀): {selected_spindle_bearing['C0']} kN
+        - Safety factor: {selected_spindle_bearing['C'] / (equivalent_load/1000):.2f}
+        - **Recommended Quantity:** 2 bearings (one on each side of spindle)
+        """)
+        
+        # Additional recommendations
+        st.info("""
+        **Mounting Recommendations:**
+        - Use tapered adapter sleeve for easy mounting/dismounting
+        - Apply proper preload to prevent bearing slip
+        - Use shaft tolerance h6 or h7
+        - Housing tolerance H7 or H8
+        - Ensure proper alignment during installation
+        """)
+        
+        st.session_state.spindle_bearing = selected_spindle_bearing
+    else:
+        st.error("No suitable bearing found in standard range. Consult SKF for custom solution.")
+        st.session_state.spindle_bearing = None
+    
+    st.markdown("---")
+    
+    # === BEARING ARRANGEMENT DIAGRAM ===
+    st.subheader("📐 Bearing Arrangement Diagram" if not persian else "📐 نمودار چیدمان یاتاقان")
+    
+    # Create simplified bearing arrangement visualization
+    def create_bearing_diagram(diameter):
+        """Create bearing arrangement diagram"""
+        import plotly.graph_objects as go
+        
+        fig = go.Figure()
+        
+        # Main wheel (circle)
+        theta = np.linspace(0, 2*np.pi, 100)
+        radius = diameter / 2
+        x_wheel = radius * np.cos(theta)
+        y_wheel = radius * np.sin(theta)
+        
+        fig.add_trace(go.Scatter(
+            x=x_wheel, y=y_wheel,
+            mode='lines',
+            line=dict(color='gray', width=3),
+            name='Wheel Rim',
+            fill='none'
+        ))
+        
+        # Main spindle
+        fig.add_trace(go.Scatter(
+            x=[-0.5, 0.5], y=[0, 0],
+            mode='lines',
+            line=dict(color='black', width=8),
+            name='Main Spindle'
+        ))
+        
+        # Main bearings (left and right)
+        for side, x_pos in [('Left', -0.3), ('Right', 0.3)]:
+            fig.add_trace(go.Scatter(
+                x=[x_pos], y=[0],
+                mode='markers+text',
+                marker=dict(size=20, color='red', symbol='square'),
+                text=[f'Main Bearing<br>({side})'],
+                textposition='top center',
+                name=f'Main Bearing {side}'
+            ))
+        
+        # Cabin positions (showing a few)
+        num_cabins_show = min(8, st.session_state.num_cabins)
+        cabin_angles = np.linspace(0, 2*np.pi, num_cabins_show, endpoint=False)
+        
+        for i, angle in enumerate(cabin_angles):
+            cabin_x = radius * np.cos(angle)
+            cabin_y = radius * np.sin(angle)
+            
+            # Cabin bearing
+            fig.add_trace(go.Scatter(
+                x=[cabin_x], y=[cabin_y],
+                mode='markers',
+                marker=dict(size=12, color='blue', symbol='circle'),
+                name='Cabin Bearing' if i == 0 else '',
+                showlegend=(i == 0)
+            ))
+            
+            # Cabin box (simplified)
+            cabin_size = diameter * 0.05
+            fig.add_shape(
+                type='rect',
+                x0=cabin_x - cabin_size, y0=cabin_y - cabin_size,
+                x1=cabin_x + cabin_size, y1=cabin_y + cabin_size,
+                line=dict(color='lightblue', width=2),
+                fillcolor='rgba(173, 216, 230, 0.3)'
+            )
+        
+        # Layout
+        fig.update_layout(
+            title='Bearing Locations on Ferris Wheel',
+            xaxis=dict(
+                scaleanchor='y',
+                scaleratio=1,
+                range=[-diameter*0.6, diameter*0.6],
+                title='X (m)'
+            ),
+            yaxis=dict(
+                range=[-diameter*0.6, diameter*0.6],
+                title='Y (m)'
+            ),
+            height=600,
+            showlegend=True
+        )
+        
+        return fig
+    
+    fig_bearings = create_bearing_diagram(diameter)
+    st.plotly_chart(fig_bearings, use_container_width=True)
+    
+    st.caption("""
+    **Legend:**
+    - Red squares: Main spindle bearings (Spherical Roller, Tapered Bore)
+    - Blue circles: Cabin swing bearings (Spherical Plain, Maintenance-Free)
+    - Light blue boxes: Passenger cabins
+    """)
+    
+    st.markdown("---")
+    
+    # === MAINTENANCE RECOMMENDATIONS ===
+    st.subheader("🔧 Maintenance Recommendations" if not persian else "🔧 توصیه‌های نگهداری")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **Cabin Bearings (Maintenance-Free):**
+        - ✅ No relubrication required
+        - ✅ Sealed design protects against contamination
+        - 🔍 Visual inspection: Every 6 months
+        - 🔍 Check for wear/play: Annually
+        - 🔄 Typical service life: 10-15 years
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Main Spindle Bearings:**
+        - 🔧 Relubrication: Every 500-1000 operating hours
+        - 🔧 Use lithium-based grease (NLGI Grade 2)
+        - 🔍 Vibration monitoring: Monthly
+        - 🔍 Temperature monitoring: Continuous
+        - 🔍 Detailed inspection: Annually
+        - 🔄 Typical service life: 30,000-50,000 hours
+        """)
+    
+    st.info("""
+    **Critical Safety Note:**
+    - All bearing replacements must be performed by qualified personnel
+    - Follow SKF installation procedures exactly
+    - Verify proper alignment and preload after installation
+    - Document all maintenance activities
+    - Replace bearings showing any signs of wear, damage, or excessive play
+    """)
+    
+    st.markdown("---")
+    st.success("✅ Bearing selection complete. Proceed to restraint system requirements.")
+    
+    left_col, right_col = st.columns([1,1])
+    with left_col:
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
+    with right_col:
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
+
+
+# === STEP 12: Restraint Type (Both ISO and AS Standards) ===
 elif st.session_state.step == 10:
     st.header(get_text('restraint_type', persian))
     st.image("assets/Axis_Guide.jpg", 
@@ -3074,7 +3644,7 @@ elif st.session_state.step == 10:
     st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
 
-    # دریافت داده‌های واقعی از Step 9
+    
     diameter = st.session_state.diameter
     classification_data = st.session_state.get('classification_data', {})
     
@@ -3272,7 +3842,7 @@ f"""**پارامترهای طراحی:**
     with right_col:
         st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
-# === STEP 11: Final Design Overview ===
+# === STEP 13: Final Design Overview ===
 elif st.session_state.step == 11:
     st.header(get_text('design_summary', persian))
     st.markdown("---")
@@ -3727,7 +4297,7 @@ elif st.session_state.step == 11:
     
     st.success("✅ Design Complete! All parameters have been configured.")
 
-# === STEP 12: Additional Analysis (Optional Future Step) ===
+# === STEP 14: Additional Analysis (Optional Future Step) ===
 elif st.session_state.step == 12:
     st.header(get_text('additional_analysis', persian))
     st.markdown("---")
