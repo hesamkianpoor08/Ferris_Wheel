@@ -1885,7 +1885,7 @@ def validate_current_step_and_next():
         st.session_state.scroll_to_top = True
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(14, st.session_state.step + 1)
+        st.session_state.step = min(13, st.session_state.step + 1)
 
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
@@ -2039,7 +2039,7 @@ with st.sidebar:
         reset_design()
         st.rerun()
 
-total_steps = 13
+total_steps = 14
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
 st.markdown("---")
