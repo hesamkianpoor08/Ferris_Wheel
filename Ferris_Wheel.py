@@ -2723,6 +2723,8 @@ if st.session_state.step == 8:
     with right_col:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
+
+
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
@@ -2941,6 +2943,7 @@ elif st.session_state.step == 9:
         st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
         st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
 
 
 # === STEP 10: environmental loads ===
@@ -3636,7 +3639,7 @@ elif st.session_state.step == 11:
 
 
 # === STEP 12: Restraint Type (Both ISO and AS Standards) ===
-elif st.session_state.step == 10:
+elif st.session_state.step == 12:
     st.header(get_text('restraint_type', persian))
     st.image("assets/Axis_Guide.jpg", 
             caption="Axis Guide" if not persian else "راهنمای محورها",
@@ -3842,8 +3845,9 @@ f"""**پارامترهای طراحی:**
     with right_col:
         st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
+
 # === STEP 13: Final Design Overview ===
-elif st.session_state.step == 11:
+elif st.session_state.step == 13:
     st.header(get_text('design_summary', persian))
     st.markdown("---")
 
@@ -3915,7 +3919,6 @@ elif st.session_state.step == 11:
         }
         arrow_vec = arrow_map.get(axis_key, (0, 1))
         
-        # اصلاح شده: حذف پارامتر arrow_text
         fig_final_orientation = create_orientation_diagram(
             axis_key,
             env.get('land_length', 100),
@@ -4044,6 +4047,50 @@ elif st.session_state.step == 11:
                 else:
                     st.write("🌍 Earthquake Load: Not applied")
         
+        # Add bearing selection summary from Step 11
+        cabin_bearing = st.session_state.get('cabin_bearing')
+        spindle_bearing = st.session_state.get('spindle_bearing')
+        
+        if cabin_bearing or spindle_bearing:
+            st.markdown("---")
+            st.subheader("⚙️ Bearing Selection")
+            st.caption("Selected from SKF Catalog (Step 11)")
+            
+            col_bear1, col_bear2 = st.columns(2)
+            
+            with col_bear1:
+                if cabin_bearing:
+                    st.markdown(f"""
+**Cabin Swing Bearings:**
+- **Type:** Spherical Plain (Maintenance-Free)
+- **Series:** GAC..F
+- **Designation:** {cabin_bearing['designation']}
+- **Bore:** {cabin_bearing['d']} mm
+- **Outer Diameter:** {cabin_bearing['D']} mm
+- **Static Load Rating (C₀):** {cabin_bearing['C0']} kN
+- **Quantity:** {st.session_state.num_cabins} (one per cabin)
+- **Maintenance:** Maintenance-free, lifetime lubrication
+                    """)
+                else:
+                    st.write("Cabin bearings: Not selected")
+            
+            with col_bear2:
+                if spindle_bearing:
+                    st.markdown(f"""
+**Main Spindle Bearings:**
+- **Type:** Spherical Roller (Tapered Bore)
+- **Series:** 230xx
+- **Designation:** {spindle_bearing['designation']}
+- **Bore:** {spindle_bearing['d']} mm
+- **Outer Diameter:** {spindle_bearing['D']} mm
+- **Dynamic Load Rating (C):** {spindle_bearing['C']} kN
+- **Static Load Rating (C₀):** {spindle_bearing['C0']} kN
+- **Quantity:** 2 (one each side of spindle)
+- **Maintenance:** Relubrication every 500-1000 hours
+                    """)
+                else:
+                    st.write("Spindle bearings: Not selected")
+        
         st.markdown("---")
         st.subheader("🔒 Restraint System Requirements")
         col_iso, col_as = st.columns(2)
@@ -4162,6 +4209,32 @@ elif st.session_state.step == 11:
 - **Calculation:** {seismic_coef} × ({approx_mass} × 9.81 / 1000) = {earthquake_load:.2f} kN
 """
     
+    # Build bearing section for report
+    bearing_report = ""
+    if cabin_bearing or spindle_bearing:
+        bearing_report = "\n### Bearing Selection (Step 11)\n"
+        
+        if cabin_bearing:
+            bearing_report += f"""
+#### Cabin Swing Bearings
+- **Type:** Spherical Plain Bearings (Maintenance-Free)
+- **Designation:** {cabin_bearing['designation']}
+- **Bore:** {cabin_bearing['d']} mm, Outer Diameter: {cabin_bearing['D']} mm
+- **Static Load Rating:** {cabin_bearing['C0']} kN
+- **Quantity:** {st.session_state.num_cabins} (one per cabin)
+"""
+        
+        if spindle_bearing:
+            bearing_report += f"""
+#### Main Spindle Bearings
+- **Type:** Spherical Roller Bearings (Tapered Bore)
+- **Designation:** {spindle_bearing['designation']}
+- **Bore:** {spindle_bearing['d']} mm, Outer Diameter: {spindle_bearing['D']} mm
+- **Dynamic Load Rating:** {spindle_bearing['C']} kN
+- **Static Load Rating:** {spindle_bearing['C0']} kN
+- **Quantity:** 2 (one each side of spindle)
+"""
+    
     # دریافت مقادیر برای گزارش
     rpm_actual = class_data.get('rpm_actual', 0) if st.session_state.classification_data else 0
     braking_accel = class_data.get('braking_accel', st.session_state.braking_acceleration) if st.session_state.classification_data else 0
@@ -4254,6 +4327,7 @@ elif st.session_state.step == 11:
         - **Braking Acceleration:** {braking_accel:.2f} m/s²
         - **Maximum Acceleration:** {class_data.get('n_actual', 0):.3f}g
         {additional_loads_report}
+        {bearing_report}
         ### Restraint System Requirements
         
         #### ISO 17842-2023 Classification
@@ -4275,6 +4349,7 @@ elif st.session_state.step == 11:
         - ISIRI 519 (Design loads for buildings)
         - DIN 18800 (Structural steelwork)
         - EN 1993 (Design of steel structures)
+        - SKF Bearing Catalog (Spherical roller and plain bearings)
         
         ---
         
@@ -4297,8 +4372,10 @@ elif st.session_state.step == 11:
     
     st.success("✅ Design Complete! All parameters have been configured.")
 
+
+
 # === STEP 14: Additional Analysis (Optional Future Step) ===
-elif st.session_state.step == 12:
+elif st.session_state.step == 14:
     st.header(get_text('additional_analysis', persian))
     st.markdown("---")
     
