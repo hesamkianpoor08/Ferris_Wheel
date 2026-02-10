@@ -1885,7 +1885,7 @@ def validate_current_step_and_next():
         st.session_state.scroll_to_top = True
     else:
         st.session_state.validation_errors = []
-        st.session_state.step = min(12, st.session_state.step + 1)
+        st.session_state.step = min(13, st.session_state.step + 1)
 
 def map_direction_to_axis_and_vector(dir_str):
     d = (dir_str or "").strip().lower()
@@ -2039,7 +2039,7 @@ with st.sidebar:
         reset_design()
         st.rerun()
 
-total_steps = 14
+total_steps = 13
 st.progress(st.session_state.get('step', 0) / (total_steps - 1))
 st.markdown(f"**{get_text('step', persian)} {st.session_state.get('step', 0) + 1} {get_text('of', persian)} {total_steps}**")
 st.markdown("---")
@@ -4374,24 +4374,3 @@ elif st.session_state.step == 13:
 
 
 
-# === STEP 14: Additional Analysis (Optional Future Step) ===
-elif st.session_state.step == 14:
-    st.header(get_text('additional_analysis', persian))
-    st.markdown("---")
-    
-    st.info("This step is reserved for future enhancements such as:")
-    st.markdown("""
-    - Detailed structural load calculations
-    - Finite element analysis integration
-    - Cost estimation
-    - Construction timeline
-    - Maintenance schedule
-    - Safety inspection checklist
-    """)
-    
-    st.markdown("---")
-    left_col, right_col = st.columns([1,1])
-    with left_col:
-        st.button("⬅️ Back", on_click=go_back)
-    with right_col:
-        st.button("🔄 New Design", on_click=reset_design)
