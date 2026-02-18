@@ -2558,11 +2558,11 @@ elif st.session_state.step == 5:
     }
 
     st.markdown("---")
-    left_col, right_col = st.columns([1, 1])
+    left_col, right_col = st.columns([1,1])
     with left_col:
-        st.button(get_text('back_btn', persian), on_click=go_back)
+        st.button("⬅️ Back", on_click=go_back)
     with right_col:
-        st.button(get_text('next_btn', persian), on_click=validate_current_step_and_next)
+        st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 # === STEP 6: Provincial Characteristics (Terrain Calculation) ===
 elif st.session_state.step == 6:
