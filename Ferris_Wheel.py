@@ -2483,6 +2483,7 @@ elif st.session_state.step == 4:
         st.button("Next ➡️", on_click=validate_current_step_and_next)
 
 
+
 # === STEP 5: Environment Conditions ===
 elif st.session_state.step == 5:
 
@@ -2507,7 +2508,6 @@ elif st.session_state.step == 5:
     st.markdown(get_text('design_ref_step5', persian))
     st.markdown("---")
 
-    # --- Province names map (for Persian display) ---
     PROVINCE_FA = {
         "Khuzestan": "خوزستان", "Ilam": "ایلام", "Fars": "فارس",
         "Qazvin": "قزوین", "Zanjan": "زنجان", "Hamedan": "همدان",
@@ -2536,7 +2536,6 @@ elif st.session_state.step == 5:
             key="province_select"
         )
 
-        # City selection with Persian names
         city_data = CITIES_DATA.get(province, [])
         if city_data:
             city_fa_map = {c["city"]: c.get("city_fa", c["city"]) for c in city_data}
@@ -2664,15 +2663,16 @@ elif st.session_state.step == 5:
     }
 
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 6: Provincial Characteristics (Terrain Calculation) ===
 elif st.session_state.step == 6:
-    
+
     if st.session_state.get('scroll_to_top'):
         components.html(
             """
@@ -2683,121 +2683,171 @@ elif st.session_state.step == 6:
             height=0,
         )
         st.session_state.scroll_to_top = False
-    
+
     st.header(get_text('provincial_characteristics', persian))
-    
+
     if st.session_state.get('validation_errors'):
         for e in st.session_state.validation_errors:
             st.error(e)
         st.session_state.validation_errors = []
-    
-    st.markdown("**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**")
+
+    st.markdown(
+        "**Terrain classification per AS 1170.4-2007(A1), ISIRI 2800**" if not persian else
+        "**طبقه‌بندی زمین طبق AS 1170.4-2007(A1)، ISIRI 2800**"
+    )
     st.markdown("---")
-    
+
     env = st.session_state.environment_data
     province = env.get('province', 'Tehran')
     city = env.get('city', '')
-    
-    st.subheader(f"Selected Province: {province}")
-    st.subheader(f"Selected City: {city}")
-    st.info(f"**Region:** {env.get('region_name', 'N/A')}")
-    
+
+    PROVINCE_FA = {
+        "Khuzestan": "خوزستان", "Ilam": "ایلام", "Fars": "فارس",
+        "Qazvin": "قزوین", "Zanjan": "زنجان", "Hamedan": "همدان",
+        "Markazi": "مرکزی", "Yazd": "یزد", "Semnan": "سمنان",
+        "Qom": "قم", "South Khorasan": "خراسان جنوبی", "Kerman": "کرمان",
+        "East Azerbaijan": "آذربایجان شرقی", "West Azerbaijan": "آذربایجان غربی",
+        "Ardabil": "اردبیل", "Kurdistan": "کردستان", "Kermanshah": "کرمانشاه",
+        "Lorestan": "لرستان", "Chaharmahal and Bakhtiari": "چهارمحال و بختیاری",
+        "Kohgiluyeh and Boyer-Ahmad": "کهگیلویه و بویراحمد", "Isfahan": "اصفهان",
+        "Tehran": "تهران", "Alborz": "البرز", "Gilan": "گیلان",
+        "Mazandaran": "مازندران", "Golestan": "گلستان",
+        "North Khorasan": "خراسان شمالی", "Khorasan Razavi": "خراسان رضوی",
+        "Sistan and Baluchestan": "سیستان و بلوچستان", "Bushehr": "بوشهر",
+        "Hormozgan": "هرمزگان",
+    }
+    city_data = CITIES_DATA.get(province, [])
+    city_fa_map = {c["city"]: c.get("city_fa", c["city"]) for c in city_data}
+    province_display = PROVINCE_FA.get(province, province) if persian else province
+    city_display = city_fa_map.get(city, city) if persian else city
+
+    st.subheader(f"{'استان انتخاب شده' if persian else 'Selected Province'}: {province_display}")
+    st.subheader(f"{'شهر انتخاب شده' if persian else 'Selected City'}: {city_display}")
+    st.info(f"**{'منطقه' if persian else 'Region'}:** {env.get('region_name', 'N/A')}")
+
     if province in TERRAIN_CATEGORIES:
         terrain = TERRAIN_CATEGORIES[province]
         seismic = get_seismic_hazard_from_city(province, city)
-        
+
         st.markdown("---")
-        st.subheader("Terrain Information")
-        if st.button("🔄 Calculate Terrain Parameters", type="primary"):
+        st.subheader("Terrain Information" if not persian else "اطلاعات زمین")
+        if st.button(
+            "🔄 Calculate Terrain Parameters" if not persian else "🔄 محاسبه پارامترهای زمین",
+            type="primary"
+        ):
             st.session_state.terrain_calculated = True
-            
+
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown(f"**Terrain Category:** {terrain['category']}")
-                st.markdown(f"**Description:** {terrain.get('desc', 'N/A')}")
+                st.markdown(f"**{'Terrain Category' if not persian else 'دسته‌بندی زمین'}:** {terrain['category']}")
+                st.markdown(f"**{'Description' if not persian else 'توضیحات'}:** {terrain.get('desc', 'N/A')}")
             with col2:
                 seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
-                st.markdown(f"{seismic_color.get(seismic, '')} **Seismic Hazard (ISIRI 2800):** {seismic}")
+                seismic_label = "Seismic Hazard (ISIRI 2800)" if not persian else "خطر لرزه‌ای (ISIRI 2800)"
+                st.markdown(f"{seismic_color.get(seismic, '')} **{seismic_label}:** {seismic}")
 
             if st.session_state.terrain_calculated:
                 st.markdown("---")
-                st.success("✅ Terrain parameters have been calculated. You can proceed to the next step.")
-    
+                st.success(
+                    "✅ Terrain parameters have been calculated. You can proceed to the next step." if not persian else
+                    "✅ پارامترهای زمین محاسبه شدند. می‌توانید به مرحله بعد بروید."
+                )
+
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 7: Soil Type (auto-calculate Importance Group) ===
 elif st.session_state.step == 7:
     st.header(get_text('soil_type', persian))
-    st.markdown("**Soil classification per ISIRI 2800 (4th Edition)**")
+    st.markdown(
+        "**Soil classification per ISIRI 2800 (4th Edition)**" if not persian else
+        "**طبقه‌بندی خاک طبق ISIRI 2800 (ویرایش چهارم)**"
+    )
     st.markdown("---")
-    
-    st.subheader("Soil Type Selection")
-    
+
+    st.subheader("Soil Type Selection" if not persian else "انتخاب نوع خاک")
+
     soil_types = {
         "Type I": {
-            "desc": "a. Coarse- and fine-grained igneous rocks, very hard and strong sedimentary rocks, and other hard conglomerate and silicate sedimentary rocks.\nb. Hard soils (dense sand and very stiff clay) with a total thickness of less than 30 meters above bedrock.",
+            "desc_en": "a. Coarse- and fine-grained igneous rocks, very hard and strong sedimentary rocks, and other hard conglomerate and silicate sedimentary rocks.\nb. Hard soils (dense sand and very stiff clay) with a total thickness of less than 30 meters above bedrock.",
+            "desc_fa": "الف. سنگ‌های آذرین درشت‌دانه و ریزدانه، سنگ‌های رسوبی بسیار سخت و محکم و سایر سنگ‌های رسوبی سخت.\nب. خاک‌های سخت (شن متراکم و رس بسیار سفت) با ضخامت کل کمتر از ۳۰ متر.",
             "group_factor": 1.4,
             "importance_group": "Group 1"
         },
         "Type II": {
-            "desc": "a. Weak igneous rocks (such as tuff), moderately cemented sedimentary rocks, and rocks that have been partially weathered.\nb. Hard soils (dense sand and very stiff clay) with a total thickness greater than 30 meters.",
+            "desc_en": "a. Weak igneous rocks (such as tuff), moderately cemented sedimentary rocks, and rocks that have been partially weathered.\nb. Hard soils (dense sand and very stiff clay) with a total thickness greater than 30 meters.",
+            "desc_fa": "الف. سنگ‌های آذرین ضعیف (مانند توف)، سنگ‌های رسوبی با سیمانه‌شدگی متوسط و سنگ‌هایی که تا حدی هوازده شده‌اند.\nب. خاک‌های سخت با ضخامت کل بیشتر از ۳۰ متر.",
             "group_factor": 1.2,
             "importance_group": "Group 2"
         },
         "Type III": {
-            "desc": "a. Weathered or decomposed metamorphic rocks.\nb. Medium dense soils, layers of sand and clay with moderate cohesion and medium stiffness.",
+            "desc_en": "a. Weathered or decomposed metamorphic rocks.\nb. Medium dense soils, layers of sand and clay with moderate cohesion and medium stiffness.",
+            "desc_fa": "الف. سنگ‌های دگرگونی هوازده یا تجزیه‌شده.\nب. خاک‌های با تراکم متوسط، لایه‌های شن و رس با چسبندگی و سختی متوسط.",
             "group_factor": 1.0,
             "importance_group": "Group 3"
         },
         "Type IV": {
-            "desc": "a. Soft soils with high moisture content due to a shallow groundwater level.\nb. Any soil profile that includes at least 7 meters of clayey soil with a plasticity index greater than 20 or a moisture content higher than 40 percent.",
+            "desc_en": "a. Soft soils with high moisture content due to a shallow groundwater level.\nb. Any soil profile that includes at least 7 meters of clayey soil with a plasticity index greater than 20 or a moisture content higher than 40 percent.",
+            "desc_fa": "الف. خاک‌های نرم با رطوبت بالا به دلیل سطح آب‌های زیرزمینی کم‌عمق.\nب. هر پروفیل خاکی که حداقل ۷ متر خاک رسی با شاخص خمیرایی بیشتر از ۲۰ یا رطوبت بیشتر از ۴۰ درصد داشته باشد.",
             "group_factor": 0.8,
             "importance_group": "Group 4"
         }
     }
-    
+
     for soil_type, data in soil_types.items():
-        with st.expander(f"{soil_type} (Factor: {data['group_factor']})"):
-            st.write(data['desc'])
-    
-    selected_soil = st.selectbox("Select Soil Type", options=list(soil_types.keys()), key="soil_type_select")
+        desc = data['desc_fa'] if persian else data['desc_en']
+        with st.expander(f"{soil_type} ({'ضریب' if persian else 'Factor'}: {data['group_factor']})"):
+            st.write(desc)
+
+    selected_soil = st.selectbox(
+        "Select Soil Type" if not persian else "انتخاب نوع خاک",
+        options=list(soil_types.keys()),
+        key="soil_type_select"
+    )
     st.session_state.soil_type = selected_soil
-    
-    # Auto-calculate importance group based on soil type
+
     auto_importance_group = soil_types[selected_soil]['importance_group']
     auto_importance_factor = soil_types[selected_soil]['group_factor']
     st.session_state.importance_group = auto_importance_group
-    
+
     st.markdown("---")
-    st.subheader("Automatically Calculated Importance Group")
-    
-    st.success(f"**Importance Group:** {auto_importance_group} (Factor: {auto_importance_factor})")
-    st.info("The importance group is automatically determined based on the selected soil type per ISIRI 2800.")
-    
-    # Display selected factors
+    st.subheader(
+        "Automatically Calculated Importance Group" if not persian else
+        "گروه اهمیت محاسبه‌شده به‌صورت خودکار"
+    )
+
+    st.success(
+        f"**{'Importance Group' if not persian else 'گروه اهمیت'}:** {auto_importance_group} "
+        f"({'Factor' if not persian else 'ضریب'}: {auto_importance_factor})"
+    )
+    st.info(
+        "The importance group is automatically determined based on the selected soil type per ISIRI 2800." if not persian else
+        "گروه اهمیت به‌صورت خودکار بر اساس نوع خاک انتخاب‌شده طبق ISIRI 2800 تعیین می‌شود."
+    )
+
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Soil Type", selected_soil)
+        st.metric("Soil Type" if not persian else "نوع خاک", selected_soil)
     with col2:
-        st.metric("Soil Factor", soil_types[selected_soil]['group_factor'])
+        st.metric("Soil Factor" if not persian else "ضریب خاک", soil_types[selected_soil]['group_factor'])
     with col3:
-        st.metric("Importance Factor", auto_importance_factor)
-    
+        st.metric("Importance Factor" if not persian else "ضریب اهمیت", auto_importance_factor)
+
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
+
 
 # === STEP 8: Carousel Orientation ===
-
 if st.session_state.step == 8:
 
     if st.session_state.get('scroll_to_top'):
@@ -2810,16 +2860,18 @@ if st.session_state.step == 8:
             height=0,
         )
         st.session_state.scroll_to_top = False
-    
-    st.header(get_text('provincial_characteristics', persian))
-    
+
+    st.header(get_text('carousel_orientation', persian))
+
     if st.session_state.get('validation_errors'):
         for e in st.session_state.validation_errors:
             st.error(e)
         st.session_state.validation_errors = []
 
-    st.header(get_text('carousel_orientation', persian))
-    st.markdown("**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**")
+    st.markdown(
+        "**Wind direction analysis per AS 1170.4-2007(A1), EN 1991-1-4:2005**" if not persian else
+        "**تحلیل جهت باد طبق AS 1170.4-2007(A1)، EN 1991-1-4:2005**"
+    )
     st.markdown("---")
 
     env = st.session_state.get('environment_data', {})
@@ -2829,11 +2881,10 @@ if st.session_state.step == 8:
 
     axis_key, suggested_label, arrow_vec = map_direction_to_axis_and_vector(wind_direction)
 
-    st.subheader(f"Suggested Orientation: {suggested_label}")
-    st.markdown(f"**Land dimensions:** {land_length} m × {land_width} m")
-    st.info(f"Based on prevailing wind direction: {wind_direction}")
+    st.subheader(f"{'جهت پیشنهادی' if persian else 'Suggested Orientation'}: {suggested_label}")
+    st.markdown(f"**{'ابعاد زمین' if persian else 'Land dimensions'}:** {land_length} m × {land_width} m")
+    st.info(f"{'بر اساس جهت غالب باد' if persian else 'Based on prevailing wind direction'}: {wind_direction}")
 
-    # Create diagram with current wind direction
     fig = create_orientation_diagram(axis_key, land_length, land_width, arrow_vec)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -2841,64 +2892,70 @@ if st.session_state.step == 8:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("✅ Confirm Suggested Orientation"):
+        if st.button(
+            "✅ Confirm Suggested Orientation" if not persian else "✅ تأیید جهت پیشنهادی"
+        ):
             st.session_state.carousel_orientation = axis_key
             st.session_state.orientation_confirmed = True
-            st.success(f"Orientation confirmed: {suggested_label}")
+            st.success(f"{'جهت تأیید شد' if persian else 'Orientation confirmed'}: {suggested_label}")
 
     with col2:
-        st.markdown("**Or select custom orientation:**")
+        st.markdown(
+            "**Or select custom orientation:**" if not persian else "**یا یک جهت سفارشی انتخاب کنید:**"
+        )
 
-    # Custom orientation selector
-    directions = ['North-South', 'East-West', 'Northeast-Southwest', 'Northwest-Southeast']
-    
-    # Find current index
+    directions_en = ['North-South', 'East-West', 'Northeast-Southwest', 'Northwest-Southeast']
+    directions_fa = ['شمال-جنوب', 'شرق-غرب', 'شمال‌شرقی-جنوب‌غربی', 'جنوب‌شرقی-شمال‌غربی']
+
     direction_map = {
-        'NS': 'North-South',
-        'EW': 'East-West', 
-        'NE_SW': 'Northeast-Southwest',
-        'SE_NW': 'Northwest-Southeast'
+        'NS': 'North-South', 'EW': 'East-West',
+        'NE_SW': 'Northeast-Southwest', 'SE_NW': 'Northwest-Southeast'
     }
     current_orientation = direction_map.get(axis_key, 'North-South')
-    init_index = directions.index(current_orientation) if current_orientation in directions else 0
-    
+    init_index = directions_en.index(current_orientation) if current_orientation in directions_en else 0
+
     custom_direction = st.selectbox(
-        get_text('custom_direction', persian), 
-        options=directions, 
-        index=init_index, 
+        get_text('custom_direction', persian),
+        options=directions_en,
+        index=init_index,
+        format_func=lambda x: directions_fa[directions_en.index(x)] if persian else x,
         key="custom_orientation_select"
     )
 
-    if st.button("Set Custom Orientation", key="set_custom_orientation_btn"):
+    if st.button(
+        "Set Custom Orientation" if not persian else "تنظیم جهت سفارشی",
+        key="set_custom_orientation_btn"
+    ):
         axis_key_custom, label_custom, arrow_vec_custom = map_direction_to_axis_and_vector(custom_direction)
         st.session_state.carousel_orientation = axis_key_custom
         st.session_state.orientation_confirmed = True
-        st.success(f"Custom orientation set: {label_custom}")
-        
-        # Show diagram with custom orientation
+        st.success(f"{'جهت سفارشی تنظیم شد' if persian else 'Custom orientation set'}: {label_custom}")
+
         fig_custom = create_orientation_diagram(axis_key_custom, land_length, land_width, arrow_vec_custom)
         st.plotly_chart(fig_custom, use_container_width=True)
 
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
-
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
 
 # === STEP 9: Device Classification ===
 elif st.session_state.step == 9:
     st.header(get_text('device_classification', persian))
-    
-    st.markdown("**Calculation per INSO 8987-1-2023**")
+
+    st.markdown(
+        "**Calculation per INSO 8987-1-2023**" if not persian else
+        "**محاسبه طبق INSO 8987-1-2023**"
+    )
     st.markdown("---")
 
     diameter = st.session_state.diameter
     height = diameter * 1.1
     rotation_time_min = st.session_state.rotation_time_min
-    
+
     if rotation_time_min and rotation_time_min > 0:
         rotation_time_sec = rotation_time_min * 60.0
         angular_velocity = 2.0 * np.pi / rotation_time_sec
@@ -2906,28 +2963,31 @@ elif st.session_state.step == 9:
     else:
         angular_velocity = 0.0
         rpm = 0.0
-    
+
     st.subheader("Braking Acceleration Parameter" if not persian else "پارامتر شتاب ترمز")
-    st.info("⚠️ **Note:** Enter your actual braking acceleration for the design analysis" if not persian else 
-            "⚠️ **توجه:** شتاب ترمز واقعی خود را برای تحلیل طراحی وارد کنید")
-    
+    st.info(
+        "⚠️ **Note:** Enter your actual braking acceleration for the design analysis" if not persian else
+        "⚠️ **توجه:** شتاب ترمز واقعی خود را برای تحلیل طراحی وارد کنید"
+    )
+
     braking_accel = st.number_input(
-        "Braking Acceleration (m/s²)" if not persian else "شتاب ترمز (متر بر مجذور ثانیه)", 
-        min_value=0.01, max_value=2.0, 
-        value=st.session_state.braking_acceleration, 
-        step=0.01, format="%.2f", 
+        "Braking Acceleration (m/s²)" if not persian else "شتاب ترمز (متر بر مجذور ثانیه)",
+        min_value=0.01, max_value=2.0,
+        value=st.session_state.braking_acceleration,
+        step=0.01, format="%.2f",
         key="braking_accel_input",
         help="Actual braking acceleration for your design" if not persian else "شتاب ترمز واقعی برای طراحی شما"
     )
     st.session_state.braking_acceleration = braking_accel
-    
+
     st.markdown("---")
-    
-    # === DEVICE CLASSIFICATION ANALYSIS (Only Gravity + Braking) ===
+
     st.subheader("⚙️ Device Classification Analysis" if not persian else "⚙️ تحلیل طبقه‌بندی دستگاه")
-    st.markdown("**Based on Gravity and Braking Acceleration Only:**" if not persian else "**بر اساس گرانش و شتاب ترمز:**")
-    
-    # Display input parameters
+    st.markdown(
+        "**Based on Gravity and Braking Acceleration Only:**" if not persian else
+        "**بر اساس گرانش و شتاب ترمز:**"
+    )
+
     param_col1, param_col2, param_col3 = st.columns(3)
     with param_col1:
         st.metric("Rotation Speed" if not persian else "سرعت چرخش", f"{rpm:.4f} rpm")
@@ -2935,8 +2995,7 @@ elif st.session_state.step == 9:
         st.metric("Braking Acceleration" if not persian else "شتاب ترمز", f"{braking_accel:.2f} m/s²")
     with param_col3:
         st.metric("Diameter" if not persian else "قطر", f"{diameter} m")
-    
-    # Calculate Dynamic Product (WITHOUT environmental loads)
+
     def calculate_accelerations_clean(theta, diameter, angular_velocity, braking_accel, g=9.81):
         """
         Calculate accelerations at a given angle (only gravity + braking + centripetal)
@@ -2944,108 +3003,78 @@ elif st.session_state.step == 9:
         """
         radius = diameter / 2.0
         a_centripetal = radius * (angular_velocity ** 2)
-        
-        # Gravity components
         a_z_gravity = -g
         a_x_gravity = 0
-        
-        # Centripetal acceleration components
         a_x_centripetal = a_centripetal * np.cos(theta)
         a_z_centripetal = a_centripetal * np.sin(theta)
-        
-        # Braking acceleration components
         a_x_braking = braking_accel * np.sin(theta)
         a_z_braking = -braking_accel * np.cos(theta)
-        
-        # Total accelerations (NO environmental loads)
         a_x_total = a_x_gravity + a_x_centripetal + a_x_braking
         a_z_total = a_z_gravity + a_z_centripetal + a_z_braking
-        
         a_total = np.sqrt(a_x_total**2 + a_z_total**2)
-        
         return a_x_total, a_z_total, a_total
-    
+
     def calculate_dynamic_product_clean(diameter, height, angular_velocity, braking_accel, g=9.81):
         """
         Calculate dynamic product (only operational accelerations, no environmental loads)
         """
         theta_vals = np.linspace(0, 2*np.pi, 360)
         max_accel = 0
-        
         for theta in theta_vals:
-            _, _, a_total = calculate_accelerations_clean(
-                theta, diameter, angular_velocity, braking_accel, g
-            )
+            _, _, a_total = calculate_accelerations_clean(theta, diameter, angular_velocity, braking_accel, g)
             if a_total > max_accel:
                 max_accel = a_total
-        
         v = (diameter / 2.0) * angular_velocity
         n = max_accel / g
         p = v * height * n
-        
         return p, n, max_accel
-    
-    # Calculate dynamic product
+
     p_actual, n_actual, max_accel_actual = calculate_dynamic_product_clean(
         diameter, height, angular_velocity, braking_accel
     )
-    
-    # Classification functions
+
     def classify_intrinsic_secured(p):
         """Intrinsic safety secured per INSO 8987-1-2023"""
-        if 0.1 < p <= 25:
-            return 1
-        elif 25 < p <= 100:
-            return 2
-        elif 100 < p <= 200:
-            return 3
-        elif p > 200:
-            return 4
-        else:
-            return None
-    
+        if 0.1 < p <= 25:   return 1
+        elif 25 < p <= 100:  return 2
+        elif 100 < p <= 200: return 3
+        elif p > 200:        return 4
+        return None
+
     def classify_intrinsic_not_secured(p):
         """Intrinsic safety not secured per INSO 8987-1-2023"""
-        if 0.1 < p <= 25:
-            return 2
-        elif 25 < p <= 100:
-            return 3
-        elif 100 < p <= 200:
-            return 4
-        elif p > 200:
-            return 5
-        else:
-            return None
-    
+        if 0.1 < p <= 25:   return 2
+        elif 25 < p <= 100:  return 3
+        elif 100 < p <= 200: return 4
+        elif p > 200:        return 5
+        return None
+
     class_secured = classify_intrinsic_secured(p_actual)
     class_not_secured = classify_intrinsic_not_secured(p_actual)
-    
+
     st.markdown("---")
     st.markdown("**Calculated Values:**" if not persian else "**مقادیر محاسبه شده:**")
-    
+
     result_col1, result_col2, result_col3 = st.columns(3)
     with result_col1:
-        st.metric("Max Acceleration" if not persian else "حداکثر شتاب", 
-                 f"{max_accel_actual:.3f} m/s²")
+        st.metric("Max Acceleration" if not persian else "حداکثر شتاب", f"{max_accel_actual:.3f} m/s²")
         st.caption(f"({n_actual:.3f}g)")
     with result_col2:
-        st.metric("Dynamic Product (p)" if not persian else "حاصل‌ضرب دینامیکی", 
-                 f"{p_actual:.2f}")
+        st.metric("Dynamic Product (p)" if not persian else "حاصل‌ضرب دینامیکی", f"{p_actual:.2f}")
     with result_col3:
-        st.metric("Linear Velocity" if not persian else "سرعت خطی", 
-                 f"{(diameter/2.0) * angular_velocity:.3f} m/s")
-    
-    # Display classifications
+        st.metric("Linear Velocity" if not persian else "سرعت خطی", f"{(diameter/2.0) * angular_velocity:.3f} m/s")
+
     st.markdown("---")
-    st.subheader("📋 Device Classification per INSO 8987-1-2023" if not persian else 
-                "📋 طبقه‌بندی دستگاه طبق INSO 8987-1-2023")
-    
+    st.subheader(
+        "📋 Device Classification per INSO 8987-1-2023" if not persian else
+        "📋 طبقه‌بندی دستگاه طبق INSO 8987-1-2023"
+    )
+
     class_col1, class_col2 = st.columns(2)
-    
+
     with class_col1:
         st.markdown("#### **Intrinsic Safety Secured**" if not persian else "#### **ایمنی ذاتی تأمین شده**")
         st.success(f"**Class {class_secured}**")
-        
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -3054,20 +3083,22 @@ elif st.session_state.step == 9:
 | 3     | 100 < P ≤ 200       |
 | 4     | 200 < P             |
 """)
-        
         if class_secured == 1:
-            st.info("✅ Lowest classification - Minimal restraint requirements")
+            st.info("✅ Lowest classification - Minimal restraint requirements" if not persian else
+                    "✅ پایین‌ترین طبقه - حداقل الزامات مهاربند")
         elif class_secured == 2:
-            st.info("✅ Low to moderate classification - Standard restraint")
+            st.info("✅ Low to moderate classification - Standard restraint" if not persian else
+                    "✅ طبقه پایین تا متوسط - مهاربند استاندارد")
         elif class_secured == 3:
-            st.warning("⚠️ Moderate to high classification - Enhanced restraint required")
+            st.warning("⚠️ Moderate to high classification - Enhanced restraint required" if not persian else
+                       "⚠️ طبقه متوسط تا بالا - مهاربند تقویت‌شده لازم است")
         elif class_secured == 4:
-            st.error("⚠️ Highest classification - Maximum restraint required")
-    
+            st.error("⚠️ Highest classification - Maximum restraint required" if not persian else
+                     "⚠️ بالاترین طبقه - حداکثر مهاربند لازم است")
+
     with class_col2:
         st.markdown("#### **Intrinsic Safety NOT Secured**" if not persian else "#### **ایمنی ذاتی تأمین نشده**")
         st.warning(f"**Class {class_not_secured}**")
-        
         st.markdown("""
 | Class | Dynamic Product (P) |
 |-------|---------------------|
@@ -3076,32 +3107,37 @@ elif st.session_state.step == 9:
 | 4     | 100 < P ≤ 200       |
 | 5     | 200 < P             |
 """)
-        
         if class_not_secured == 2:
-            st.info("⚠️ Requires additional safety measures")
+            st.info("⚠️ Requires additional safety measures" if not persian else
+                    "⚠️ نیازمند اقدامات ایمنی اضافی")
         elif class_not_secured == 3:
-            st.warning("⚠️ Enhanced safety measures required")
+            st.warning("⚠️ Enhanced safety measures required" if not persian else
+                       "⚠️ اقدامات ایمنی تقویت‌شده لازم است")
         elif class_not_secured == 4:
-            st.error("⚠️ Comprehensive safety system required")
+            st.error("⚠️ Comprehensive safety system required" if not persian else
+                     "⚠️ سیستم ایمنی جامع لازم است")
         elif class_not_secured == 5:
-            st.error("🚨 Maximum safety classification - Special precautions mandatory")
-    
-    # Store classification data for next steps
+            st.error("🚨 Maximum safety classification - Special precautions mandatory" if not persian else
+                     "🚨 بالاترین طبقه ایمنی - احتیاط‌های ویژه اجباری است")
+
     st.session_state.classification_data = {
-        'p_actual': p_actual, 
-        'class_secured': class_secured, 
+        'p_actual': p_actual,
+        'class_secured': class_secured,
         'class_not_secured': class_not_secured,
-        'max_accel_actual': max_accel_actual, 
+        'max_accel_actual': max_accel_actual,
         'n_actual': n_actual,
         'rpm_actual': rpm,
         'angular_velocity': angular_velocity,
         'braking_accel': braking_accel,
     }
-    
-    st.info("ℹ️ **Note:** Environmental loads (wind, snow, earthquake) will be calculated separately in the next step and are not included in the device classification.")
-    
+
+    st.info(
+        "ℹ️ **Note:** Environmental loads (wind, snow, earthquake) will be calculated separately in the next step and are not included in the device classification." if not persian else
+        "ℹ️ **توجه:** بارهای محیطی (باد، برف، زلزله) در مرحله بعد به‌صورت جداگانه محاسبه می‌شوند و در طبقه‌بندی دستگاه لحاظ نشده‌اند."
+    )
+
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
         st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
