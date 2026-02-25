@@ -194,7 +194,7 @@ def get_text(key, persian=False):
         'per_rotation_capacity': {'en': "Per-rotation capacity", 'fa': "ظرفیت به ازای هر دور"},
         'vip_capacity': {'en': "VIP capacity (per rotation)", 'fa': "ظرفیت VIP (به ازای هر دور)"},
         'passengers': {'en': "passengers", 'fa': "مسافر"},
-        'each_vip': {'en': "each VIP:", 'fa': "هر VIP:"},
+        'each_vip': {'en': "each VIP:", 'fa': " VIPهر:"},
         'capacities_calculated': {'en': "Capacities calculated.", 'fa': "ظرفیت‌ها محاسبه شدند."},
         
         # Step 4 - Rotation Time
@@ -202,7 +202,7 @@ def get_text(key, persian=False):
         'rotation_time_instruction': {'en': "Enter the rotation time or select target capacity per hour",
                                      'fa': "زمان چرخش را وارد کنید یا ظرفیت هدف در ساعت را انتخاب کنید"},
         'rotation_time_label': {'en': "Rotation Time (minutes)", 'fa': "زمان چرخش (دقیقه)"},
-        'capacity_per_hour': {'en': "Capacity per Hour (pax/hr)", 'fa': "ظرفیت در ساعت (مسافر/ساعت)"},
+        'capacity_per_hour': {'en': "Capacity per Hour (pax/hr)", 'fa': "ظرفیت در ساعت (ساعت/مسافر)"},
         'angular_velocity': {'en': "Angular Velocity", 'fa': "سرعت زاویه‌ای"},
         'linear_velocity': {'en': "Linear Velocity at Rim", 'fa': "سرعت خطی در لبه"},
         'rotation_speed': {'en': "Rotation Speed", 'fa': "سرعت چرخش"},
@@ -3768,8 +3768,8 @@ elif st.session_state.step == 11:
 elif st.session_state.step == 12:
     st.header(get_text('restraint_type', persian))
     st.image("assets/Axis_Guide.jpg",
-             caption="Axis Guide" if not persian else "راهنمای محورها",
-             use_column_width=True)
+            caption="Axis Guide" if not persian else "راهنمای محورها",
+            width=500)
     st.markdown("**ISO 17842-2023 & AS 3533.1-2009+A1-2011**")
     st.markdown("---")
     
