@@ -382,37 +382,37 @@ if 'first_visit' not in st.session_state:
 
 # --- Province Data ---
 TERRAIN_CATEGORIES = {
-    "Gilan": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Mazandaran": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Golestan": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Bushehr": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Hormozgan": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Khuzestan": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea"},
-    "Sistan and Baluchestan": {"category": "0", "z0": 0.003, "zmin": 1, "desc": "Sea or coastal area exposed to the open sea (coastal parts)"},
-    "Yazd": {"category": "I", "z0": 0.01, "zmin": 1, "desc": "Flat or desert area with negligible vegetation"},
-    "Semnan": {"category": "I", "z0": 0.01, "zmin": 1, "desc": "Flat or desert area with negligible vegetation"},
-    "Qom": {"category": "I", "z0": 0.01, "zmin": 1, "desc": "Flat or desert area with negligible vegetation"},
-    "South Khorasan": {"category": "I", "z0": 0.01, "zmin": 1, "desc": "Flat or desert area with negligible vegetation"},
-    "Kerman": {"category": "I", "z0": 0.01, "zmin": 1, "desc": "Flat or desert area with negligible vegetation"},
-    "Qazvin": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Low vegetation, scattered trees or buildings"},
-    "Zanjan": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Low vegetation, scattered trees or buildings"},
-    "Hamedan": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Low vegetation, scattered trees or buildings"},
-    "Markazi": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Low vegetation, scattered trees or buildings"},
-    "North Khorasan": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Low vegetation, scattered trees or buildings"},
-    "Khorasan Razavi": {"category": "II", "z0": 0.05, "zmin": 2, "desc": "Semi-arid plains, mixed low vegetation"},
-    "East Azerbaijan": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "West Azerbaijan": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Ardabil": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Kurdistan": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Kermanshah": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Ilam": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Lorestan": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Chaharmahal and Bakhtiari": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Kohgiluyeh and Boyer-Ahmad": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Fars": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Isfahan": {"category": "III", "z0": 0.3, "zmin": 5, "desc": "Regular vegetation or rural/forested terrain"},
-    "Tehran": {"category": "IV", "z0": 1.0, "zmin": 10, "desc": "Densely built-up urban area"},
-    "Alborz": {"category": "IV", "z0": 1.0, "zmin": 10, "desc": "Densely built-up urban area"}
+    "Gilan":                      {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Mazandaran":                 {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Golestan":                   {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Bushehr":                    {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Hormozgan":                  {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Khuzestan":                  {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea",                         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد"},
+    "Sistan and Baluchestan":     {"category": "0",   "z0": 0.003, "zmin": 1,  "desc": "Sea or coastal area exposed to the open sea (coastal parts)",         "desc_fa": "دریا یا منطقه ساحلی در معرض دریای آزاد (بخش‌های ساحلی)"},
+    "Yazd":                       {"category": "I",   "z0": 0.01,  "zmin": 1,  "desc": "Flat or desert area with negligible vegetation",                      "desc_fa": "منطقه مسطح یا بیابانی با پوشش گیاهی ناچیز"},
+    "Semnan":                     {"category": "I",   "z0": 0.01,  "zmin": 1,  "desc": "Flat or desert area with negligible vegetation",                      "desc_fa": "منطقه مسطح یا بیابانی با پوشش گیاهی ناچیز"},
+    "Qom":                        {"category": "I",   "z0": 0.01,  "zmin": 1,  "desc": "Flat or desert area with negligible vegetation",                      "desc_fa": "منطقه مسطح یا بیابانی با پوشش گیاهی ناچیز"},
+    "South Khorasan":             {"category": "I",   "z0": 0.01,  "zmin": 1,  "desc": "Flat or desert area with negligible vegetation",                      "desc_fa": "منطقه مسطح یا بیابانی با پوشش گیاهی ناچیز"},
+    "Kerman":                     {"category": "I",   "z0": 0.01,  "zmin": 1,  "desc": "Flat or desert area with negligible vegetation",                      "desc_fa": "منطقه مسطح یا بیابانی با پوشش گیاهی ناچیز"},
+    "Qazvin":                     {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Low vegetation, scattered trees or buildings",                        "desc_fa": "پوشش گیاهی کم، درختان یا ساختمان‌های پراکنده"},
+    "Zanjan":                     {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Low vegetation, scattered trees or buildings",                        "desc_fa": "پوشش گیاهی کم، درختان یا ساختمان‌های پراکنده"},
+    "Hamedan":                    {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Low vegetation, scattered trees or buildings",                        "desc_fa": "پوشش گیاهی کم، درختان یا ساختمان‌های پراکنده"},
+    "Markazi":                    {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Low vegetation, scattered trees or buildings",                        "desc_fa": "پوشش گیاهی کم، درختان یا ساختمان‌های پراکنده"},
+    "North Khorasan":             {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Low vegetation, scattered trees or buildings",                        "desc_fa": "پوشش گیاهی کم، درختان یا ساختمان‌های پراکنده"},
+    "Khorasan Razavi":            {"category": "II",  "z0": 0.05,  "zmin": 2,  "desc": "Semi-arid plains, mixed low vegetation",                             "desc_fa": "دشت‌های نیمه‌خشک، پوشش گیاهی کم و مختلط"},
+    "East Azerbaijan":            {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "West Azerbaijan":            {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Ardabil":                    {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Kurdistan":                  {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Kermanshah":                 {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Ilam":                       {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Lorestan":                   {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Chaharmahal and Bakhtiari":  {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Kohgiluyeh and Boyer-Ahmad": {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Fars":                       {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Isfahan":                    {"category": "III", "z0": 0.3,   "zmin": 5,  "desc": "Regular vegetation or rural/forested terrain",                       "desc_fa": "پوشش گیاهی معمولی یا زمین روستایی/جنگلی"},
+    "Tehran":                     {"category": "IV",  "z0": 1.0,   "zmin": 10, "desc": "Densely built-up urban area",                                        "desc_fa": "منطقه شهری با تراکم ساختمانی بالا"},
+    "Alborz":                     {"category": "IV",  "z0": 1.0,   "zmin": 10, "desc": "Densely built-up urban area",                                        "desc_fa": "منطقه شهری با تراکم ساختمانی بالا"},
 }
 
 # City data with seismic hazard levels
@@ -1987,46 +1987,48 @@ def validate_current_step_and_next():
         st.session_state.validation_errors = []
         st.session_state.step = min(13, st.session_state.step + 1)
 
-def map_direction_to_axis_and_vector(dir_str):
+def map_direction_to_axis_and_vector(dir_str, persian=False):
     d = (dir_str or "").strip().lower()
     s = 1 / math.sqrt(2)
-    
+
     if d in ('north-south', 'north–south', 'north south'):
-        return 'NS', 'North–South', (0, 1)
+        return 'NS', 'شمال–جنوب' if persian else 'North–South', (0, 1)
     if d in ('east-west', 'east–west', 'east west'):
-        return 'EW', 'East–West', (1, 0)
+        return 'EW', 'شرق–غرب' if persian else 'East–West', (1, 0)
     if d in ('northeast-southwest', 'northeast–southwest', 'northeast southwest'):
-        return 'NE_SW', 'Northeast–Southwest', (s, s)
+        return 'NE_SW', 'شمال‌شرقی–جنوب‌غربی' if persian else 'Northeast–Southwest', (s, s)
     if d in ('northwest-southeast', 'northwest–southeast', 'northwest southeast'):
-        return 'SE_NW', 'Northwest–Southeast', (-s, s)
+        return 'SE_NW', 'شمال‌غربی–جنوب‌شرقی' if persian else 'Northwest–Southeast', (-s, s)
 
     if d in ('north', 'n'):
-        return 'NS', 'North', (0, 1)
+        return 'NS', 'شمال' if persian else 'North', (0, 1)
     if d in ('south', 's'):
-        return 'NS', 'South', (0, -1)
+        return 'NS', 'جنوب' if persian else 'South', (0, -1)
     if d in ('east', 'e'):
-        return 'EW', 'East', (1, 0)
+        return 'EW', 'شرق' if persian else 'East', (1, 0)
     if d in ('west', 'w'):
-        return 'EW', 'West', (-1, 0)
+        return 'EW', 'غرب' if persian else 'West', (-1, 0)
     if d in ('northeast', 'ne'):
-        return 'NE_SW', 'Northeast', (s, s)
+        return 'NE_SW', 'شمال‌شرقی' if persian else 'Northeast', (s, s)
     if d in ('southwest', 'sw'):
-        return 'NE_SW', 'Southwest', (-s, -s)
+        return 'NE_SW', 'جنوب‌غربی' if persian else 'Southwest', (-s, -s)
     if d in ('southeast', 'se'):
-        return 'SE_NW', 'Southeast', (s, -s)
+        return 'SE_NW', 'جنوب‌شرقی' if persian else 'Southeast', (s, -s)
     if d in ('northwest', 'nw'):
-        return 'SE_NW', 'Northwest', (-s, s)
+        return 'SE_NW', 'شمال‌غربی' if persian else 'Northwest', (-s, s)
 
-    return 'NS', 'North–South', (0, 1)
+    return 'NS', 'شمال–جنوب' if persian else 'North–South', (0, 1)
 
 
-def axis_label(axis):
-    return {
-        'NS': 'North–South',
-        'EW': 'East–West',
-        'NE_SW': 'Northeast–Southwest',
-        'SE_NW': 'Southeast–Northwest'
-    }[axis]
+def axis_label(axis, persian=False):
+    labels = {
+        'NS':    ('شمال–جنوب',              'North–South'),
+        'EW':    ('شرق–غرب',               'East–West'),
+        'NE_SW': ('شمال‌شرقی–جنوب‌غربی',   'Northeast–Southwest'),
+        'SE_NW': ('جنوب‌شرقی–شمال‌غربی',   'Southeast–Northwest'),
+    }
+    fa, en = labels.get(axis, ('شمال–جنوب', 'North–South'))
+    return fa if persian else en
 
 
 def create_orientation_diagram(axis_key, land_length, land_width, arrow_vec):
@@ -2435,9 +2437,9 @@ elif st.session_state.step == 3:
             f"{per_rotation} {'passengers' if not persian else 'مسافر'}"
         )
         c2.metric(
-            "VIP capacity (per rotation)" if not persian else "ظرفیت VIP (به ازای هر دور)",
+            "VIP capacity (per rotation)" if not persian else "ظرفیت ویژه (به ازای هر دور)",
             f"{vip_total} {'passengers' if not persian else 'مسافر'} "
-            f"({'each VIP' if not persian else 'هر VIP'}: {vip_cap})"
+            f"({'each VIP' if not persian else 'هر ظرفیت ویژه'}: {vip_cap})"
         )
         st.success(
             "Capacities calculated." if not persian else "ظرفیت‌ها محاسبه شدند."
@@ -2460,27 +2462,41 @@ elif st.session_state.step == 4:
     circumference = np.pi * diameter
     default_rotation_time_min = (circumference / 0.2) / 60.0 if diameter > 0 else 1.0
 
-    rotation_time_min = st.number_input("Rotation time (minutes per full rotation)", min_value=0.01, max_value=60.0, 
-                                         value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min), 
-                                         step=0.01, format="%.2f", key="rotation_time_input")
+    rotation_time_min = st.number_input(
+        "Rotation time (minutes per full rotation)" if not persian else "زمان چرخش (دقیقه به ازای یک دور کامل)",
+        min_value=0.01, max_value=60.0,
+        value=st.session_state.rotation_time_min if st.session_state.rotation_time_min else float(default_rotation_time_min),
+        step=0.01, format="%.2f", key="rotation_time_input"
+    )
     st.session_state.rotation_time_min = rotation_time_min
 
     ang, rpm, linear = calc_ang_rpm_linear_from_rotation_time(rotation_time_min, diameter)
 
-    st.text_input("Rotational speed (rpm)", value=f"{rpm:.6f}", disabled=True)
-    st.caption(f"Angular speed (rad/s): {ang:.6f}")
-    st.text_input("Linear speed at rim (m/s)", value=f"{linear:.6f}", disabled=True)
+    st.text_input(
+        "Rotational speed (rpm)" if not persian else "سرعت چرخش (دور در دقیقه)",
+        value=f"{rpm:.6f}", disabled=True
+    )
+    st.caption(
+        f"Angular speed (rad/s): {ang:.6f}" if not persian else f"سرعت زاویه‌ای (رادیان بر ثانیه): {ang:.6f}"
+    )
+    st.text_input(
+        "Linear speed at rim (m/s)" if not persian else "سرعت خطی در لبه چرخ (متر بر ثانیه)",
+        value=f"{linear:.6f}", disabled=True
+    )
 
-    cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity, 
+    cap_per_hour = calculate_capacity_per_hour_from_time(st.session_state.num_cabins, st.session_state.cabin_capacity,
                                                           st.session_state.num_vip_cabins, rotation_time_min)
-    st.metric("Estimated Capacity per Hour", f"{cap_per_hour:.0f} passengers/hour")
+    st.metric(
+        "Estimated Capacity per Hour" if not persian else "ظرفیت تخمینی در ساعت",
+        f"{cap_per_hour:.0f} {'passengers/hour' if not persian else 'مسافر/ساعت'}"
+    )
 
     st.markdown("---")
-    left_col, right_col = st.columns([1,1])
+    left_col, right_col = st.columns([1, 1])
     with left_col:
-        st.button("⬅️ Back", on_click=go_back)
+        st.button("⬅️ Back" if not persian else "⬅️ بازگشت", on_click=go_back)
     with right_col:
-        st.button("Next ➡️", on_click=validate_current_step_and_next)
+        st.button("Next ➡️" if not persian else "بعدی ➡️", on_click=validate_current_step_and_next)
 
 
 
@@ -2740,7 +2756,7 @@ elif st.session_state.step == 6:
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown(f"**{'Terrain Category' if not persian else 'دسته‌بندی زمین'}:** {terrain['category']}")
-                st.markdown(f"**{'Description' if not persian else 'توضیحات'}:** {terrain.get('desc', 'N/A')}")
+                st.markdown(f"**{'Description' if not persian else 'توضیحات'}:** {terrain.get('desc_fa', terrain.get('desc', 'N/A')) if persian else terrain.get('desc', 'N/A')}")
             with col2:
                 seismic_color = {"Very High": "🔴", "High": "🟠", "Moderate": "🟡", "Low": "🟢", "Very Low": "🟢"}
                 seismic_label = "Seismic Hazard (ISIRI 2800)" if not persian else "خطر لرزه‌ای (ISIRI 2800)"
